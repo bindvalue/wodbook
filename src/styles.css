@@ -1,0 +1,290 @@
+/* ============================================
+   PALETA DE CORES - MARCA CROSSFIT
+   ============================================ */
+
+:root {
+    /* Cores Principais */
+    --color-primary: #F4742B;        /* Laranja principal */
+    --color-primary-dark: #E0601A;   /* Laranja escuro (hover) */
+    --color-primary-light: #FF8F4A;  /* Laranja claro */
+    --color-primary-bg: #FEF3E8;     /* Fundo laranja suave */
+    
+    /* Cores Secundárias */
+    --color-secondary: #4B4B4D;      /* Cinza principal */
+    --color-secondary-dark: #333333; /* Cinza escuro */
+    --color-secondary-light: #6B6B6D;/* Cinza claro */
+    --color-secondary-bg: #F5F5F5;   /* Fundo cinza suave */
+    
+    /* Cores Neutras */
+    --color-white: #FFFFFF;
+    --color-gray-50: #F9FAFB;
+    --color-gray-100: #F3F4F6;
+    --color-gray-200: #E5E7EB;
+    --color-gray-300: #D1D5DB;
+    --color-gray-400: #9CA3AF;
+    --color-gray-500: #6B7280;
+    --color-gray-600: #4B5563;
+    --color-gray-700: #374151;
+    --color-gray-800: #1F2937;
+    --color-gray-900: #111827;
+    
+    /* Gradientes */
+    --gradient-primary: linear-gradient(135deg, #F4742B 0%, #E0601A 100%);
+    --gradient-secondary: linear-gradient(135deg, #4B4B4D 0%, #333333 100%);
+    --gradient-hero: linear-gradient(135deg, #F4742B 0%, #E0601A 50%, #4B4B4D 100%);
+    
+    /* Sombras */
+    --shadow-sm: 0 1px 2px rgba(244, 116, 43, 0.05);
+    --shadow-md: 0 4px 6px rgba(244, 116, 43, 0.07);
+    --shadow-lg: 0 10px 15px rgba(244, 116, 43, 0.1);
+    --shadow-xl: 0 20px 25px rgba(244, 116, 43, 0.15);
+}
+
+/* ============================================
+   ESTILOS DO CALENDÁRIO
+   ============================================ */
+
+/* Fade-in para o modal */
+.fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Scroll suave */
+#modalAgendamento .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #c4b5fd #f3f4f6;
+}
+
+#modalAgendamento .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+#modalAgendamento .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 10px;
+}
+
+#modalAgendamento .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #c4b5fd;
+    border-radius: 10px;
+}
+
+#modalAgendamento .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #8b5cf6;
+}
+
+/* Botões do calendário */
+#modalAgendamento button[onclick^="selecionarData"] {
+    transition: all 0.2s ease;
+}
+
+#modalAgendamento button[onclick^="selecionarData"]:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+
+#modalAgendamento button[onclick^="selecionarData"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Horários */
+#horariosList button {
+    transition: all 0.2s ease;
+}
+
+#horariosList button:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+#horariosList button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsivo para mobile */
+@media (max-width: 640px) {
+    #modalAgendamento .max-w-2xl {
+        margin: 1rem;
+        padding: 1rem;
+        max-height: 95vh;
+    }
+    
+    #horariosList {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* ============================================
+   MODAL REUTILIZÁVEL
+   ============================================ */
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: modalFadeIn 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    max-width: 480px;
+    width: 100%;
+    padding: 32px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: modalContentIn 0.3s ease;
+}
+
+@keyframes modalContentIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.modal-icon {
+    font-size: 48px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #9CA3AF;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    margin: -8px -8px 0 0;
+}
+
+.modal-close:hover {
+    background: #F3F4F6;
+    color: #4B4B4D;
+}
+
+.modal-body {
+    margin-bottom: 24px;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 0 0 8px 0;
+}
+
+.modal-message {
+    font-size: 15px;
+    color: #6B7280;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.modal-btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-btn-confirm {
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.modal-btn-confirm:active {
+    transform: translateY(0);
+}
+
+.modal-btn-cancel {
+    background: #F3F4F6;
+    color: #4B4B4D;
+}
+
+.modal-btn-cancel:hover {
+    background: #E5E7EB;
+}
+
+/* Responsivo */
+@media (max-width: 640px) {
+    .modal-content {
+        padding: 24px;
+    }
+    
+    .modal-icon {
+        font-size: 36px;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+    }
+    
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+    
+    .modal-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

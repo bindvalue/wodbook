@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="src/img/favicon.png">
+    <link rel="shortcut icon" type="image/png" href="src/img/favicon.png">
+
+    <!-- Para navegadores mais antigos -->
+    <link rel="icon" type="image/x-icon" href="src/img/favicon.png">
+
+    <!-- Para dispositivos Apple (iOS) -->
+    <link rel="apple-touch-icon" href="src/img/favicon.png">
+    <title>WODBOOK</title>
+    
+    <!-- CSP Corrigida -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' https: data: blob:;
+        connect-src 'self' https: wss: ws: http://127.0.0.1:* http://localhost:* https://*.supabase.co;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https:;
+        style-src 'self' 'unsafe-inline' https:;
+        img-src 'self' data: https: http:;
+        font-src 'self' data: https:;
+        worker-src 'self' blob:;
+    ">
+
+        <!-- jsPDF e autoTable via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/styles.css">
+    
+    <style>
+    * { font-family: 'Inter', sans-serif; }
+    
+    :root {
+        --primary: #F4742B;
+        --primary-dark: #E0601A;
+        --primary-light: #FF8F4A;
+        --primary-bg: #FEF3E8;
+        --secondary: #4B4B4D;
+        --secondary-dark: #333333;
+        --secondary-light: #6B6B6D;
+    }
+    
+    /* ============================================
+   SIDEBAR - VERSÃO CORRIGIDA
+   ============================================ */
+.sidebar {
+    background: linear-gradient(180deg, #4B4B4D 0%, #333333 100%);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 260px;
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 40;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateX(0);
+}
+
+/* Modo compacto - SOMENTE quando a classe está ativa */
+.sidebar-collapsed {
+    width: 70px !important;
+}
+
+.sidebar-collapsed .nav-item {
+    justify-content: center !important;
+    padding: 12px 8px !important;
+}
+
+.sidebar-collapsed .nav-item span {
+    display: none !important;
+}
+
+.sidebar-collapsed .nav-item .badge {
+    display: none !important;
+}
+
+.sidebar-collapsed .logo-text {
+    display: none !important;
+}
+
+.sidebar-collapsed .user-info {
+    display: none !important;
+}
+
+.sidebar-collapsed .separator-text {
+    display: none !important;
+}
+
+/* Tooltip para ícones no modo compacto */
+.sidebar-collapsed .nav-item[data-page] {
+    position: relative;
+}
+
+.sidebar-collapsed .nav-item[data-page]:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    margin-left: 8px;
+    z-index: 50;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.sidebar-collapsed .nav-item[data-page]:hover::before {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: #333;
+    margin-left: -4px;
+    z-index: 50;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 39;
+    backdrop-filter: blur(4px);
+}
+.sidebar-overlay.active { display: block; }
+
+.main-content {
+    margin-left: 260px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: calc(100% - 260px);
+    min-height: 100vh;
+    background: #F8F9FA;
+}
+
+.main-content-expanded {
+    margin-left: 70px !important;
+    width: calc(100% - 70px) !important;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px !important;
+        position: fixed;
+    }
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    .sidebar-overlay.active {
+        display: block;
+    }
+    .sidebar-collapsed {
+        width: 280px !important;
+    }
+    .sidebar-collapsed .nav-item span {
+        display: inline !important;
+    }
+    .sidebar-collapsed .logo-text {
+        display: block !important;
+    }
+    .sidebar-collapsed .user-info {
+        display: block !important;
+    }
+    .sidebar-collapsed .nav-item {
+        justify-content: flex-start !important;
+        padding: 10px 16px !important;
+    }
+    .sidebar-collapsed .nav-item[data-page]:hover::after {
+        display: none !important;
+    }
+    .sidebar-collapsed .nav-item[data-page]:hover::before {
+        display: none !important;
+    }
+}
+    
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .pulse-dot { animation: pulse 2s infinite; }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(244, 116, 43, 0.3);
+        border-radius: 10px;
+    }
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(244, 116, 43, 0.5);
+    }
+    
+    .page-loader {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+    }
+    .page-loader i {
+        font-size: 48px;
+        color: #F4742B;
+    }
+
+    /* ============================================
+   NOTIFICAÇÕES DROPDOWN
+   ============================================ */
+    #notificacoesDropdown {
+        transition: all 0.2s ease;
+        transform-origin: top right;
+    }
+
+    #notificacoesDropdown.show {
+        display: block !important;
+        animation: dropdownIn 0.2s ease;
+    }
+
+    @keyframes dropdownIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    #notificacoesDropdown .max-h-96::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #notificacoesDropdown .max-h-96::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    #notificacoesDropdown .max-h-96::-webkit-scrollbar-thumb {
+        background: #E5E7EB;
+        border-radius: 10px;
+    }
+
+    #notificacoesDropdown .max-h-96::-webkit-scrollbar-thumb:hover {
+        background: #D1D5DB;
+    }
+
+    /* ============================================
+   MODAL DE TELEFONE
+   ============================================ */
+    #modalTelefone {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        backdrop-filter: blur(4px);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    #modalTelefone.active {
+        display: flex;
+    }
+
+#modalTelefone .modal-content {
+    animation: fadeIn 0.3s ease;
+}
+/* ============================================
+   TOOLTIP DOS HORÁRIOS - CORRIGIDO
+   ============================================ */
+
+    /* Tooltip com texto quebrado */
+    #horariosList button .group-hover\:opacity-100 {
+        transition: opacity 0.2s ease;
+    }
+
+    #horariosList button .group-hover\:opacity-100 .break-words {
+        word-break: break-word;
+        white-space: normal;
+        line-height: 1.4;
+    }
+
+    /* Estilo do tooltip com fundo escuro e texto claro */
+    #horariosList button .bg-\[\#4B4B4D\] {
+        background: #4B4B4D;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Seta do tooltip */
+    #horariosList button .bg-\[\#4B4B4D\] .rotate-45 {
+        background: #4B4B4D;
+    }
+
+    /* Ajuste para mobile - tooltip mais largo */
+    @media (max-width: 640px) {
+        #horariosList button .min-w-\[200px\] {
+            min-width: 160px !important;
+            max-width: 220px !important;
+        }
+        
+        #horariosList button .text-\[11px\] {
+            font-size: 10px !important;
+        }
+    }
+    /* ============================================
+   RODAPÉ
+   ============================================ */
+    #footerContainer {
+        margin-left: 260px;
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .main-content-expanded + #footerContainer {
+        margin-left: 70px;
+    }
+
+    @media (max-width: 768px) {
+        #footerContainer {
+            margin-left: 0 !important;
+        }
+    }
+</style>
+</head>
+<body>
+    <!-- Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="window.toggleSidebarMobile()"></div>
+    
+    <!-- Sidebar será renderizada pelo menu.js -->
+    <div id="sidebarContainer"></div>
+    
+<!-- Main Content (Dinâmico) -->
+<main class="main-content">
+    <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-4 sticky top-0 z-30 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <!-- Botão Hamburguer (mobile) -->
+                <button onclick="window.toggleSidebarMobile()" class="md:hidden text-gray-600 hover:text-[#F4742B] transition text-2xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <!-- Botão Collapse (desktop) -->
+                <button id="btnCollapse" class="hidden md:block text-gray-400 hover:text-[#F4742B] transition menu-toggle">
+                    <i class="fas fa-chevron-left text-xl"></i>
+                </button>
+                
+                <!-- Título da Página -->
+                <div>
+                    <h2 class="text-xl font-bold text-[#4B4B4D]">
+                        <span id="pageTitle">Dashboard</span>
+                    </h2>
+                    <p class="text-sm text-gray-500 hidden md:block" id="pageSubtitle">Bem-vindo de volta ao seu treino</p>
+                </div>
+            </div>
+            
+            <!-- Ações do Header -->
+            <div class="flex items-center gap-4">
+                <!-- Botão de Notificações com Dropdown -->
+                <div class="relative">
+                    <button id="btnNotificacoes" 
+                            onclick="window.toggleDropdownNotificacoes()" 
+                            class="relative text-gray-400 hover:text-[#F4742B] transition p-2 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span id="badgeNotificacoes" 
+                              class="absolute -top-1 -right-1 bg-[#F4742B] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center hidden">
+                            0
+                        </span>
+                    </button>
+                    
+                    <!-- Dropdown de Notificações -->
+                    <div id="notificacoesDropdown" 
+                         class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 hidden">
+                        <div class="p-3 border-b border-gray-100 bg-gray-50">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-semibold text-gray-800 text-sm">Notificações</h4>
+                                <button onclick="window.fecharDropdownNotificacoes()" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-times text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="notificacoesList">
+                            <div class="p-4 text-center text-gray-500">
+                                <i class="fas fa-spinner fa-spin text-[#F4742B]"></i>
+                                <p class="text-sm mt-2">Carregando notificações...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Online e Avatar -->
+                <div class="hidden md:flex items-center gap-3">
+                    <span class="bg-[#FEF3E8] text-[#F4742B] px-3 py-1 rounded-full text-sm font-medium">
+                        <span class="pulse-dot inline-block w-2 h-2 bg-[#F4742B] rounded-full mr-1"></span>
+                        Online
+                    </span>
+                    <img id="userAvatarHeader" src="https://ui-avatars.com/api/?name=Usuário&background=F4742B&color=fff" 
+                         alt="Avatar" class="w-10 h-10 rounded-full border-2 border-[#F4742B]">
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Conteúdo da página -->
+    <div id="pageContent" class="p-4 md:p-6">
+        <div class="page-loader">
+            <i class="fas fa-spinner fa-spin"></i>
+        </div>
+    </div>
+</main>
+<!-- Rodapé -->
+<div id="footerContainer"></div>
+    
+<script type="module">
+    // ============================================
+    // IMPORTS
+    // ============================================
+    import { supabase, getCurrentUser } from './src/config/supabase.js';
+    import { renderCalendar } from './src/components/calendar.js';
+    import { loadPage, initRouter } from './src/modules/router.js';
+    import { renderMenu, initMenuMobile, initCollapseDesktop } from './src/components/menu.js';
+    import { confirmModal, successModal, errorModal, infoModal } from './src/components/modal.js';
+    import { initNotificacoes } from './src/modules/notificacoes.js';
+    import { initFooter } from './src/components/footer.js';
+    import { setupLogout, updateUserAvatar } from './src/modules/shared.js'; // ✅ UNICO import
+    
+    // ============================================
+    // ELEMENTOS
+    // ============================================
+    const pageContent = document.getElementById('pageContent');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageSubtitle = document.getElementById('pageSubtitle');
+    const sidebarContainer = document.getElementById('sidebarContainer');
+    
+    console.log('🚀 Iniciando aplicação...');
+    console.log('📦 pageContent:', !!pageContent);
+    console.log('📦 sidebarContainer:', !!sidebarContainer);
+    console.log('🔍 Verificando elementos:');
+    console.log('📦 pageTitle:', !!pageTitle);
+    console.log('📦 pageSubtitle:', !!pageSubtitle);
+    
+    // ============================================
+    // RENDERIZAR MENU - PRIMEIRO!
+    // ============================================
+    if (sidebarContainer) {
+        sidebarContainer.innerHTML = renderMenu('dashboard');
+        console.log('✅ Menu renderizado');
+    } else {
+        console.error('❌ sidebarContainer não encontrado!');
+    }
+    
+    // Inicializar funcionalidades do menu
+    initMenuMobile();
+    initCollapseDesktop();
+    
+    // ============================================
+    // INICIALIZAR ROTEADOR - DEPOIS DO MENU
+    // ============================================
+    console.log('🔄 Inicializando router...');
+    initRouter({ pageContent, pageTitle, pageSubtitle });
+    
+    // ============================================
+    // FUNÇÃO: Navegação (SPA)
+    // ============================================
+    function initNavigation() {
+        const items = document.querySelectorAll('.nav-item[data-page]');
+        console.log('📋 Itens do menu com data-page:', items.length);
+        
+        items.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.dataset.page;
+                console.log('🔄 Navegando para:', page);
+                
+                if (page) {
+                    document.querySelectorAll('.nav-item').forEach(el => {
+                        el.classList.remove('active');
+                        const icon = el.querySelector('i');
+                        if (icon) icon.style.color = '';
+                        el.classList.add('text-white/70', 'hover:text-white');
+                    });
+                    this.classList.add('active');
+                    this.classList.remove('text-white/70', 'hover:text-white');
+                    const icon = this.querySelector('i');
+                    if (icon) icon.style.color = '#F4742B';
+                    
+                    loadPage(page);
+                    
+                    if (window.innerWidth <= 768 && window.toggleSidebarMobile) {
+                        window.toggleSidebarMobile();
+                    }
+                }
+            });
+        });
+    }
+    
+    // ============================================
+    // FUNÇÃO: Menu Mobile
+    // ============================================
+    window.toggleSidebarMobile = function() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (!sidebar || !overlay) return;
+        
+        const isOpen = sidebar.classList.contains('mobile-open');
+        
+        if (isOpen) {
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        } else {
+            sidebar.classList.add('mobile-open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+    
+    // ============================================
+    // FUNÇÕES GLOBAIS
+    // ============================================
+    window.abrirAgendamento = function(centroId, centroNome) {
+        renderCalendar(centroId, centroNome);
+    };
+    
+    // ============================================
+    // INICIALIZAÇÃO
+    // ============================================
+    async function init() {
+        try {
+            console.log('🔄 Inicializando...');
+            
+            const user = await getCurrentUser();
+            if (!user) {
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            console.log('✅ Usuário autenticado:', user.email);
+            
+            // ✅ Funções importadas do shared.js
+            setupLogout();
+            await updateUserAvatar();
+            initNavigation();
+            initNotificacoes(); 
+            initFooter();
+            
+            console.log('📄 Carregando dashboard...');
+            loadPage('dashboard');
+            
+            console.log('✅ SPA iniciado com sucesso!');
+        } catch (error) {
+            console.error('❌ Erro na inicialização:', error);
+        }
+    }
+    
+    // Aguardar o DOM carregar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+</script>
+</body>
+</html>
