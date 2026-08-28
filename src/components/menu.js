@@ -1,83 +1,129 @@
 // ============================================
-// COMPONENTE: Menu Lateral (Versão Simplificada - SEM CONDICIONAIS)
+// COMPONENTE: Menu Lateral (Estilizado e Moderno)
 // ============================================
 
 export function renderMenu(activePage = 'dashboard') {
-    const isAdmin = true;
+    // 🔥 Verificar se o usuário é admin (via localStorage)
+    const isAdmin = localStorage.getItem('userRole') === 'admin';
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    
+    // Definir ícones com cores
+    const icons = {
+        dashboard: { icon: 'fa-home', color: '#F4742B' },
+        centros: { icon: 'fa-dumbbell', color: '#F4742B' },
+        alunos: { icon: 'fa-users', color: '#4B4B4D' },
+        agendamentos: { icon: 'fa-calendar-check', color: '#4B4B4D' },
+        configuracoes: { icon: 'fa-cog', color: '#4B4B4D' },
+        logout: { icon: 'fa-sign-out-alt', color: '#EF4444' }
+    };
     
     const menuHTML = `
         <aside id="sidebar" class="sidebar ${isCollapsed ? 'sidebar-collapsed' : ''}">
-            <!-- Logo -->
-             <div class="flex items-center justify-center p-4 border-b border-white/10">
+            <!-- Logo com efeito -->
+            <div class="flex items-center justify-center p-5 border-b border-white/5 relative group">
                 <div class="flex items-center justify-center w-full">
-                    <img src="src/img/logo_wodbook.png" 
-                         alt="WODBOOK" 
-                         class="w-20 h-20 object-contain flex-shrink-0"
-                         onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=48'">
+                    <div class="relative">
+                        <img src="src/img/logo_wodbook.png" 
+                             alt="WODBOOK" 
+                             class="w-20 h-20 object-contain flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+                             onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=48'">
+                        <div class="absolute -inset-1 bg-[#F4742B]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </div>
                 </div>
-                <button onclick="window.toggleSidebarMobile()" class="md:hidden text-white/60 hover:text-white transition absolute right-4">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-                <button onclick="window.toggleSidebarMobile()" class="md:hidden text-white/60 hover:text-white transition">
+                <button onclick="window.toggleSidebarMobile()" class="md:hidden text-white/60 hover:text-white transition absolute right-4 top-1/2 -translate-y-1/2">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
             
-            <!-- Menu -->
+            <!-- Menu com efeitos modernos -->
             <nav class="p-3 space-y-1" id="mainNav">
-                <!-- Dashboard -->
-                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg transition ${activePage === 'dashboard' ? 'active' : 'text-white/70 hover:text-white'}" data-page="dashboard" title="Dashboard">
-                    <i class="fas fa-home text-lg w-5 ${activePage === 'dashboard' ? 'text-[#F4742B]' : ''} flex-shrink-0"></i>
-                    <span>Dashboard</span>
+                <!-- 📊 Dashboard -->
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'dashboard' ? 'active' : 'text-white/70 hover:text-white'}" data-page="dashboard" title="Dashboard">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'dashboard' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
+                        <i class="fas fa-home text-sm"></i>
+                    </div>
+                    <span class="font-medium">Dashboard</span>
                 </a>
                 
-                <!-- Centros (Admin) -->
+                <!-- 🏢 Centros - SÓ ADMIN -->
                 ${isAdmin ? `
-                    <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg transition ${activePage === 'centros' ? 'active' : 'text-white/70 hover:text-white'}" data-page="centros" title="Centros">
-                        <i class="fas fa-dumbbell text-lg w-5 ${activePage === 'centros' ? 'text-[#F4742B]' : ''} flex-shrink-0"></i>
-                        <span>Centros</span>
+                    <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'centros' ? 'active' : 'text-white/70 hover:text-white'}" data-page="centros" title="Centros">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'centros' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
+                            <i class="fas fa-dumbbell text-sm"></i>
+                        </div>
+                        <span class="font-medium">Centros</span>
+                        ${activePage === 'centros' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
                     </a>
                 ` : ''}
                 
-                <!-- Alunos -->
-                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg transition text-white/70 hover:text-white" data-page="alunos" title="Alunos">
-                    <i class="fas fa-users text-lg w-5 flex-shrink-0"></i>
-                    <span>Alunos</span>
+                <!-- 👥 Alunos - SÓ ADMIN -->
+                ${isAdmin ? `
+                    <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'alunos' ? 'active' : 'text-white/70 hover:text-white'}" data-page="alunos" title="Alunos">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'alunos' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
+                            <i class="fas fa-users text-sm"></i>
+                        </div>
+                        <span class="font-medium">Alunos</span>
+                        ${activePage === 'alunos' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
+                    </a>
+                ` : ''}
+                
+                <!-- 📅 Agendamentos - SÓ ADMIN -->
+                ${isAdmin ? `
+                    <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'agendamentos' ? 'active' : 'text-white/70 hover:text-white'}" data-page="agendamentos" title="Agendamentos">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'agendamentos' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
+                            <i class="fas fa-calendar-check text-sm"></i>
+                        </div>
+                        <span class="font-medium">Agendamentos</span>
+                        <span class="ml-auto bg-[#F4742B] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-[#F4742B]/30">3</span>
+                        ${activePage === 'agendamentos' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
+                    </a>
+                ` : ''}
+                
+                <!-- Separador com gradiente -->
+                <div class="relative my-4">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-white/5"></div>
+                    </div>
+                    <div class="relative flex justify-center">
+                        <span class="px-2 text-[10px] text-white/20 bg-[#4B4B4D]">—</span>
+                    </div>
+                </div>
+                
+                <!-- ⚙️ Configurações - TODOS VEEM -->
+                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'configuracoes' ? 'active' : 'text-white/70 hover:text-white'}" data-page="configuracoes" title="Configurações">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'configuracoes' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
+                        <i class="fas fa-cog text-sm"></i>
+                    </div>
+                    <span class="font-medium">Configurações</span>
+                    ${activePage === 'configuracoes' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
                 </a>
                 
-                <!-- Agendamentos -->
-                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg transition text-white/70 hover:text-white" data-page="agendamentos" title="Agendamentos">
-                    <i class="fas fa-calendar-check text-lg w-5 flex-shrink-0"></i>
-                    <span>Agendamentos</span>
-                    <span class="ml-auto bg-[#F4742B] text-white text-xs font-bold px-2 py-0.5 rounded-full">3</span>
-                </a>
-                
-                <!-- Separador -->
-                <div class="border-t border-white/10 my-3"></div>
-                
-                <!-- Configurações -->
-                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg transition text-white/70 hover:text-white" data-page="configuracoes" title="Configurações">
-                    <i class="fas fa-cog text-lg w-5 flex-shrink-0"></i>
-                    <span>Configurações</span>
-                </a>
-                
-                <!-- Sair -->
-                <a href="#" id="btnLogout" class="nav-item flex items-center gap-3 px-3 py-3 rounded-lg transition text-red-400 hover:text-red-300 hover:bg-red-500/10">
-                    <i class="fas fa-sign-out-alt text-lg w-5 flex-shrink-0"></i>
-                    <span>Sair</span>
+                <!-- 🚪 Sair - TODOS VEEM -->
+                <a href="#" id="btnLogout" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 group">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-400 group-hover:bg-red-500/20 transition-all duration-300">
+                        <i class="fas fa-sign-out-alt text-sm"></i>
+                    </div>
+                    <span class="font-medium">Sair</span>
                 </a>
             </nav>
             
             <!-- Footer com usuário -->
-            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-black/10">
-                <div class="flex items-center gap-3">
-                    <img id="userAvatarMenu" src="https://ui-avatars.com/api/?name=Usuário&background=F4742B&color=fff" 
-                         alt="Avatar" class="w-10 h-10 rounded-full border-2 border-[#F4742B] flex-shrink-0">
-                    <div class="user-info">
-                        <p id="userNameMenu" class="text-sm font-medium text-white">Carregando...</p>
-                        <p class="text-xs text-white/50">${isAdmin ? 'Administrador' : 'Aluno'}</p>
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 bg-black/20 backdrop-blur-sm">
+                <div class="flex items-center gap-3 group cursor-pointer">
+                    <div class="relative">
+                        <img id="userAvatarMenu" src="https://ui-avatars.com/api/?name=Usuário&background=F4742B&color=fff&size=40" 
+                             alt="Avatar" class="w-10 h-10 rounded-full border-2 border-[#F4742B]/50 group-hover:border-[#F4742B] transition-all duration-300">
+                        <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-[#4B4B4D] rounded-full"></div>
+                    </div>
+                    <div class="user-info flex-1 min-w-0">
+                        <p id="userNameMenu" class="text-sm font-medium text-white truncate">Carregando...</p>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-white/40">${isAdmin ? 'Administrador' : 'Aluno'}</span>
+                            ${isAdmin ? `
+                                <span class="w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>
+                                <span class="text-[10px] text-[#F4742B] font-medium">●</span>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -132,7 +178,6 @@ export function initCollapseDesktop() {
                 }
             }, 50);
             
-            // Remover listeners antigos para evitar duplicação
             const newBtn = btnCollapse.cloneNode(true);
             btnCollapse.parentNode.replaceChild(newBtn, btnCollapse);
             
@@ -187,6 +232,6 @@ export function updateUserMenu(user) {
     
     if (userAvatarMenu) {
         const nome = user?.user_metadata?.nome || 'Usuário';
-        userAvatarMenu.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=F4742B&color=fff`;
+        userAvatarMenu.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=F4742B&color=fff&size=40`;
     }
 }

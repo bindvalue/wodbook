@@ -340,6 +340,9 @@ window.mudarMes = function(delta) {
 // ============================================
 // FUNÇÃO: Carregar Horários
 // ============================================
+// ============================================
+// FUNÇÃO: Carregar Horários (COM VALIDAÇÃO DE HORÁRIO ATUAL)
+// ============================================
 async function carregarHorarios() {
     const container = document.getElementById('horariosList');
     if (!container) return;
@@ -369,6 +372,13 @@ async function carregarHorarios() {
         const dataObj = new Date(ano, mes, dia);
         const diaSemana = dataObj.getDay();
         
+        // 🔥 VERIFICAR SE A DATA É HOJE
+        const hoje = new Date();
+        const hojeStr = hoje.toISOString().split('T')[0];
+        const isHoje = estado.dataSelecionada === hojeStr;
+        const horaAtual = hoje.getHours();
+        const minutoAtual = hoje.getMinutes();
+        
         const { data, error } = await supabase
             .from('horarios')
             .select(`
@@ -392,6 +402,7 @@ async function carregarHorarios() {
             return;
         }
         
+        // 🔥 VERIFICAR VAGAS E HORÁRIOS PASSADOS
         const horariosComVagas = await Promise.all(data.map(async (horario) => {
             const { count, error: countError } = await supabase
                 .from('agendamentos')
@@ -403,10 +414,21 @@ async function carregarHorarios() {
             if (countError) throw countError;
             
             const vagasDisponiveis = horario.vagas - (count || 0);
+            
+            // 🔥 VERIFICAR SE O HORÁRIO JÁ PASSOU (SE FOR HOJE)
+            let horarioPassado = false;
+            if (isHoje) {
+                const [horaInicio, minutoInicio] = horario.hora_inicio.split(':').map(Number);
+                if (horaInicio < horaAtual || (horaInicio === horaAtual && minutoInicio <= minutoAtual)) {
+                    horarioPassado = true;
+                }
+            }
+            
             return {
                 ...horario,
                 vagasDisponiveis: vagasDisponiveis,
-                temVaga: vagasDisponiveis > 0
+                temVaga: vagasDisponiveis > 0 && !horarioPassado,
+                horarioPassado: horarioPassado
             };
         }));
         
@@ -416,38 +438,33 @@ async function carregarHorarios() {
             return 0;
         });
         
-        // 🔥 RENDERIZAR HORÁRIOS COM TOOLTIP CORRIGIDO
+        // 🔥 RENDERIZAR HORÁRIOS COM INDICAÇÃO DE PASSADO
         container.innerHTML = horariosComVagas.map(horario => {
+            const isPassado = horario.horarioPassado;
             const descricao = horario.descricao || '';
-            const tooltipText = descricao ? `${descricao}` : 'Horário disponível';
             
             return `
                 <button 
                     data-horario-id="${horario.id}"
-                    onclick="window.selecionarHorario('${horario.id}', '${horario.hora_inicio}', '${horario.hora_fim}')"
-                    class="p-2 rounded-lg border-2 transition-all duration-200 hover:scale-105 text-sm relative group ${horario.temVaga ? 'hover:border-[#F4742B] hover:bg-[#FEF3E8] cursor-pointer' : 'opacity-50 cursor-not-allowed'}"
-                    style="border-color: ${horario.temVaga ? CORES.gray[200] : CORES.gray[200]};"
-                    ${!horario.temVaga ? 'disabled' : ''}
+                    onclick="${!isPassado && horario.temVaga ? `window.selecionarHorario('${horario.id}', '${horario.hora_inicio}', '${horario.hora_fim}')` : ''}"
+                    class="p-2 rounded-lg border-2 transition-all duration-200 text-sm relative group ${!isPassado && horario.temVaga ? 'hover:border-[#F4742B] hover:bg-[#FEF3E8] cursor-pointer hover:scale-105' : 'opacity-50 cursor-not-allowed'}"
+                    style="border-color: ${isPassado ? CORES.gray[300] : (horario.temVaga ? CORES.gray[200] : CORES.gray[200])};"
+                    ${!isPassado && horario.temVaga ? '' : 'disabled'}
                 >
-                    <!-- Horário -->
-                    <div class="text-xs font-semibold" style="color: ${horario.temVaga ? CORES.secondary : CORES.gray[400]};">
+                    <div class="text-xs font-semibold" style="color: ${isPassado ? CORES.gray[400] : (horario.temVaga ? CORES.secondary : CORES.gray[400])};">
                         ${horario.hora_inicio.substring(0, 5)} - ${horario.hora_fim.substring(0, 5)}
+                        ${isPassado ? ' 🔒' : ''}
                     </div>
-                    
-                    <!-- Descrição (com truncate para não quebrar) -->
                     ${descricao ? `
                         <div class="descricao-horario text-[10px] text-[#F4742B] mt-0.5 font-medium truncate max-w-[120px] mx-auto" title="${descricao}">
                             <i class="fas fa-info-circle mr-0.5"></i> ${descricao.length > 20 ? descricao.substring(0, 20) + '...' : descricao}
                         </div>
                     ` : ''}
-                    
-                    <!-- Vagas -->
-                    <div class="text-[10px]" style="color: ${horario.temVaga ? CORES.success : CORES.danger}; margin-top: ${descricao ? '2px' : '0'};">
-                        ${horario.temVaga ? `${horario.vagasDisponiveis} vagas` : 'Esgotado'}
+                    <div class="text-[10px]" style="color: ${isPassado ? CORES.gray[400] : (horario.temVaga ? CORES.success : CORES.danger)}; margin-top: ${descricao ? '2px' : '0'};">
+                        ${isPassado ? '⏰ Horário encerrado' : (horario.temVaga ? `${horario.vagasDisponiveis} vagas` : 'Esgotado')}
                     </div>
                     
-                    <!-- ✅ TOOLTIP - com texto completo e quebra de linha -->
-                    ${descricao ? `
+                    ${descricao && !isPassado ? `
                         <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-[#4B4B4D] text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 min-w-[200px] max-w-[280px]">
                             <div class="text-center">
                                 <div class="font-semibold text-[#F4742B] text-[11px]">${horario.hora_inicio.substring(0, 5)} - ${horario.hora_fim.substring(0, 5)}</div>
@@ -456,12 +473,7 @@ async function carregarHorarios() {
                             </div>
                             <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-[#4B4B4D] rotate-45"></div>
                         </div>
-                    ` : `
-                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-[#4B4B4D] text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                            ${horario.temVaga ? `${horario.vagasDisponiveis} vagas disponíveis` : 'Esgotado'}
-                            <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-[#4B4B4D] rotate-45"></div>
-                        </div>
-                    `}
+                    ` : ''}
                 </button>
             `;
         }).join('');

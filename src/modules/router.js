@@ -129,6 +129,25 @@ export async function loadPage(page, params = null) {
             case 'configuracoes':
                 content = await loadConfiguracoesContent();
                 break;
+                        case 'configuracoes':
+            const { isAdmin } = await import('./shared.js');
+            const admin = await isAdmin();
+            if (!admin) {
+                content = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-lock text-6xl text-gray-300 mb-4 block"></i>
+                        <h2 class="text-2xl font-bold text-[#4B4B4D]">Acesso Restrito</h2>
+                        <p class="text-gray-500 mt-2">Você não tem permissão para acessar esta página.</p>
+                        <button onclick="window.loadPage('dashboard')" 
+                                class="mt-4 px-6 py-2 bg-[#F4742B] text-white rounded-lg hover:bg-[#E0601A] transition">
+                            Voltar para Dashboard
+                        </button>
+                    </div>
+                `;
+                break;
+            }
+            content = await loadConfiguracoesContent();
+            break;
             default:
                 content = `<div class="text-center py-12"><h3 class="text-xl font-bold text-[#4B4B4D]">Página em construção</h3><p class="text-gray-500 mt-2">${page}</p></div>`;
         }

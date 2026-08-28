@@ -63,16 +63,23 @@ export async function loadConfiguracoesContent() {
         .eq('id', user.id)
         .single();
     
-    // Buscar configurações do banco
-    const configs = await buscarConfiguracoes();
+    // 🔥 VERIFICAR SE É ADMIN
+    const isAdmin = profile?.role === 'admin';
     
-    // Buscar centros para exibir horários e vagas
-    const { data: centros } = await supabase
+    // Buscar configurações do banco (apenas se for admin)
+    const configs = isAdmin ? await buscarConfiguracoes() : {};
+    
+    // Buscar centros (apenas se for admin)
+    const { data: centros } = isAdmin ? await supabase
         .from('centros')
         .select('id, nome, horario_funcionamento, vagas_padrao')
-        .order('nome', { ascending: true });
+        .order('nome', { ascending: true }) : { data: [] };
     
-    return `
+    // ============================================
+    // MONTAR HTML - COM PERMISSÕES
+    // ============================================
+    
+    let html = `
         <!-- Cabeçalho -->
         <div class="mb-6">
             <h2 class="text-2xl font-bold text-[#4B4B4D] flex items-center gap-2">
@@ -80,24 +87,35 @@ export async function loadConfiguracoesContent() {
                 Configurações
             </h2>
             <p class="text-gray-500 text-sm">Gerencie as configurações do sistema</p>
+            ${!isAdmin ? `
+                <div class="mt-2 text-xs text-gray-400 flex items-center gap-2">
+                    <i class="fas fa-info-circle"></i>
+                    Você está visualizando as configurações do seu perfil.
+                </div>
+            ` : ''}
         </div>
         
         <!-- Grid de Configurações -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Perfil do Admin -->
-            <div class="bg-white rounded-2xl shadow-sm p-6 card-hover">
+        <div class="grid grid-cols-1 ${isAdmin ? 'lg:grid-cols-2' : ''} gap-6">
+            
+            <!-- ==========================================
+            PERFIL - VISÍVEL PARA TODOS
+            ========================================== -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 card-hover ${!isAdmin ? 'max-w-md mx-auto' : ''}">
                 <h3 class="text-lg font-bold text-[#4B4B4D] flex items-center gap-2 mb-4">
                     <i class="fas fa-user-circle text-[#F4742B]"></i>
                     Meu Perfil
                 </h3>
                 
                 <div class="flex items-center gap-4 mb-4">
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.nome || 'Admin')}&background=F4742B&color=fff&size=80" 
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.nome || 'Usuário')}&background=F4742B&color=fff&size=80" 
                          alt="Avatar" class="w-20 h-20 rounded-full border-2 border-[#F4742B]">
                     <div>
-                        <p class="font-semibold text-gray-800">${profile?.nome || 'Administrador'}</p>
+                        <p class="font-semibold text-gray-800">${profile?.nome || 'Usuário'}</p>
                         <p class="text-sm text-gray-500">${user.email}</p>
-                        <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Administrador</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full ${isAdmin ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">
+                            ${isAdmin ? 'Administrador' : 'Usuário'}
+                        </span>
                     </div>
                 </div>
                 
@@ -122,7 +140,13 @@ export async function loadConfiguracoesContent() {
                     </button>
                 </div>
             </div>
-            
+    `;
+    
+    // ==========================================
+    // ADMIN: CONFIGURAÇÕES ADICIONAIS
+    // ==========================================
+    if (isAdmin) {
+        html += `
             <!-- Configurações do Sistema -->
             <div class="bg-white rounded-2xl shadow-sm p-6 card-hover">
                 <h3 class="text-lg font-bold text-[#4B4B4D] flex items-center gap-2 mb-4">
@@ -136,7 +160,7 @@ export async function loadConfiguracoesContent() {
                             <i class="fas fa-building text-[#F4742B] mr-1"></i> Nome da Academia
                         </label>
                         <input type="text" id="configNomeAcademia" 
-                               value="${configs?.nome_academia || 'CrossFit Agendamentos'}"
+                               value="${configs?.nome_academia || 'WODBOOK'}"
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
                         <p class="text-xs text-gray-400 mt-1">Nome que aparecerá no cabeçalho do sistema</p>
                     </div>
@@ -148,7 +172,7 @@ export async function loadConfiguracoesContent() {
                 </div>
             </div>
             
-            <!-- Horários e Vagas das Unidades - AGORA COM VAGAS -->
+            <!-- Horários e Vagas das Unidades -->
             <div class="bg-white rounded-2xl shadow-sm p-6 card-hover lg:col-span-2">
                 <div class="flex justify-between items-center mb-4">
                     <div>
@@ -182,7 +206,6 @@ export async function loadConfiguracoesContent() {
                                 </div>
                                 
                                 <div class="flex flex-wrap items-center gap-3">
-                                    <!-- Horário Início -->
                                     <div class="flex items-center gap-1">
                                         <span class="text-xs text-gray-500">Início:</span>
                                         <input type="time" id="horario_${centro.id}_inicio" 
@@ -192,7 +215,6 @@ export async function loadConfiguracoesContent() {
                                     
                                     <span class="text-gray-400">às</span>
                                     
-                                    <!-- Horário Fim -->
                                     <div class="flex items-center gap-1">
                                         <span class="text-xs text-gray-500">Fim:</span>
                                         <input type="time" id="horario_${centro.id}_fim" 
@@ -202,7 +224,6 @@ export async function loadConfiguracoesContent() {
                                     
                                     <span class="text-gray-300">|</span>
                                     
-                                    <!-- Vagas -->
                                     <div class="flex items-center gap-1">
                                         <span class="text-xs text-gray-500">
                                             <i class="fas fa-users"></i> Vagas:
@@ -213,7 +234,6 @@ export async function loadConfiguracoesContent() {
                                                class="w-16 px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition text-sm text-center">
                                     </div>
                                     
-                                    <!-- Botão Salvar -->
                                     <button onclick="window.salvarConfigUnidade('${centro.id}')" 
                                             class="px-4 py-1.5 bg-[#F4742B] text-white rounded-lg hover:bg-[#E0601A] transition text-sm flex items-center gap-1.5 ml-auto">
                                         <i class="fas fa-save text-xs"></i> Salvar
@@ -305,30 +325,34 @@ export async function loadConfiguracoesContent() {
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Ações de Sistema -->
-        <div class="mt-6 bg-white rounded-2xl shadow-sm p-6">
-            <div class="flex flex-col sm:flex-row gap-4">
-                <button onclick="window.limparCache()" 
-                        class="flex-1 py-3 border-2 border-yellow-500 text-yellow-500 rounded-lg hover:bg-yellow-500 hover:text-white transition flex items-center justify-center gap-2">
-                    <i class="fas fa-broom"></i> Limpar Cache
-                </button>
-                <button onclick="window.exportarDados()" 
-                        class="flex-1 py-3 border-2 border-blue-500 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition flex items-center justify-center gap-2">
-                    <i class="fas fa-download"></i> Exportar Dados
-                </button>
-                <button onclick="window.sairSistema()" 
-                        class="flex-1 py-3 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition flex items-center justify-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i> Sair do Sistema
-                </button>
+            
+            <!-- Ações de Sistema (Admin) -->
+            <div class="mt-6 bg-white rounded-2xl shadow-sm p-6 lg:col-span-2">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="window.limparCache()" 
+                            class="flex-1 py-3 border-2 border-yellow-500 text-yellow-500 rounded-lg hover:bg-yellow-500 hover:text-white transition flex items-center justify-center gap-2">
+                        <i class="fas fa-broom"></i> Limpar Cache
+                    </button>
+                    <button onclick="window.exportarDados()" 
+                            class="flex-1 py-3 border-2 border-blue-500 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> Exportar Dados
+                    </button>
+                    <button onclick="window.sairSistema()" 
+                            class="flex-1 py-3 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition flex items-center justify-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> Sair do Sistema
+                    </button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    }
+    
+    html += `</div>`; // Fecha o grid
+    
+    return html;
 }
 
 // ============================================
-// FUNÇÃO: Salvar Configurações da Unidade
+// FUNÇÃO: Salvar Configurações da Unidade (Admin)
 // ============================================
 window.salvarConfigUnidade = async function(centroId) {
     const inicio = document.getElementById(`horario_${centroId}_inicio`)?.value;
@@ -401,10 +425,10 @@ window.salvarConfigUnidade = async function(centroId) {
 };
 
 // ============================================
-// FUNÇÕES DE CONFIGURAÇÃO
+// FUNÇÕES DE CONFIGURAÇÃO (TODOS)
 // ============================================
 
-// Salvar Perfil
+// Salvar Perfil - TODOS
 window.salvarPerfil = async function() {
     const nome = document.getElementById('configNome')?.value?.trim();
     if (!nome) {
@@ -448,25 +472,327 @@ window.salvarPerfil = async function() {
     }
 };
 
-// Alterar Senha
+// ============================================
+// FUNÇÃO: Alterar Senha (Dentro do Sistema)
+// ============================================
 window.alterarSenha = function() {
-    infoModal({
-        title: 'Alterar Senha',
-        message: 'Você será redirecionado para a página de recuperação de senha do Supabase.',
-        confirmText: 'Continuar',
-        onConfirm: () => {
-            window.closeModal();
-            window.location.href = 'https://app.supabase.com';
+    // Criar modal personalizado para alterar senha
+    const modalContent = `
+        <div style="max-width: 450px; width: 100%;">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-[#FEF3E8] rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-key text-[#F4742B] text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-[#4B4B4D]">Alterar Senha</h3>
+                <p class="text-sm text-gray-500 mt-1">Digite sua senha atual e a nova senha</p>
+            </div>
+            
+            <form id="formAlterarSenha" class="space-y-4">
+                <!-- Senha Atual -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-lock text-[#F4742B] mr-2"></i>Senha Atual *
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="senhaAtual" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition pr-10"
+                            placeholder="Digite sua senha atual"
+                            required
+                        >
+                        <button 
+                            type="button" 
+                            onclick="toggleSenhaVisivel('senhaAtual', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Nova Senha -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-lock text-[#F4742B] mr-2"></i>Nova Senha *
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="novaSenha" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition pr-10"
+                            placeholder="Mínimo 6 caracteres"
+                            required
+                            minlength="6"
+                        >
+                        <button 
+                            type="button" 
+                            onclick="toggleSenhaVisivel('novaSenha', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="novaSenhaStrength" class="h-1 rounded-full mt-2 transition-all duration-300" style="width: 0%; background: #E5E7EB;"></div>
+                    <p id="novaSenhaHint" class="text-xs text-gray-400 mt-1">Digite uma senha forte</p>
+                </div>
+                
+                <!-- Confirmar Nova Senha -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-check-circle text-[#F4742B] mr-2"></i>Confirmar Nova Senha *
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="confirmarNovaSenha" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition pr-10"
+                            placeholder="Digite a nova senha novamente"
+                            required
+                        >
+                        <button 
+                            type="button" 
+                            onclick="toggleSenhaVisivel('confirmarNovaSenha', this)"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="window.fecharModalAlterarSenha()"
+                            class="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg font-semibold hover:bg-gray-50 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                            class="flex-1 px-4 py-2 bg-[#F4742B] text-white rounded-lg font-semibold hover:bg-[#E0601A] transition hover:shadow-lg">
+                        <i class="fas fa-save mr-2"></i> Alterar Senha
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    // Criar overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'modalAlterarSenha';
+    overlay.className = 'modal-overlay active';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.padding = '20px';
+    overlay.style.zIndex = '10000';
+    
+    overlay.innerHTML = `
+        <div class="modal-content" style="max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;">
+            <button onclick="window.fecharModalAlterarSenha()" 
+                    style="position: sticky; top: 0; float: right; background: none; border: none; font-size: 24px; color: #9CA3AF; cursor: pointer; padding: 8px; z-index: 10;">
+                <i class="fas fa-times"></i>
+            </button>
+            ${modalContent}
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Fechar ao clicar fora
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+            window.fecharModalAlterarSenha();
+        }
+    });
+    
+    // Fechar com ESC
+    const handleEsc = function(e) {
+        if (e.key === 'Escape') {
+            window.fecharModalAlterarSenha();
+            document.removeEventListener('keydown', handleEsc);
+        }
+    };
+    document.addEventListener('keydown', handleEsc);
+    
+    // Adicionar evento de submit
+    document.getElementById('formAlterarSenha').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await window.confirmarAlterarSenha();
+    });
+    
+    // Adicionar validação de senha em tempo real
+    const novaSenhaInput = document.getElementById('novaSenha');
+    novaSenhaInput.addEventListener('input', function() {
+        const senha = this.value;
+        const strengthBar = document.getElementById('novaSenhaStrength');
+        const hint = document.getElementById('novaSenhaHint');
+        let forca = 0;
+        
+        if (senha.length >= 6) forca++;
+        if (senha.length >= 10) forca++;
+        if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) forca++;
+        if (/\d/.test(senha)) forca++;
+        if (/[^a-zA-Z0-9]/.test(senha)) forca++;
+        
+        if (senha.length === 0) {
+            strengthBar.style.width = '0%';
+            strengthBar.style.background = '#E5E7EB';
+            hint.textContent = 'Digite uma senha forte';
+            hint.style.color = '#9CA3AF';
+            return;
+        }
+        
+        if (forca <= 2) {
+            strengthBar.style.width = '25%';
+            strengthBar.style.background = '#EF4444';
+            hint.textContent = 'Senha fraca';
+            hint.style.color = '#EF4444';
+        } else if (forca <= 4) {
+            strengthBar.style.width = '50%';
+            strengthBar.style.background = '#F59E0B';
+            hint.textContent = 'Senha média';
+            hint.style.color = '#F59E0B';
+        } else {
+            strengthBar.style.width = '100%';
+            strengthBar.style.background = '#10B981';
+            hint.textContent = 'Senha forte!';
+            hint.style.color = '#10B981';
         }
     });
 };
 
 // ============================================
-// FUNÇÃO: Salvar Configurações do Sistema
+// FUNÇÃO: Toggle Senha Visível
 // ============================================
+window.toggleSenhaVisivel = function(inputId, button) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', type);
+    button.querySelector('i').classList.toggle('fa-eye');
+    button.querySelector('i').classList.toggle('fa-eye-slash');
+};
+
+// ============================================
+// FUNÇÃO: Fechar Modal Alterar Senha
+// ============================================
+window.fecharModalAlterarSenha = function() {
+    const modal = document.getElementById('modalAlterarSenha');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+};
+
+// ============================================
+// FUNÇÃO: Confirmar Alterar Senha
+// ============================================
+window.confirmarAlterarSenha = async function() {
+    const senhaAtual = document.getElementById('senhaAtual').value;
+    const novaSenha = document.getElementById('novaSenha').value;
+    const confirmarNovaSenha = document.getElementById('confirmarNovaSenha').value;
+    
+    // Validações
+    if (!senhaAtual || !novaSenha || !confirmarNovaSenha) {
+        warningModal({
+            title: 'Campos Obrigatórios',
+            message: 'Preencha todos os campos para alterar sua senha.',
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+        return;
+    }
+    
+    if (novaSenha.length < 6) {
+        warningModal({
+            title: 'Senha Fraca',
+            message: 'A nova senha deve ter pelo menos 6 caracteres.',
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+        return;
+    }
+    
+    if (novaSenha !== confirmarNovaSenha) {
+        warningModal({
+            title: 'Senhas não coincidem',
+            message: 'A nova senha e a confirmação não são iguais.',
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+        return;
+    }
+    
+    // Verificar se a senha atual está correta
+    try {
+        const { supabase } = await import('../config/supabase.js');
+        const user = await getCurrentUser();
+        
+        if (!user) {
+            errorModal({
+                title: 'Erro',
+                message: 'Usuário não autenticado.',
+                confirmText: 'OK',
+                onConfirm: () => window.closeModal()
+            });
+            return;
+        }
+        
+        // Verificar a senha atual (tentando fazer login com a senha atual)
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: senhaAtual
+        });
+        
+        if (signInError) {
+            warningModal({
+                title: 'Senha Atual Incorreta',
+                message: 'A senha atual informada está incorreta. Tente novamente.',
+                confirmText: 'OK',
+                onConfirm: () => window.closeModal()
+            });
+            return;
+        }
+        
+        // Atualizar a senha
+        const { error: updateError } = await supabase.auth.updateUser({
+            password: novaSenha
+        });
+        
+        if (updateError) throw updateError;
+        
+        // Fechar modal
+        window.fecharModalAlterarSenha();
+        
+        // Mostrar sucesso
+        successModal({
+            title: 'Senha Alterada! 🔐',
+            message: 'Sua senha foi alterada com sucesso.',
+            confirmText: 'OK',
+            onConfirm: () => {
+                window.closeModal();
+            }
+        });
+        
+    } catch (error) {
+        console.error('Erro ao alterar senha:', error);
+        errorModal({
+            title: 'Erro ao Alterar Senha',
+            message: error.message || 'Ocorreu um erro ao alterar sua senha. Tente novamente.',
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+    }
+};
+
+// ============================================
+// FUNÇÕES ADMIN (SÓ ADMIN)
+// ============================================
+
+// Salvar Configurações do Sistema - ADMIN
 window.salvarConfiguracoes = async function() {
     const nomeAcademia = document.getElementById('configNomeAcademia')?.value?.trim() || '';
-    const vagasPadrao = parseInt(document.getElementById('configVagasPadrao')?.value) || 10;
     
     if (!nomeAcademia) {
         warningModal({
@@ -485,14 +811,11 @@ window.salvarConfiguracoes = async function() {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
         }
         
-        await Promise.all([
-            salvarConfiguracao('nome_academia', nomeAcademia),
-            salvarConfiguracao('vagas_padrao', vagasPadrao)
-        ]);
+        await salvarConfiguracao('nome_academia', nomeAcademia);
         
         successModal({
             title: 'Configurações Salvas!',
-            message: `As configurações foram salvas com sucesso.<br><br>🏫 ${nomeAcademia}<br>👥 ${vagasPadrao} vagas padrão`,
+            message: `O nome da academia foi atualizado para:<br><br>🏫 ${nomeAcademia}`,
             confirmText: 'OK',
             onConfirm: () => {
                 window.closeModal();
@@ -516,52 +839,7 @@ window.salvarConfiguracoes = async function() {
     }
 };
 
-// Salvar Horário da Unidade (NOVO)
-window.salvarHorarioUnidade = async function(centroId) {
-    const inicio = document.getElementById(`horario_${centroId}_inicio`)?.value;
-    const fim = document.getElementById(`horario_${centroId}_fim`)?.value;
-    
-    if (!inicio || !fim) {
-        warningModal({
-            title: 'Campos Obrigatórios',
-            message: 'Por favor, preencha os horários de início e fim.',
-            confirmText: 'OK',
-            onConfirm: () => window.closeModal()
-        });
-        return;
-    }
-    
-    const horarioFuncionamento = `${inicio} - ${fim}`;
-    
-    try {
-        const { error } = await supabase
-            .from('centros')
-            .update({ horario_funcionamento: horarioFuncionamento })
-            .eq('id', centroId);
-        
-        if (error) throw error;
-        
-        successModal({
-            title: 'Horário Atualizado!',
-            message: `O horário de funcionamento da unidade foi atualizado para ${horarioFuncionamento}.`,
-            confirmText: 'OK',
-            onConfirm: () => {
-                window.closeModal();
-                loadPage('configuracoes');
-            }
-        });
-    } catch (error) {
-        console.error('Erro ao salvar horário:', error);
-        errorModal({
-            title: 'Erro ao Salvar',
-            message: error.message || 'Ocorreu um erro ao salvar o horário da unidade.',
-            confirmText: 'OK',
-            onConfirm: () => window.closeModal()
-        });
-    }
-};
-
-// Salvar Notificações
+// Salvar Notificações - ADMIN
 window.salvarNotificacoes = async function() {
     const notifEmail = document.getElementById('configNotifEmail')?.checked || false;
     const notifWhatsApp = document.getElementById('configNotifWhatsApp')?.checked || false;
@@ -592,7 +870,7 @@ window.salvarNotificacoes = async function() {
     }
 };
 
-// Configurar WhatsApp
+// Configurar WhatsApp - ADMIN
 window.configurarWhatsApp = function() {
     infoModal({
         title: 'Configurar WhatsApp',
@@ -602,7 +880,7 @@ window.configurarWhatsApp = function() {
     });
 };
 
-// Configurar N8N
+// Configurar N8N - ADMIN
 window.configurarN8N = function() {
     infoModal({
         title: 'Configurar N8N',
@@ -612,7 +890,7 @@ window.configurarN8N = function() {
     });
 };
 
-// Limpar Cache
+// Limpar Cache - ADMIN
 window.limparCache = function() {
     confirmModal({
         title: 'Limpar Cache',
@@ -636,7 +914,7 @@ window.limparCache = function() {
     });
 };
 
-// Exportar Dados
+// Exportar Dados - ADMIN
 window.exportarDados = function() {
     infoModal({
         title: 'Exportar Dados',
@@ -646,7 +924,7 @@ window.exportarDados = function() {
     });
 };
 
-// Sair do Sistema
+// Sair do Sistema - TODOS
 window.sairSistema = function() {
     document.getElementById('btnLogout')?.click();
 };

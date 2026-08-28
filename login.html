@@ -146,26 +146,37 @@
                     >
                 </div>
                 
+                <!-- Campo Senha com ícone de visualizar -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-lock text-[#F4742B] mr-2"></i>Senha
                     </label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        class="input-field"
-                        placeholder="••••••••"
-                        required
-                        autocomplete="current-password"
-                    >
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="input-field w-full pr-12"
+                            placeholder="••••••••"
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button 
+                            type="button" 
+                            id="togglePassword" 
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition"
+                            title="Mostrar senha"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                
+                                
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center gap-2 text-gray-600 cursor-pointer">
                         <input type="checkbox" class="w-4 h-4 text-[#F4742B] focus:ring-[#F4742B] border-gray-300 rounded">
                         Lembrar-me
                     </label>
-                    <a href="#" class="text-[#F4742B] hover:text-[#E0601A] font-medium">Esqueceu a senha?</a>
+                    <a href="recuperar-senha.html" class="text-[#F4742B] hover:text-[#E0601A] font-medium">Esqueceu a senha?</a>
                 </div>
                 
                 <button 
@@ -205,9 +216,9 @@
             <!-- Link para cadastro -->
             <p class="text-center text-sm text-gray-600 mt-6">
                 Não tem conta? 
-                <a href="#" id="linkRegister" class="text-[#F4742B] font-semibold hover:underline">Cadastre-se</a>
+                <a href="register.html" id="linkRegister" class="text-[#F4742B] font-semibold hover:underline">Cadastre-se</a>
             </p>
-            
+                        
             <!-- Mensagens -->
             <div id="errorMessage" class="error-message mt-4"></div>
             <div id="successMessage" class="success-message mt-4"></div>
@@ -215,147 +226,165 @@
     </div>
     
     <script type="module">
-        import { supabase } from './src/config/supabase.js';
-        
-        // ============================================
-        // ELEMENTOS
-        // ============================================
-        const loginForm = document.getElementById('loginForm');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const btnLogin = document.getElementById('btnLogin');
-        const btnGoogle = document.getElementById('btnGoogle');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-        const linkRegister = document.getElementById('linkRegister');
-        
-        // ============================================
-        // FUNÇÕES
-        // ============================================
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
-            setTimeout(() => {
-                errorMessage.classList.remove('show');
-            }, 5000);
-        }
-        
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.classList.add('show');
+    import { supabase } from './src/config/supabase.js';
+    import { updateUserData } from './src/modules/shared.js'; // ← ADICIONADO
+    
+    // ============================================
+    // ELEMENTOS
+    // ============================================
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnGoogle = document.getElementById('btnGoogle');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const linkRegister = document.getElementById('linkRegister');
+    
+    // ============================================
+    // FUNÇÕES
+    // ============================================
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.add('show');
+        successMessage.classList.remove('show');
+        setTimeout(() => {
             errorMessage.classList.remove('show');
-            setTimeout(() => {
-                successMessage.classList.remove('show');
-            }, 3000);
+        }, 5000);
+    }
+    
+    function showSuccess(message) {
+        successMessage.textContent = message;
+        successMessage.classList.add('show');
+        errorMessage.classList.remove('show');
+        setTimeout(() => {
+            successMessage.classList.remove('show');
+        }, 3000);
+    }
+    
+    function setLoading(isLoading) {
+        if (isLoading) {
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Entrando...';
+        } else {
+            btnLogin.disabled = false;
+            btnLogin.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Entrar';
+        }
+    }
+    // ============================================
+    // VISUALIZAR SENHA
+    // ============================================
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInputLogin = document.getElementById('password');
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInputLogin.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInputLogin.setAttribute('type', type);
+        
+        // Trocar o ícone
+        this.querySelector('i').classList.toggle('fa-eye');
+        this.querySelector('i').classList.toggle('fa-eye-slash');
+    });
+    
+    // ============================================
+    // LOGIN COM EMAIL/SENHA
+    // ============================================
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        
+        if (!email || !password) {
+            showError('Preencha todos os campos');
+            return;
         }
         
-        function setLoading(isLoading) {
-            if (isLoading) {
-                btnLogin.disabled = true;
-                btnLogin.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Entrando...';
-            } else {
-                btnLogin.disabled = false;
-                btnLogin.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Entrar';
-            }
-        }
+        setLoading(true);
         
-        // ============================================
-        // LOGIN COM EMAIL/SENHA
-        // ============================================
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
             
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            
-            if (!email || !password) {
-                showError('Preencha todos os campos');
-                return;
-            }
-            
-            setLoading(true);
-            
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-                
-                if (error) {
-                    if (error.message.includes('Invalid login credentials')) {
-                        throw new Error('Email ou senha inválidos');
-                    } else if (error.message.includes('Email not confirmed')) {
-                        throw new Error('Email não confirmado. Verifique sua caixa de entrada');
-                    } else {
-                        throw error;
-                    }
+            if (error) {
+                if (error.message.includes('Invalid login credentials')) {
+                    throw new Error('Email ou senha inválidos');
+                } else if (error.message.includes('Email not confirmed')) {
+                    throw new Error('Email não confirmado. Verifique sua caixa de entrada');
+                } else {
+                    throw error;
                 }
-                
-                showSuccess('Login realizado com sucesso! Redirecionando...');
-                
-                // Redirecionar para o dashboard
-                setTimeout(() => {
-                    window.location.href = '/index.html';
-                }, 1500);
-                
-            } catch (error) {
-                console.error('Erro no login:', error);
-                showError(error.message || 'Erro ao fazer login');
-                setLoading(false);
             }
-        });
-        
-        // ============================================
-        // LOGIN COM GOOGLE
-        // ============================================
-        btnGoogle.addEventListener('click', async () => {
-            try {
-                setLoading(true);
-                btnGoogle.disabled = true;
-                
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin + '/index.html'
-                    }
-                });
-                
-                if (error) throw error;
-                
-            } catch (error) {
-                console.error('Erro no login com Google:', error);
-                showError('Erro ao fazer login com Google');
-                setLoading(false);
-                btnGoogle.disabled = false;
-            }
-        });
-        
-        // ============================================
-        // LINK PARA CADASTRO
-        // ============================================
-        linkRegister.addEventListener('click', (e) => {
-            e.preventDefault();
-            // Redirecionar para página de cadastro (se existir)
-            alert('Funcionalidade de cadastro em breve!');
-        });
-        
-        // ============================================
-        // VERIFICAR SE JÁ ESTÁ LOGADO
-        // ============================================
-        async function checkAuth() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
+            
+            // 🔥 IMPORTANTE: Atualizar dados do usuário (role) após login
+            await updateUserData();
+            
+            showSuccess('Login realizado com sucesso! Redirecionando...');
+            
+            setTimeout(() => {
                 window.location.href = '/index.html';
-            }
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Erro no login:', error);
+            showError(error.message || 'Erro ao fazer login');
+            setLoading(false);
         }
+    });
+    
+    // ============================================
+    // LOGIN COM GOOGLE
+    // ============================================
+    btnGoogle.addEventListener('click', async () => {
+        try {
+            setLoading(true);
+            btnGoogle.disabled = true;
+            
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/index.html'
+                }
+            });
+            
+            if (error) throw error;
+            
+        } catch (error) {
+            console.error('Erro no login com Google:', error);
+            showError('Erro ao fazer login com Google');
+            setLoading(false);
+            btnGoogle.disabled = false;
+        }
+    });
+    
+    // ============================================
+    // LINK PARA CADASTRO
+    // ============================================
+    linkRegister.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'register.html';
+    });
         
-        // ============================================
-        // INICIALIZAÇÃO
-        // ============================================
-        document.addEventListener('DOMContentLoaded', checkAuth);
-        
-        console.log('🔐 Página de login carregada');
-    </script>
+    // ============================================
+    // VERIFICAR SE JÁ ESTÁ LOGADO
+    // ============================================
+    async function checkAuth() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            // Se já estiver logado, atualiza dados e redireciona
+            await updateUserData();
+            window.location.href = '/index.html';
+        }
+    }
+    
+    // ============================================
+    // INICIALIZAÇÃO
+    // ============================================
+    document.addEventListener('DOMContentLoaded', checkAuth);
+    
+    console.log('🔐 Página de login carregada');
+</script>
 </body>
 </html>

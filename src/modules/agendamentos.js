@@ -378,20 +378,40 @@ window.cancelarAgendamentoAdmin = function(id) {
                 
                 if (error) throw error;
                 
+                // 🔥 Fechar o modal de confirmação primeiro
+                window.closeModal();
+                
                 successModal({
                     title: 'Agendamento Cancelado!',
                     message: 'O agendamento foi cancelado com sucesso.',
                     confirmText: 'OK',
                     onConfirm: () => {
+                        // 🔥 Fechar o modal de sucesso
+                        window.closeModal();
+                        // Recarregar a lista
                         window.aplicarFiltros();
                     }
                 });
+                
+                // 🔥 FALLBACK: Fechar automaticamente após 3 segundos
+                setTimeout(() => {
+                    const modal = document.getElementById('customModal');
+                    if (modal && modal.classList.contains('active')) {
+                        window.closeModal();
+                        window.aplicarFiltros();
+                    }
+                }, 3000);
+                
             } catch (error) {
                 console.error('Erro ao cancelar:', error);
+                window.closeModal();
                 errorModal({
                     title: 'Erro ao Cancelar',
                     message: error.message || 'Ocorreu um erro ao cancelar o agendamento.',
-                    confirmText: 'OK'
+                    confirmText: 'OK',
+                    onConfirm: () => {
+                        window.closeModal();
+                    }
                 });
             }
         }
@@ -417,20 +437,41 @@ window.concluirAgendamento = function(id) {
                 
                 if (error) throw error;
                 
+                // 🔥 Fechar o modal de confirmação primeiro
+                window.closeModal();
+                
+                // Mostrar modal de sucesso
                 successModal({
                     title: 'Agendamento Concluído!',
                     message: 'O agendamento foi marcado como concluído.',
                     confirmText: 'OK',
                     onConfirm: () => {
+                        // 🔥 Fechar o modal de sucesso
+                        window.closeModal();
+                        // Recarregar a lista
                         window.aplicarFiltros();
                     }
                 });
+                
+                // 🔥 FALLBACK: Fechar automaticamente após 3 segundos
+                setTimeout(() => {
+                    const modal = document.getElementById('customModal');
+                    if (modal && modal.classList.contains('active')) {
+                        window.closeModal();
+                        window.aplicarFiltros();
+                    }
+                }, 3000);
+                
             } catch (error) {
                 console.error('Erro ao concluir:', error);
+                window.closeModal();
                 errorModal({
                     title: 'Erro ao Concluir',
                     message: error.message || 'Ocorreu um erro ao concluir o agendamento.',
-                    confirmText: 'OK'
+                    confirmText: 'OK',
+                    onConfirm: () => {
+                        window.closeModal();
+                    }
                 });
             }
         }

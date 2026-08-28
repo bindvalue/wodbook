@@ -443,7 +443,7 @@
     import { confirmModal, successModal, errorModal, infoModal } from './src/components/modal.js';
     import { initNotificacoes } from './src/modules/notificacoes.js';
     import { initFooter } from './src/components/footer.js';
-    import { setupLogout, updateUserAvatar } from './src/modules/shared.js'; // ✅ UNICO import
+    import { setupLogout, updateUserAvatar, updateUserData } from './src/modules/shared.js'; // ← ADICIONADO
     
     // ============================================
     // ELEMENTOS
@@ -558,6 +558,11 @@
             }
             
             console.log('✅ Usuário autenticado:', user.email);
+            
+            // 🔥 IMPORTANTE: Atualizar dados do usuário ANTES de qualquer coisa
+            // Isso garante que o role esteja no localStorage para o menu
+            await updateUserData();
+            console.log('👤 Role do usuário:', localStorage.getItem('userRole'));
             
             // ✅ Funções importadas do shared.js
             setupLogout();
