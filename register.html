@@ -310,13 +310,13 @@
     <div class="min-h-screen bg-gradient-register flex items-center justify-center p-4 sm:p-6">
         <div class="register-card w-full max-w-[400px] p-8 sm:p-10 fade-in">
             
-            <!-- Logo -->
+            <!-- Logo - SEM BOX -->
             <div class="text-center mb-7">
-                <div class="mx-auto w-16 h-16 rounded-2xl bg-[#FEF3E8] flex items-center justify-center mb-3 shadow-sm">
+                <div class="flex justify-center mb-3">
                     <img src="src/img/logo_wodbook.png" 
                          alt="WODBOOK" 
-                         class="w-11 h-11 object-contain"
-                         onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=44'">
+                         class="w-28 h-28 object-contain"
+                         onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=112'">
                 </div>
                 <h1 class="text-2xl font-bold text-[#4B4B4D] tracking-tight">Criar Conta</h1>
                 <p class="text-sm text-gray-400 mt-1">Comece sua jornada no WODBOOK</p>
@@ -477,12 +477,10 @@
             errorMessage.className = 'message message-error show';
             successMessage.className = 'message message-success';
             
-            // Remove error class from inputs
             document.querySelectorAll('.input-apple').forEach(el => {
                 el.classList.remove('error');
             });
             
-            // Highlight relevant fields
             if (message.includes('nome') || message.includes('Nome')) {
                 nomeInput.classList.add('error');
             }
@@ -635,7 +633,6 @@
             console.log('📝 Criando perfil para:', userId);
             
             try {
-                // 🔥 INSERÇÃO DIRETA - SEM CPF
                 const { error: insertError } = await supabase
                     .from('usuarios')
                     .insert([{
@@ -649,7 +646,6 @@
                 if (insertError) {
                     console.error('❌ Erro ao criar perfil (insert):', insertError);
                     
-                    // 🔥 TENTATIVA 2: RPC como fallback
                     console.log('🔄 Tentando RPC como fallback...');
                     const { error: rpcError } = await supabase.rpc('criar_perfil_usuario', {
                         p_user_id: userId,
@@ -690,7 +686,6 @@
             const password = passwordInput.value;
             const confirmPassword = confirmPasswordInput.value;
             
-            // Validações
             if (!nome || !email || !password || !confirmPassword) {
                 showError('Preencha todos os campos obrigatórios');
                 return;
@@ -719,7 +714,6 @@
             setLoading(true);
             
             try {
-                // 🔥 CRIA USUÁRIO NA AUTH
                 const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
@@ -736,7 +730,6 @@
                 if (data.user) {
                     console.log('✅ Usuário criado na auth:', data.user.id);
                     
-                    // 🔥 CRIA PERFIL NO BANCO (SEM CPF)
                     const perfilCriado = await criarPerfilUsuario(
                         data.user.id, 
                         email, 
@@ -751,14 +744,12 @@
                         showSuccess('✅ Conta criada com sucesso! Verifique seu email para confirmar.');
                     }
                     
-                    // Limpa o formulário
                     registerForm.reset();
                     passwordStrength.className = 'password-strength';
                     passwordStrength.style.width = '0%';
                     passwordHint.textContent = 'Digite uma senha forte';
                     passwordHint.style.color = '#9CA3AF';
                     
-                    // Redireciona após 4 segundos
                     setTimeout(() => {
                         window.location.href = '/login.html';
                     }, 4000);
