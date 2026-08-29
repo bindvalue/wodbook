@@ -239,13 +239,10 @@ export async function updateUserMenu(user) {
     const userAvatarMenu = document.getElementById('userAvatarMenu');
     const userRoleMenu = document.getElementById('userRoleMenu');
     
-    if (!user) {
-        console.warn('⚠️ Usuário não fornecido para updateUserMenu');
-        return;
-    }
+    if (!user) return;
     
     try {
-        // 🔥 BUSCAR DA TABELA public.usuarios
+        // 🔥 SELECT DIRETO (agora funciona sem RLS)
         const { data, error } = await supabase
             .from('usuarios')
             .select('nome, role')
@@ -254,40 +251,27 @@ export async function updateUserMenu(user) {
         
         if (error) {
             console.error('❌ Erro ao buscar perfil:', error);
-            // Fallback: usar o email
             const fallbackNome = user.email?.split('@')[0] || 'Usuário';
             if (userNameMenu) userNameMenu.textContent = fallbackNome;
-            if (userAvatarMenu) {
-                userAvatarMenu.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackNome)}&background=F4742B&color=fff&size=40`;
-            }
             return;
         }
         
         const nome = data?.nome || user.email?.split('@')[0] || 'Usuário';
         const role = data?.role || 'user';
         
-        // Atualizar o nome no menu
-        if (userNameMenu) {
-            userNameMenu.textContent = nome;
-        }
-        
-        // Atualizar o avatar
+        if (userNameMenu) userNameMenu.textContent = nome;
         if (userAvatarMenu) {
             userAvatarMenu.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=F4742B&color=fff&size=40`;
         }
-        
-        // Atualizar o role no menu
         if (userRoleMenu) {
             userRoleMenu.textContent = role === 'admin' ? 'Administrador' : 'Aluno';
         }
         
-        // Atualizar o role no localStorage
         localStorage.setItem('userRole', role);
         localStorage.setItem('userName', nome);
         
         console.log('✅ Menu atualizado com:', { nome, role });
-        
     } catch (error) {
-        console.error('❌ Erro ao atualizar menu do usuário:', error);
+        console.error('❌ Erro ao atualizar menu:', error);
     }
 }

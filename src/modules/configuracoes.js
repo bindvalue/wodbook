@@ -471,7 +471,7 @@ window.salvarPerfil = async function() {
         const user = await getCurrentUser();
         if (!user) return;
         
-        // 🔥 ATUALIZA APENAS A TABELA public.usuarios
+        // 🔥 UPDATE DIRETO (agora funciona sem RLS)
         const { error } = await supabase
             .from('usuarios')
             .update({ nome })
@@ -479,7 +479,6 @@ window.salvarPerfil = async function() {
         
         if (error) throw error;
         
-        // 🔥 ATUALIZA A INTERFACE DO USUÁRIO NO MENU E HEADER
         await atualizarInterfaceUsuario(nome);
         
         successModal({
@@ -488,7 +487,6 @@ window.salvarPerfil = async function() {
             confirmText: 'OK',
             onConfirm: () => {
                 window.closeModal();
-                // Recarregar a página de configurações para refletir as mudanças
                 loadPage('configuracoes');
             }
         });
