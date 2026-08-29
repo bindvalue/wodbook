@@ -38,7 +38,7 @@ async function buscarNomeEmpresa() {
         
         if (error) {
             console.warn('⚠️ Erro ao buscar nome da empresa:', error);
-            return 'CrossFit Agendamentos'; // Fallback
+            return 'CrossFit Agendamentos';
         }
         
         return data?.valor || 'CrossFit Agendamentos';
@@ -49,7 +49,7 @@ async function buscarNomeEmpresa() {
 }
 
 // ============================================
-// FUNÇÃO: Buscar Notificações (COM VALIDAÇÃO DE HORÁRIO)
+// FUNÇÃO: Buscar Notificações (SEM CPF)
 // ============================================
 async function buscarNotificacoes(limit = 10) {
     try {
@@ -58,12 +58,12 @@ async function buscarNotificacoes(limit = 10) {
         
         const hoje = new Date().toISOString().split('T')[0];
         
-        // 🔥 Buscar agendamentos com horários ativos
+        // 🔥 Buscar agendamentos - REMOVIDO CPF
         const { data, error } = await supabase
             .from('agendamentos')
             .select(`
                 *,
-                usuarios (id, nome, telefone, cpf, email),
+                usuarios (id, nome, telefone, email),
                 horarios (
                     id,
                     hora_inicio,
@@ -88,7 +88,6 @@ async function buscarNotificacoes(limit = 10) {
         
         // 🔥 FILTRAR: Apenas agendamentos com horários ativos
         const notificacoesFiltradas = data?.filter(ag => {
-            // Verificar se o horário existe e está ativo
             return ag.horarios && ag.horarios.ativo === true;
         }) || [];
         
@@ -104,7 +103,7 @@ async function buscarNotificacoes(limit = 10) {
             dadosCompletos: ag
         })) || [];
         
-        console.log(`📢 ${notificacoesCache.length} notificações encontradas (${data?.length || 0} total, ${(data?.length || 0) - notificacoesCache.length} filtradas)`);
+        console.log(`📢 ${notificacoesCache.length} notificações encontradas`);
         
         return notificacoesCache;
     } catch (error) {
@@ -127,7 +126,6 @@ function formatarData(dataStr) {
     
     return `${dias[data.getDay()]}, ${String(data.getDate()).padStart(2, '0')} de ${meses[data.getMonth()]} de ${data.getFullYear()}`;
 }
-
 
 // ============================================
 // FUNÇÃO: Marcar Notificação como Lida
@@ -308,7 +306,7 @@ window.fecharDropdownNotificacoes = function() {
 };
 
 // ============================================
-// FUNÇÃO: Ver Notificação (Detalhes Completos)
+// FUNÇÃO: Ver Notificação (Detalhes Completos - SEM CPF)
 // ============================================
 window.verNotificacao = async function(id) {
     try {
@@ -320,7 +318,7 @@ window.verNotificacao = async function(id) {
             .from('agendamentos')
             .select(`
                 *,
-                usuarios (id, nome, telefone, cpf, email),
+                usuarios (id, nome, telefone, email),
                 horarios (
                     id,
                     hora_inicio,
@@ -354,13 +352,11 @@ window.verNotificacao = async function(id) {
         
         const nomeAluno = agendamento.usuarios?.nome || 'Aluno não identificado';
         const telefone = agendamento.usuarios?.telefone || 'Não informado';
-        const cpf = agendamento.usuarios?.cpf || 'Não informado';
         const centroNome = agendamento.horarios?.centros?.nome || 'Centro não identificado';
         const centroEndereco = agendamento.horarios?.centros?.endereco || 'Endereço não informado';
         const centroBairro = agendamento.horarios?.centros?.bairro || '';
         const centroTelefone = agendamento.horarios?.centros?.telefone || 'Não informado';
         
-        // 🔥 CORREÇÃO: Usar a função formatarData
         const dataFormatada = formatarData(agendamento.data_agendamento);
         
         const horaInicio = agendamento.horarios?.hora_inicio?.substring(0, 5) || '--';
@@ -414,7 +410,6 @@ window.verNotificacao = async function(id) {
                     <div class="space-y-1 text-sm">
                         <p><span class="text-gray-500">Nome:</span> <span class="font-medium">${nomeAluno}</span></p>
                         <p><span class="text-gray-500">Telefone:</span> ${telefone}</p>
-                        <p><span class="text-gray-500">CPF:</span> ${cpf}</p>
                         ${linkWhatsApp ? `
                             <div class="mt-2 pt-2 border-t border-gray-200">
                                 <a href="${linkWhatsApp}" 
