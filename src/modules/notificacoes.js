@@ -324,12 +324,14 @@ export async function renderizarNotificacoes() {
                 `;
             }).join('')}
         </div>
-        <div class="p-2 border-t border-gray-100">
-            <button onclick="window.verTodasNotificacoes()" 
-                    class="w-full text-center text-sm text-[#F4742B] hover:text-[#E0601A] font-medium py-1">
-                <i class="fas fa-eye mr-1"></i> Ver todas as notificações
-            </button>
-        </div>
+        ${isAdmin ? `
+            <div class="p-2 border-t border-gray-100">
+                <button onclick="window.verTodasNotificacoes()" 
+                        class="w-full text-center text-sm text-[#F4742B] hover:text-[#E0601A] font-medium py-1">
+                    <i class="fas fa-eye mr-1"></i> Ver todas as notificações
+                </button>
+            </div>
+        ` : ''}
     `;
 }
 
@@ -607,28 +609,10 @@ window.cancelarAgendamentoNotificacao = function(id) {
 };
 
 // ============================================
-// FUNÇÃO: Ver Todas as Notificações (COM PERMISSÃO)
+// FUNÇÃO: Ver Todas as Notificações (APENAS ADMIN)
 // ============================================
-window.verTodasNotificacoes = async function() {
-    // 🔥 Verificar se é admin antes de redirecionar
-    const isAdmin = await verificarAdmin();
-    
-    if (isAdmin) {
-        // Admin vai para agendamentos
-        if (window.loadPage) window.loadPage('agendamentos');
-    } else {
-        // Usuário comum vai para dashboard (ou mostra mensagem)
-        infoModal({
-            title: 'Apenas Administradores',
-            message: 'A lista completa de agendamentos está disponível apenas para administradores.',
-            confirmText: 'OK',
-            onConfirm: () => {
-                window.closeModal();
-                if (window.loadPage) window.loadPage('dashboard');
-            }
-        });
-    }
-    
+window.verTodasNotificacoes = function() {
+    if (window.loadPage) window.loadPage('agendamentos');
     window.fecharDropdownNotificacoes();
 };
 

@@ -13,110 +13,106 @@ export async function loadAlunosContent() {
     }
     
     return `
-        <!-- Estatísticas -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm card-hover">
+        <!-- Estatísticas - Design Apple -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Total de Alunos</p>
-                        <p class="text-3xl font-bold text-[#4B4B4D]" id="totalAlunos">0</p>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1" id="totalAlunos">0</p>
                     </div>
-                    <div class="bg-[#FEF3E8] p-3 rounded-full">
-                        <i class="fas fa-users text-[#F4742B] text-xl"></i>
+                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                        <i class="fas fa-users text-[#F4742B] text-sm"></i>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white p-6 rounded-2xl shadow-sm card-hover">
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Google Auth</p>
-                        <p class="text-3xl font-bold text-[#4B4B4D]" id="totalGoogleAuth">0</p>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Google</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1" id="totalGoogleAuth">0</p>
                     </div>
-                    <div class="bg-blue-100 p-3 rounded-full">
-                        <i class="fab fa-google text-blue-600 text-xl"></i>
+                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                        <i class="fab fa-google text-blue-500 text-sm"></i>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white p-6 rounded-2xl shadow-sm card-hover">
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Ativos</p>
-                        <p class="text-3xl font-bold text-[#4B4B4D]" id="alunosAtivos">0</p>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Ativos</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1" id="alunosAtivos">0</p>
                     </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-500 text-sm"></i>
                     </div>
                 </div>
             </div>
             
-            <div class="bg-white p-6 rounded-2xl shadow-sm card-hover">
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">Com Agendamentos</p>
-                        <p class="text-3xl font-bold text-[#4B4B4D]" id="alunosComAgendamentos">0</p>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Agendamentos</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1" id="alunosComAgendamentos">0</p>
                     </div>
-                    <div class="bg-purple-100 p-3 rounded-full">
-                        <i class="fas fa-calendar-check text-purple-600 text-xl"></i>
+                    <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
+                        <i class="fas fa-calendar-check text-purple-500 text-sm"></i>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Filtros -->
+        <!-- Filtros - Design Limpo -->
         <div class="bg-white rounded-2xl shadow-sm p-4 mb-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">
-                        <i class="fas fa-search text-[#F4742B] mr-1"></i> Buscar
-                    </label>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                     <input type="text" id="buscarAluno" 
-                           placeholder="Nome, telefone ou CPF..."
-                           class="w-full h-10 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
+                           placeholder="Buscar aluno..."
+                           class="w-full h-10 pl-9 pr-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
                 </div>
                 
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">
-                        <i class="fas fa-filter text-[#F4742B] mr-1"></i> Status
-                    </label>
                     <select id="filtroStatusAluno" 
-                            class="w-full h-10 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white">
-                        <option value="">Todos</option>
+                            class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white appearance-none">
+                        <option value="">Todos os status</option>
                         <option value="ativo">Ativos</option>
                         <option value="inativo">Inativos</option>
                     </select>
                 </div>
                 
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">
-                        <i class="fas fa-shield-alt text-[#F4742B] mr-1"></i> Autenticação
-                    </label>
                     <select id="filtroAuth" 
-                            class="w-full h-10 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white">
-                        <option value="">Todos</option>
+                            class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white appearance-none">
+                        <option value="">Todos os tipos</option>
                         <option value="email">Email/Senha</option>
                         <option value="google">Google</option>
                     </select>
                 </div>
                 
-                <div class="flex items-end gap-2">
+                <div class="flex gap-2">
                     <button onclick="window.aplicarFiltrosAlunos()" 
-                            class="flex-1 h-10 px-4 bg-[#F4742B] text-white text-sm font-medium rounded-lg hover:bg-[#E0601A] transition flex items-center justify-center gap-2">
-                        <i class="fas fa-search text-xs"></i> Filtrar
+                            class="flex-1 h-10 px-4 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2">
+                        <i class="fas fa-search text-xs"></i>
+                        <span class="hidden sm:inline">Filtrar</span>
                     </button>
                     <button onclick="window.exportarAlunosPDF()" 
-                            class="h-10 px-4 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition flex items-center justify-center gap-2">
+                            class="h-10 px-4 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition active:scale-[0.98] flex items-center justify-center gap-2">
                         <i class="fas fa-file-pdf text-xs"></i>
                     </button>
                 </div>
             </div>
         </div>
         
+        <!-- Lista de Alunos -->
         <div id="alunosList" class="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div class="text-center text-gray-500 py-12">
-                <i class="fas fa-spinner fa-spin text-4xl mb-3 block text-[#F4742B]"></i>
-                Carregando alunos...
+            <div class="flex items-center justify-center py-16">
+                <div class="text-center">
+                    <div class="w-12 h-12 border-4 border-[#F4742B] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-gray-400 text-sm">Carregando alunos...</p>
+                </div>
             </div>
         </div>
     `;
@@ -132,9 +128,11 @@ window.aplicarFiltrosAlunos = async function() {
     const authType = document.getElementById('filtroAuth')?.value || '';
     
     container.innerHTML = `
-        <div class="text-center text-gray-500 py-12">
-            <i class="fas fa-spinner fa-spin text-4xl mb-3 block text-[#F4742B]"></i>
-            Carregando alunos...
+        <div class="flex items-center justify-center py-16">
+            <div class="text-center">
+                <div class="w-12 h-12 border-4 border-[#F4742B] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p class="text-gray-400 text-sm">Carregando...</p>
+            </div>
         </div>
     `;
     
@@ -171,7 +169,6 @@ window.aplicarFiltrosAlunos = async function() {
             filtered = filtered.filter(u => 
                 u.nome?.toLowerCase().includes(busca) ||
                 u.telefone?.includes(busca) ||
-                u.cpf?.includes(busca) ||
                 u.email?.toLowerCase().includes(busca)
             );
         }
@@ -200,84 +197,95 @@ window.aplicarFiltrosAlunos = async function() {
         
         if (filtered.length === 0) {
             container.innerHTML = `
-                <div class="text-center text-gray-500 py-12">
-                    <i class="fas fa-user-plus text-4xl mb-3 block text-gray-300"></i>
-                    <p class="text-lg font-medium">Nenhum aluno encontrado</p>
-                    <p class="text-sm mt-1">Os alunos aparecerão aqui quando se cadastrarem</p>
+                <div class="flex flex-col items-center justify-center py-16 px-4">
+                    <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                        <i class="fas fa-user-plus text-3xl text-gray-300"></i>
+                    </div>
+                    <p class="text-lg font-medium text-gray-600">Nenhum aluno encontrado</p>
+                    <p class="text-sm text-gray-400 mt-1">Os alunos aparecerão aqui quando se cadastrarem</p>
                 </div>
             `;
             return;
         }
         
         let html = `
-            <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+            <div class="px-4 py-3 bg-gray-50/80 border-b border-gray-100 flex justify-between items-center">
                 <div>
                     <span class="font-semibold text-[#4B4B4D]">${filtered.length}</span>
-                    <span class="text-gray-500"> alunos encontrados</span>
+                    <span class="text-gray-500 text-sm"> alunos</span>
                 </div>
+                <span class="text-xs text-gray-400">${filtered.length} resultados</span>
             </div>
             <div class="divide-y divide-gray-100">
         `;
         
         filtered.forEach(aluno => {
+            const initial = aluno.nome?.charAt(0).toUpperCase() || '?';
             const authIcon = aluno.authProvider === 'google' 
-                ? '<i class="fab fa-google text-blue-500"></i>' 
-                : '<i class="fas fa-envelope text-gray-400"></i>';
+                ? '<i class="fab fa-google text-blue-500 text-xs"></i>' 
+                : '<i class="fas fa-envelope text-gray-400 text-xs"></i>';
             
-            const authLabel = aluno.authProvider === 'google' 
-                ? 'Google' 
-                : 'Email';
-            
-            const statusBadge = aluno.ativo !== false
-                ? '<span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Ativo</span>'
-                : '<span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">Inativo</span>';
-            
-            const agendamentoBadge = aluno.totalAgendamentos > 0
-                ? `<span class="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">${aluno.totalAgendamentos} agendamentos</span>`
-                : '<span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Sem agendamentos</span>';
+            const isActive = aluno.ativo !== false;
             
             html += `
-                <div class="p-4 hover:bg-gray-50/50 transition">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full bg-[#FEF3E8] flex items-center justify-center text-[#F4742B] font-bold text-lg">
-                                ${aluno.nome?.charAt(0).toUpperCase() || '?'}
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <p class="font-semibold text-gray-800">${aluno.nome || 'Sem nome'}</p>
-                                    ${statusBadge}
+                <div class="px-4 py-4 hover:bg-gray-50/50 transition duration-150">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <!-- Avatar e Nome -->
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <div class="relative flex-shrink-0">
+                                <div class="w-12 h-12 rounded-full bg-[#FEF3E8] flex items-center justify-center text-[#F4742B] font-semibold text-lg">
+                                    ${initial}
                                 </div>
-                                <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 mt-1">
-                                    <span><i class="fas fa-envelope mr-1"></i> ${aluno.email || 'N/E'}</span>
-                                    ${aluno.telefone ? `<span><i class="fas fa-phone mr-1"></i> ${aluno.telefone}</span>` : ''}
-                                    ${aluno.cpf ? `<span><i class="fas fa-id-card mr-1"></i> ${aluno.cpf}</span>` : ''}
+                                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-400'} border-2 border-white"></div>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <p class="font-semibold text-gray-800 truncate">${aluno.nome || 'Sem nome'}</p>
+                                    <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                                        ${isActive ? 'Ativo' : 'Inativo'}
+                                    </span>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 mt-0.5">
                                     <span class="flex items-center gap-1">
-                                        ${authIcon} ${authLabel}
+                                        <i class="fas fa-envelope text-[10px]"></i>
+                                        ${aluno.email || 'N/E'}
+                                    </span>
+                                    ${aluno.telefone ? `
+                                        <span class="flex items-center gap-1">
+                                            <i class="fas fa-phone text-[10px]"></i>
+                                            ${aluno.telefone}
+                                        </span>
+                                    ` : ''}
+                                    <span class="flex items-center gap-1">
+                                        ${authIcon}
+                                        ${aluno.authProvider === 'google' ? 'Google' : 'Email'}
                                     </span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            ${agendamentoBadge}
+                        
+                        <!-- Ações -->
+                        <div class="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
+                            <span class="text-xs px-2 py-0.5 rounded-full ${aluno.totalAgendamentos > 0 ? 'bg-purple-50 text-purple-600' : 'bg-gray-50 text-gray-400'}">
+                                ${aluno.totalAgendamentos > 0 ? `${aluno.totalAgendamentos} agendamentos` : 'Sem agendamentos'}
+                            </span>
                             <button onclick="window.verAgendamentosAluno('${aluno.id}')" 
-                                    class="text-xs px-3 py-1.5 border border-[#F4742B] text-[#F4742B] rounded-lg hover:bg-[#F4742B] hover:text-white transition">
-                                <i class="fas fa-calendar-check mr-1"></i> Ver
+                                    class="p-1.5 text-[#F4742B] hover:bg-[#FEF3E8] rounded-lg transition">
+                                <i class="fas fa-calendar-check text-sm"></i>
                             </button>
                             ${aluno.telefone ? `
                                 <button onclick="window.abrirWhatsAppAluno('${aluno.telefone}', '${aluno.nome || 'Aluno'}')" 
-                                        class="text-xs px-3 py-1.5 border border-green-500 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition">
-                                    <i class="fab fa-whatsapp mr-1"></i> WhatsApp
+                                        class="p-1.5 text-green-500 hover:bg-green-50 rounded-lg transition">
+                                    <i class="fab fa-whatsapp text-sm"></i>
                                 </button>
                             ` : `
-                                <span class="text-xs px-3 py-1.5 border border-gray-300 text-gray-400 rounded-lg cursor-not-allowed">
-                                    <i class="fab fa-whatsapp mr-1"></i> Sem WhatsApp
+                                <span class="p-1.5 text-gray-300 cursor-not-allowed">
+                                    <i class="fab fa-whatsapp text-sm"></i>
                                 </span>
                             `}
-                            <button onclick="window.toggleStatusAluno('${aluno.id}', ${aluno.ativo !== false})" 
-                                    class="text-xs px-3 py-1.5 border ${aluno.ativo !== false ? 'border-red-500 text-red-500 hover:bg-red-500' : 'border-green-500 text-green-500 hover:bg-green-500'} rounded-lg hover:text-white transition">
-                                <i class="fas ${aluno.ativo !== false ? 'fa-pause' : 'fa-play'} mr-1"></i>
-                                ${aluno.ativo !== false ? 'Desativar' : 'Ativar'}
+                            <button onclick="window.toggleStatusAluno('${aluno.id}', ${isActive})" 
+                                    class="p-1.5 ${isActive ? 'text-red-400 hover:text-red-600 hover:bg-red-50' : 'text-green-400 hover:text-green-600 hover:bg-green-50'} rounded-lg transition">
+                                <i class="fas ${isActive ? 'fa-pause' : 'fa-play'} text-sm"></i>
                             </button>
                         </div>
                     </div>
@@ -291,9 +299,16 @@ window.aplicarFiltrosAlunos = async function() {
     } catch (error) {
         console.error('Erro ao carregar alunos:', error);
         container.innerHTML = `
-            <div class="text-center text-red-500 py-12">
-                <i class="fas fa-exclamation-circle text-4xl mb-3 block"></i>
-                Erro ao carregar alunos. Tente novamente.
+            <div class="flex flex-col items-center justify-center py-16 px-4">
+                <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                    <i class="fas fa-exclamation-circle text-3xl text-red-400"></i>
+                </div>
+                <p class="text-lg font-medium text-gray-600">Erro ao carregar</p>
+                <p class="text-sm text-gray-400 mt-1">Tente novamente mais tarde</p>
+                <button onclick="window.aplicarFiltrosAlunos()" 
+                        class="mt-4 px-6 py-2 bg-[#F4742B] text-white text-sm rounded-xl hover:bg-[#E0601A] transition">
+                    Tentar novamente
+                </button>
             </div>
         `;
     }
@@ -340,13 +355,11 @@ window.verAgendamentosAluno = async function(alunoId) {
 };
 
 // ============================================
-// FUNÇÃO: Criar Modal de Agendamentos
+// FUNÇÃO: Criar Modal de Agendamentos (Design Apple)
 // ============================================
 function criarModalAgendamentos(aluno, agendamentos) {
     const modalExistente = document.getElementById('modalAgendamentosAluno');
-    if (modalExistente) {
-        modalExistente.remove();
-    }
+    if (modalExistente) modalExistente.remove();
     
     const overlay = document.createElement('div');
     overlay.id = 'modalAgendamentosAluno';
@@ -354,72 +367,75 @@ function criarModalAgendamentos(aluno, agendamentos) {
     overlay.style.display = 'flex';
     overlay.style.alignItems = 'center';
     overlay.style.justifyContent = 'center';
-    overlay.style.padding = '20px';
+    overlay.style.padding = '16px';
     
     let conteudoAgendamentos = '';
     
     if (!agendamentos || agendamentos.length === 0) {
         conteudoAgendamentos = `
-            <div class="text-center text-gray-500 py-8">
-                <i class="fas fa-calendar-plus text-4xl mb-3 block text-gray-300"></i>
-                <p>Este aluno ainda não possui agendamentos.</p>
+            <div class="flex flex-col items-center justify-center py-8">
+                <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                    <i class="fas fa-calendar-plus text-2xl text-gray-300"></i>
+                </div>
+                <p class="text-gray-500 text-sm">Nenhum agendamento encontrado</p>
+                <p class="text-gray-400 text-xs mt-1">Este aluno ainda não possui agendamentos</p>
             </div>
         `;
     } else {
+        const statusColors = {
+            'confirmado': 'bg-green-50 text-green-700',
+            'cancelado': 'bg-red-50 text-red-700',
+            'concluido': 'bg-gray-100 text-gray-600'
+        };
+        
+        const statusLabels = {
+            'confirmado': 'Confirmado',
+            'cancelado': 'Cancelado',
+            'concluido': 'Concluído'
+        };
+        
+        const statusIcons = {
+            'confirmado': '✅',
+            'cancelado': '❌',
+            'concluido': '📌'
+        };
+        
         conteudoAgendamentos = agendamentos.map(ag => {
-            const statusColors = {
-                'confirmado': 'bg-green-100 text-green-700',
-                'cancelado': 'bg-red-100 text-red-700',
-                'concluido': 'bg-gray-100 text-gray-700'
-            };
-            
-            const statusLabels = {
-                'confirmado': '✅ Confirmado',
-                'cancelado': '❌ Cancelado',
-                'concluido': '📌 Concluído'
-            };
-            
             const centroNome = ag.horarios?.centros?.nome || 'Centro não identificado';
-            const bairro = ag.horarios?.centros?.bairro || '';
-            
             const dataObj = new Date(ag.data_agendamento + 'T00:00:00');
             const diasSemana = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
             const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
             
-            const diaSemana = diasSemana[dataObj.getDay()];
-            const dia = String(dataObj.getDate()).padStart(2, '0');
-            const mes = meses[dataObj.getMonth()];
-            const ano = dataObj.getFullYear();
-            
-            const dataFormatada = `${diaSemana}, ${dia} de ${mes} de ${ano}`;
+            const dataFormatada = `${diasSemana[dataObj.getDay()]}, ${String(dataObj.getDate()).padStart(2, '0')} ${meses[dataObj.getMonth()]}`;
             
             const horaInicio = ag.horarios?.hora_inicio?.substring(0,5) || '--';
             const horaFim = ag.horarios?.hora_fim?.substring(0,5) || '--';
             
             return `
-                <div class="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition border border-gray-100">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                        <div class="flex-1">
+                <div class="bg-gray-50/80 rounded-xl p-3 hover:bg-gray-100 transition border border-gray-100/50">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-semibold text-gray-800">${centroNome}</span>
-                                <span class="text-xs px-2 py-0.5 rounded-full ${statusColors[ag.status] || 'bg-gray-100 text-gray-700'}">
-                                    ${statusLabels[ag.status] || ag.status}
+                                <span class="font-medium text-gray-800 text-sm">${centroNome}</span>
+                                <span class="text-xs px-2 py-0.5 rounded-full ${statusColors[ag.status] || 'bg-gray-100 text-gray-600'}">
+                                    ${statusIcons[ag.status] || ''} ${statusLabels[ag.status] || ag.status}
                                 </span>
                             </div>
-                            <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 mt-1">
-                                <span>
-                                    <i class="far fa-calendar mr-1"></i> ${dataFormatada}
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-1">
+                                <span class="flex items-center gap-1">
+                                    <i class="far fa-calendar text-[10px]"></i>
+                                    ${dataFormatada}
                                 </span>
-                                <span>
-                                    <i class="far fa-clock mr-1"></i> ${horaInicio} - ${horaFim}
+                                <span class="flex items-center gap-1">
+                                    <i class="far fa-clock text-[10px]"></i>
+                                    ${horaInicio} - ${horaFim}
                                 </span>
-                                ${bairro ? `<span><i class="fas fa-map-pin mr-1"></i> ${bairro}</span>` : ''}
                             </div>
                         </div>
                         ${ag.status === 'confirmado' ? `
                             <button onclick="window.cancelarAgendamentoAluno('${ag.id}')" 
-                                    class="text-xs px-3 py-1 border border-red-500 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition whitespace-nowrap">
-                                <i class="fas fa-times mr-1"></i> Cancelar
+                                    class="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition flex-shrink-0">
+                                <i class="fas fa-times text-sm"></i>
                             </button>
                         ` : ''}
                     </div>
@@ -428,42 +444,45 @@ function criarModalAgendamentos(aluno, agendamentos) {
         }).join('');
     }
     
-    const nomeAluno = aluno?.nome || 'Aluno';
-    const emailAluno = aluno?.email || 'N/E';
-    const telefoneAluno = aluno?.telefone || '';
-    const cpfAluno = aluno?.cpf || '';
-    
     overlay.innerHTML = `
-        <div class="modal-content" style="max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative;">
-            <button onclick="fecharModalAgendamentosAluno()" 
-                    style="position: sticky; top: 0; float: right; background: none; border: none; font-size: 24px; color: #9CA3AF; cursor: pointer; padding: 8px; z-index: 10;">
-                <i class="fas fa-times"></i>
-            </button>
-            
-            <div class="flex flex-wrap justify-between items-start gap-3 mb-4">
-                <div>
-                    <h3 class="text-xl font-bold text-[#4B4B4D] flex items-center gap-2">
-                        <i class="fas fa-user text-[#F4742B]"></i> 
-                        ${nomeAluno}
-                    </h3>
-                    <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500 mt-1">
-                        <span><i class="fas fa-envelope mr-1"></i> ${emailAluno}</span>
-                        ${telefoneAluno ? `<span><i class="fas fa-phone mr-1"></i> ${telefoneAluno}</span>` : ''}
-                        ${cpfAluno ? `<span><i class="fas fa-id-card mr-1"></i> ${cpfAluno}</span>` : ''}
+        <div class="modal-content" style="max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-[#F4742B] text-sm"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 class="text-lg font-semibold text-[#4B4B4D] truncate">${aluno?.nome || 'Aluno'}</h3>
+                        <p class="text-xs text-gray-400 truncate">${aluno?.email || 'N/E'}</p>
                     </div>
                 </div>
-                <span class="text-sm font-medium px-3 py-1 rounded-full bg-[#FEF3E8] text-[#F4742B] whitespace-nowrap">
-                    <i class="fas fa-calendar-check mr-1"></i> ${agendamentos?.length || 0} agendamentos
-                </span>
+                <button onclick="fecharModalAgendamentosAluno()" 
+                        class="w-8 h-8 rounded-full hover:bg-gray-100 transition flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-times text-gray-400"></i>
+                </button>
             </div>
             
-            <div class="space-y-3" style="max-height: 50vh; overflow-y: auto; padding-right: 4px;">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-xs font-medium px-3 py-1 rounded-full bg-[#FEF3E8] text-[#F4742B]">
+                    <i class="fas fa-calendar-check mr-1"></i>
+                    ${agendamentos?.length || 0} agendamentos
+                </span>
+                ${aluno?.telefone ? `
+                    <button onclick="window.abrirWhatsAppAluno('${aluno.telefone}', '${aluno.nome || 'Aluno'}')" 
+                            class="text-xs font-medium px-3 py-1 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition">
+                        <i class="fab fa-whatsapp mr-1"></i>
+                        WhatsApp
+                    </button>
+                ` : ''}
+            </div>
+            
+            <div class="space-y-2" style="max-height: 45vh; overflow-y: auto; padding-right: 4px;">
                 ${conteudoAgendamentos}
             </div>
             
-            <div class="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+            <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
                 <button onclick="fecharModalAgendamentosAluno()" 
-                        class="px-6 py-2 bg-[#F4742B] text-white rounded-lg hover:bg-[#E0601A] transition">
+                        class="px-5 py-2 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98]">
                     Fechar
                 </button>
             </div>
@@ -473,9 +492,7 @@ function criarModalAgendamentos(aluno, agendamentos) {
     document.body.appendChild(overlay);
     
     overlay.addEventListener('click', function(e) {
-        if (e.target === this) {
-            fecharModalAgendamentosAluno();
-        }
+        if (e.target === this) fecharModalAgendamentosAluno();
     });
     
     const handleEsc = function(e) {
@@ -494,9 +511,7 @@ window.fecharModalAgendamentosAluno = function() {
     const modal = document.getElementById('modalAgendamentosAluno');
     if (modal) {
         modal.classList.remove('active');
-        setTimeout(() => {
-            modal.remove();
-        }, 300);
+        setTimeout(() => modal.remove(), 300);
     }
 };
 
@@ -526,9 +541,7 @@ window.cancelarAgendamentoAluno = function(id) {
                     onConfirm: () => {
                         window.closeModal();
                         fecharModalAgendamentosAluno();
-                        setTimeout(() => {
-                            window.aplicarFiltrosAlunos();
-                        }, 300);
+                        setTimeout(() => window.aplicarFiltrosAlunos(), 300);
                     }
                 });
             } catch (error) {
@@ -570,6 +583,7 @@ window.toggleStatusAluno = async function(id, ativo) {
                     message: `Aluno ${ativo ? 'desativado' : 'ativado'} com sucesso.`,
                     confirmText: 'OK',
                     onConfirm: () => {
+                        window.closeModal();
                         window.aplicarFiltrosAlunos();
                     }
                 });
@@ -578,142 +592,12 @@ window.toggleStatusAluno = async function(id, ativo) {
                 errorModal({
                     title: 'Erro ao Alterar Status',
                     message: error.message || 'Ocorreu um erro ao alterar o status do aluno.',
-                    confirmText: 'OK'
-                });
-            }
-        }
-    });
-};
-
-// ============================================
-// FUNÇÃO: Cancelar Agendamento (Admin)
-// ============================================
-window.cancelarAgendamentoAdmin = function(id) {
-    confirmModal({
-        title: 'Cancelar Agendamento',
-        message: 'Tem certeza que deseja cancelar este agendamento?',
-        confirmText: 'Cancelar',
-        cancelText: 'Voltar',
-        confirmColor: '#EF4444',
-        onConfirm: async () => {
-            try {
-                const { error } = await supabase
-                    .from('agendamentos')
-                    .update({ status: 'cancelado' })
-                    .eq('id', id);
-                
-                if (error) throw error;
-                
-                successModal({
-                    title: 'Agendamento Cancelado!',
-                    message: 'O agendamento foi cancelado com sucesso.',
-                    confirmText: 'OK',
-                    onConfirm: () => {
-                        window.closeModal();
-                        window.aplicarFiltrosAlunos();
-                    }
-                });
-            } catch (error) {
-                console.error('Erro ao cancelar:', error);
-                errorModal({
-                    title: 'Erro ao Cancelar',
-                    message: error.message || 'Ocorreu um erro ao cancelar o agendamento.',
                     confirmText: 'OK',
                     onConfirm: () => window.closeModal()
                 });
             }
         }
     });
-};
-
-// ============================================
-// FUNÇÃO: Exportar Alunos para PDF
-// ============================================
-window.exportarAlunosPDF = async function() {
-    try {
-        const { data: usuarios, error } = await supabase
-            .from('usuarios')
-            .select('*')
-            .order('nome', { ascending: true });
-        
-        if (error) throw error;
-        
-        if (!usuarios || usuarios.length === 0) {
-            infoModal({
-                title: 'Nenhum Aluno',
-                message: 'Não há alunos para exportar.',
-                confirmText: 'OK'
-            });
-            return;
-        }
-        
-        const { default: jsPDF } = await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm');
-        
-        const doc = new jsPDF('portrait', 'mm', 'a4');
-        
-        doc.setFontSize(18);
-        doc.setTextColor('#F4742B');
-        doc.text('CrossFit - Lista de Alunos', 14, 20);
-        
-        doc.setFontSize(12);
-        doc.setTextColor('#4B4B4D');
-        doc.text(`Total: ${usuarios.length} alunos`, 14, 30);
-        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 37);
-        
-        doc.setFontSize(10);
-        doc.text('='.repeat(70), 14, 45);
-        
-        let y = 55;
-        usuarios.forEach((aluno, index) => {
-            if (y > 270) {
-                doc.addPage();
-                y = 20;
-                doc.setFontSize(10);
-                doc.text('='.repeat(70), 14, 28);
-                y = 38;
-            }
-            
-            const status = aluno.ativo !== false ? '✅ Ativo' : '❌ Inativo';
-            
-            doc.text(`${index + 1}. ${aluno.nome || 'N/I'}`, 14, y);
-            doc.text(`   Email: ${aluno.email || 'N/I'}`, 14, y + 6);
-            doc.text(`   Telefone: ${aluno.telefone || 'N/I'}`, 14, y + 12);
-            doc.text(`   CPF: ${aluno.cpf || 'N/I'}`, 14, y + 18);
-            doc.text(`   Status: ${status}`, 14, y + 24);
-            doc.text('-'.repeat(50), 14, y + 30);
-            
-            y += 36;
-        });
-        
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setTextColor('#9CA3AF');
-            doc.text(
-                `Página ${i} de ${pageCount}`,
-                doc.internal.pageSize.width / 2,
-                doc.internal.pageSize.height - 10,
-                { align: 'center' }
-            );
-        }
-        
-        doc.save(`alunos_${new Date().toISOString().split('T')[0]}.pdf`);
-        
-        successModal({
-            title: 'PDF Exportado!',
-            message: `O arquivo PDF foi gerado com ${usuarios.length} alunos.`,
-            confirmText: 'OK'
-        });
-        
-    } catch (error) {
-        console.error('Erro ao exportar PDF:', error);
-        errorModal({
-            title: 'Erro ao Exportar',
-            message: error.message || 'Ocorreu um erro ao gerar o PDF. Tente novamente.',
-            confirmText: 'OK'
-        });
-    }
 };
 
 // ============================================
@@ -741,8 +625,83 @@ window.abrirWhatsAppAluno = function(telefone, nome) {
         return;
     }
     
-    const link = `https://wa.me/55${telefoneLimpo}?text=Olá ${nome}!%20Sou%20da%20Striking%20CT.%20Gostaria%20de%20falar%20com%20você.`;
+    const link = `https://wa.me/55${telefoneLimpo}?text=Olá ${encodeURIComponent(nome || 'Aluno')}!%20Sou%20da%20WODBOOK.%20Gostaria%20de%20falar%20com%20você.`;
     window.open(link, '_blank');
+};
+
+// ============================================
+// FUNÇÃO: Exportar Alunos para PDF (Simplificada)
+// ============================================
+window.exportarAlunosPDF = async function() {
+    try {
+        const { data: usuarios, error } = await supabase
+            .from('usuarios')
+            .select('nome, email, telefone, role')
+            .order('nome', { ascending: true });
+        
+        if (error) throw error;
+        
+        if (!usuarios || usuarios.length === 0) {
+            infoModal({
+                title: 'Nenhum Aluno',
+                message: 'Não há alunos para exportar.',
+                confirmText: 'OK',
+                onConfirm: () => window.closeModal()
+            });
+            return;
+        }
+        
+        const { default: jsPDF } = await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm');
+        
+        const doc = new jsPDF('portrait', 'mm', 'a4');
+        
+        doc.setFontSize(20);
+        doc.setTextColor('#F4742B');
+        doc.text('WODBOOK - Alunos', 14, 25);
+        
+        doc.setFontSize(11);
+        doc.setTextColor('#4B4B4D');
+        doc.text(`Total: ${usuarios.length} alunos`, 14, 35);
+        doc.text(`Gerado: ${new Date().toLocaleString('pt-BR')}`, 14, 42);
+        
+        let y = 55;
+        usuarios.forEach((aluno, index) => {
+            if (y > 270) {
+                doc.addPage();
+                y = 25;
+            }
+            
+            doc.setFontSize(10);
+            doc.setTextColor('#1F2937');
+            doc.text(`${index + 1}. ${aluno.nome || 'N/I'}`, 14, y);
+            
+            doc.setFontSize(9);
+            doc.setTextColor('#6B7280');
+            doc.text(`   Email: ${aluno.email || 'N/I'}`, 14, y + 5);
+            doc.text(`   Telefone: ${aluno.telefone || 'N/I'}`, 14, y + 10);
+            doc.text(`   Status: ${aluno.role === 'admin' ? 'Admin' : 'Aluno'}`, 14, y + 15);
+            
+            y += 24;
+        });
+        
+        doc.save(`alunos_${new Date().toISOString().split('T')[0]}.pdf`);
+        
+        successModal({
+            title: 'PDF Exportado!',
+            message: `Arquivo gerado com ${usuarios.length} alunos.`,
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+        
+    } catch (error) {
+        console.error('Erro ao exportar PDF:', error);
+        errorModal({
+            title: 'Erro ao Exportar',
+            message: error.message || 'Ocorreu um erro ao gerar o PDF.',
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+    }
 };
 
 // ============================================
@@ -755,9 +714,7 @@ export function setupAlunosEvents() {
             if (target && (target.id === 'buscarAluno' || 
                 target.id === 'filtroStatusAluno' || 
                 target.id === 'filtroAuth')) {
-                if (typeof window.aplicarFiltrosAlunos === 'function') {
-                    window.aplicarFiltrosAlunos();
-                }
+                window.aplicarFiltrosAlunos();
             }
         }
     });
