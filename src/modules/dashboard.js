@@ -1,6 +1,22 @@
 import { supabase, getCurrentUser, getUserProfile } from '../config/supabase.js';
 
 // ============================================
+// FUNÇÃO: Abrir Mapa (Google Maps)
+// ============================================
+function abrirMapa(endereco) {
+    if (!endereco) {
+        alert('Endereço não disponível para este centro.');
+        return;
+    }
+    
+    // Codificar o endereço para URL
+    const enderecoCodificado = encodeURIComponent(endereco);
+    // Abrir no Google Maps (funciona em mobile e desktop)
+    const url = `https://www.google.com/maps/search/?api=1&query=${enderecoCodificado}`;
+    window.open(url, '_blank');
+}
+
+// ============================================
 // FUNÇÃO: Carregar Conteúdo do Dashboard
 // ============================================
 export async function loadDashboardContent() {
@@ -27,7 +43,7 @@ export async function loadDashboardContent() {
     }
     if (userName) userName.textContent = nome;
     
-    // Buscar centros
+    // Buscar centros com endereço completo
     const { data: centros } = await supabase
         .from('centros')
         .select('*')
@@ -163,7 +179,7 @@ export async function loadDashboardContent() {
             </div>
         </div>
         
-        <!-- Centros - Apple Style -->
+        <!-- Centros - Apple Style com Endereço e Mapa -->
         <div class="mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-base font-semibold text-[#4B4B4D] flex items-center gap-2">
@@ -179,6 +195,9 @@ export async function loadDashboardContent() {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 ${centros?.map(centro => {
                     const imagemUrl = centro.imagem || `https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=200&font-size=0.35`;
+                    const enderecoCompleto = centro.endereco || '';
+                    const bairro = centro.bairro || '';
+                    
                     return `
                         <div class="bg-white rounded-2xl shadow-sm overflow-hidden card-hover border border-gray-100/50 group transition-all duration-300 hover:shadow-md">
                             <div class="relative h-40 overflow-hidden bg-[#FEF3E8]">
@@ -190,10 +209,19 @@ export async function loadDashboardContent() {
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
                                 <div class="absolute bottom-3 left-3">
                                     <h4 class="text-white font-semibold text-sm drop-shadow-lg">${centro.nome}</h4>
-                                    <p class="text-white/70 text-xs drop-shadow-lg">${centro.bairro || ''}</p>
+                                    <p class="text-white/70 text-xs drop-shadow-lg">${bairro || ''}</p>
                                 </div>
                             </div>
                             <div class="p-4">
+                                <!-- Endereço com ícone -->
+                                ${enderecoCompleto ? `
+                                    <div class="flex items-start gap-2 text-xs text-gray-500 mb-2">
+                                        <i class="fas fa-location-dot text-[#F4742B] mt-0.5 text-[10px]"></i>
+                                        <span class="line-clamp-2">${enderecoCompleto}</span>
+                                    </div>
+                                ` : ''}
+                                
+                                <!-- Informações do centro -->
                                 <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
                                     <span class="flex items-center gap-1">
                                         <i class="far fa-clock text-[10px]"></i>
@@ -205,11 +233,22 @@ export async function loadDashboardContent() {
                                         ${centro.vagas_padrao || 10}
                                     </span>
                                 </div>
-                                <button onclick="window.abrirAgendamento('${centro.id}', '${centro.nome}')" 
-                                        class="w-full bg-[#F4742B] text-white text-sm font-medium py-2 rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2">
-                                    <i class="fas fa-calendar-plus text-xs"></i>
-                                    Agendar
-                                </button>
+                                
+                                <!-- Botões de ação -->
+                                <div class="flex gap-2">
+                                    <button onclick="window.abrirAgendamento('${centro.id}', '${centro.nome}')" 
+                                            class="flex-1 bg-[#F4742B] text-white text-sm font-medium py-2 rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2">
+                                        <i class="fas fa-calendar-plus text-xs"></i>
+                                        Agendar
+                                    </button>
+                                    ${enderecoCompleto ? `
+                                        <button onclick="window.abrirMapa('${enderecoCompleto.replace(/'/g, "\\'")}')" 
+                                                class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition active:scale-[0.98] flex items-center justify-center" 
+                                                title="Abrir no mapa">
+                                            <i class="fas fa-map-pin text-sm"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -330,10 +369,23 @@ export async function loadDashboardContent() {
 }
 
 // ============================================
+// FUNÇÃO GLOBAL: Abrir Mapa
+// ============================================
+window.abrirMapa = function(endereco) {
+    if (!endereco || endereco === '') {
+        alert('Endereço não disponível para este centro.');
+        return;
+    }
+    
+    const enderecoCodificado = encodeURIComponent(endereco);
+    const url = `https://www.google.com/maps/search/?api=1&query=${enderecoCodificado}`;
+    window.open(url, '_blank');
+};
+
+// ============================================
 // FUNÇÃO: Filtrar Agendamentos (GLOBAL)
 // ============================================
 window.filtrarAgendamentos = function(filtro) {
-    // Atualizar abas
     document.querySelectorAll('#tabTodos, #tabFuturos, #tabPassados').forEach(tab => {
         if (tab) {
             tab.classList.remove('text-[#F4742B]', 'border-[#F4742B]');
@@ -353,7 +405,6 @@ window.filtrarAgendamentos = function(filtro) {
         tabAtiva.classList.add('text-[#F4742B]', 'border-[#F4742B]');
     }
     
-    // Filtrar itens
     document.querySelectorAll('.agendamento-item').forEach(item => {
         if (filtro === 'todos') {
             item.style.display = '';
@@ -377,7 +428,6 @@ window.cancelarAgendamento = async function(agendamentoId) {
         
         if (error) throw error;
         
-        // Mostrar feedback
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
         modal.innerHTML = `

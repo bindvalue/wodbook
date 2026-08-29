@@ -242,6 +242,17 @@
             animation: fadeIn 0.3s ease;
         }
         
+        /* Slogan style */
+        .slogan {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            color: #4B4B4D;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-top: 6px;
+        }
+        
         /* Responsive */
         @media (max-width: 640px) {
             .login-card {
@@ -257,6 +268,11 @@
                 padding: 12px 20px;
                 font-size: 15px;
             }
+            
+            .slogan {
+                font-size: 9px;
+                letter-spacing: 0.2em;
+            }
         }
     </style>
 </head>
@@ -264,15 +280,16 @@
     <div class="min-h-screen bg-gradient-login flex items-center justify-center p-4 sm:p-6">
         <div class="login-card w-full max-w-[400px] p-8 sm:p-10 fade-in">
             
-            <!-- Logo - SEM BOX -->
+            <!-- Logo -->
             <div class="text-center mb-8">
-                <div class="flex justify-center mb-4">
+                <div class="flex justify-center">
                     <img src="src/img/logo_wodbook.png" 
                          alt="WODBOOK" 
                          class="w-28 h-28 object-contain"
                          onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=112'">
                 </div>
-                <h1 class="text-2xl font-bold text-[#4B4B4D] tracking-tight">Bem-vindo</h1>
+                <p class="slogan">AGENDE. TREINE. SUPERE.</p>
+                <h1 class="text-2xl font-bold text-[#4B4B4D] tracking-tight mt-4">Bem-vindo</h1>
                 <p class="text-sm text-gray-400 mt-1">Faça login para acessar sua conta</p>
             </div>
             
@@ -454,7 +471,6 @@
         // ============================================
         // REMEMBER ME
         // ============================================
-        // Carregar email salvo
         const savedEmail = localStorage.getItem('wodbook_email');
         if (savedEmail) {
             emailInput.value = savedEmail;
@@ -493,7 +509,6 @@
                     }
                 }
                 
-                // Salvar email se "Lembrar-me" estiver marcado
                 if (rememberCheck.checked) {
                     localStorage.setItem('wodbook_email', email);
                 } else {
