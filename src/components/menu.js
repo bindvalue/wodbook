@@ -19,14 +19,22 @@ export function renderMenu(activePage = 'dashboard') {
     
     const menuHTML = `
         <aside id="sidebar" class="sidebar ${isCollapsed ? 'sidebar-collapsed' : ''}">
-            <!-- Logo com efeito -->
+           <!-- Logo com efeito - DUAS VERSÕES -->
             <div class="flex items-center justify-center p-5 border-b border-white/5 relative group">
                 <div class="flex items-center justify-center w-full">
                     <div class="relative">
+                        <!-- Logo completa (quando expandido) -->
                         <img src="src/img/logo_wodbook.png" 
-                             alt="WODBOOK" 
-                             class="w-20 h-20 object-contain flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
-                             onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=48'">
+                            alt="WODBOOK" 
+                            class="logo-completa w-auto h-16 object-contain flex-shrink-0 transition-all duration-300 group-hover:scale-105"
+                            onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=48'">
+                        
+                        <!-- Logo ícone (quando colapsado) -->
+                        <img src="src/img/favicon.png" 
+                            alt="WOD" 
+                            class="logo-icone w-12 h-12 object-contain flex-shrink-0 transition-all duration-300 group-hover:scale-105 hidden"
+                            onerror="this.src='https://ui-avatars.com/api/?name=W&background=F4742B&color=fff&size=40'">
+                        
                         <div class="absolute -inset-1 bg-[#F4742B]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     </div>
                 </div>
@@ -206,15 +214,18 @@ export function initCollapseDesktop() {
 function aplicarCollapse(collapsed) {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.querySelector('.main-content');
+    const footer = document.getElementById('footerContainer');
     
     if (!sidebar || !mainContent) return;
     
     if (collapsed) {
         sidebar.classList.add('sidebar-collapsed');
         mainContent.classList.add('main-content-expanded');
+        if (footer) footer.style.marginLeft = '70px';
     } else {
         sidebar.classList.remove('sidebar-collapsed');
         mainContent.classList.remove('main-content-expanded');
+        if (footer) footer.style.marginLeft = '';
     }
 }
 
