@@ -12,6 +12,7 @@ export async function loadDashboardContent() {
     
     const profile = await getUserProfile(user.id);
     const nome = profile?.nome || user.email?.split('@')[0] || 'Usuário';
+    const isAdmin = profile?.role === 'admin';
     
     // Atualizar avatar no menu
     const userAvatarMenu = document.getElementById('userAvatarMenu');
@@ -33,7 +34,7 @@ export async function loadDashboardContent() {
         .eq('ativo', true)
         .limit(6);
     
-    // 🔥 BUSCAR AGENDAMENTOS COM MAIS DETALHES
+    // Buscar agendamentos do usuário
     const { data: agendamentos } = await supabase
         .from('agendamentos')
         .select(`
@@ -55,7 +56,7 @@ export async function loadDashboardContent() {
     
     const total = agendamentos?.length || 0;
     
-    // 🔥 FILTRAR APENAS AGENDAMENTOS FUTUROS (a partir de hoje)
+    // Filtrar agendamentos futuros
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     
@@ -72,159 +73,199 @@ export async function loadDashboardContent() {
     const totalFuturos = agendamentosFuturos.length;
     const totalPassados = agendamentosPassados.length;
     
-    // 🔥 FORMATAR DATA CORRETAMENTE
+    // Formatar data
     function formatarData(dataStr) {
         const data = new Date(dataStr + 'T00:00:00');
         const dias = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
         const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-        return `${dias[data.getDay()]}, ${String(data.getDate()).padStart(2, '0')} de ${meses[data.getMonth()]} de ${data.getFullYear()}`;
+        return `${dias[data.getDay()]}, ${String(data.getDate()).padStart(2, '0')} ${meses[data.getMonth()]}`;
+    }
+    
+    // Função para verificar se é hoje
+    function isHoje(dataStr) {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const data = new Date(dataStr + 'T00:00:00');
+        return data.getTime() === hoje.getTime();
     }
     
     return `
-        <!-- Banner Hero -->
-        <div class="gradient-hero rounded-2xl p-6 md:p-8 mb-6 text-white relative overflow-hidden" 
-             style="background: linear-gradient(135deg, #F4742B 0%, #E0601A 50%, #4B4B4D 100%);">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
-            <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4"></div>
-            
-            <div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 class="text-2xl md:text-3xl font-extrabold">
-                        <i class="fas fa-wave-square mr-2"></i> 
-                        Olá, <span id="userName">${nome}</span>! 👋
-                    </h2>
-                    <p class="text-white/80 mt-1">Pronto para mais um treino? 💪</p>
-                </div>
-                <div class="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/10">
-                    <i class="fas fa-fire text-[#F4742B]"></i>
-                    <span class="font-semibold">${agendamentosFuturos.length} aulas agendadas</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
-            <div class="bg-white p-6 rounded-2xl shadow-sm card-hover">
-                <div class="flex items-center justify-between">
+        <!-- Hero Section - Apple Style -->
+        <div class="relative rounded-2xl overflow-hidden mb-6">
+            <div class="bg-gradient-to-br from-[#F4742B] via-[#E0601A] to-[#4B4B4D] p-6 md:p-8 text-white">
+                <div class="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4"></div>
+                
+                <div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <p class="text-gray-500 text-sm">Próximas Aulas</p>
-                        <p class="text-3xl font-bold text-[#4B4B4D]">${totalFuturos}</p>
+                        <p class="text-white/70 text-xs font-medium uppercase tracking-wider">Bem-vindo de volta</p>
+                        <h2 class="text-2xl md:text-3xl font-bold mt-1">
+                            Olá, ${nome} <span class="text-[#FEF3E8]">👋</span>
+                        </h2>
+                        <p class="text-white/70 text-sm mt-1">Pronto para mais um treino?</p>
                     </div>
-                    <div class="bg-[#FEF3E8] p-3 rounded-full">
-                        <i class="fas fa-calendar-check text-[#F4742B] text-xl"></i>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-2xl shadow-sm card-hover">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-sm">Total de Aulas</p>
-                        <p class="text-3xl font-bold text-[#4B4B4D]">${total}</p>
-                    </div>
-                    <div class="bg-[#FEF3E8] p-3 rounded-full">
-                        <i class="fas fa-check-circle text-[#F4742B] text-xl"></i>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white p-6 rounded-2xl shadow-sm card-hover">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-sm">Centros Disponíveis</p>
-                        <p class="text-3xl font-bold text-[#4B4B4D]">${centros?.length || 0}</p>
-                    </div>
-                    <div class="bg-[#FEF3E8] p-3 rounded-full">
-                        <i class="fas fa-location-dot text-[#F4742B] text-xl"></i>
+                    <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/10">
+                        <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                        <span class="text-sm font-medium">${totalFuturos} aulas agendadas</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Centros -->
+        <!-- Stats - Apple Style -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Próximas</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1">${totalFuturos}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                        <i class="fas fa-calendar-check text-[#F4742B] text-sm"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1">${total}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-purple-500 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Unidades</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1">${centros?.length || 0}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                        <i class="fas fa-dumbbell text-blue-500 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Concluídos</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1">${totalPassados}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                        <i class="fas fa-flag-checkered text-green-500 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Centros - Apple Style -->
         <div class="mb-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-[#4B4B4D]">
-                    <i class="fas fa-dumbbell text-[#F4742B]"></i> Centros de Treinamento
+                <h3 class="text-base font-semibold text-[#4B4B4D] flex items-center gap-2">
+                    <i class="fas fa-dumbbell text-[#F4742B]"></i>
+                    Centros de Treinamento
                 </h3>
-                <a href="#" onclick="window.loadPage('centros'); return false;" class="text-[#F4742B] hover:text-[#E0601A] text-sm font-medium transition">
-                    Ver todos <i class="fas fa-arrow-right ml-1"></i>
+                <a href="#" onclick="window.loadPage('centros'); return false;" 
+                   class="text-xs text-[#F4742B] hover:text-[#E0601A] font-medium transition flex items-center gap-1">
+                    Ver todos <i class="fas fa-arrow-right text-[10px]"></i>
                 </a>
             </div>
-            <div id="centrosList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 ${centros?.map(centro => {
-                    const imagemUrl = centro.imagem || `https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=300&font-size=0.4`;
+                    const imagemUrl = centro.imagem || `https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=200&font-size=0.35`;
                     return `
-                        <div class="bg-white rounded-2xl shadow-sm overflow-hidden card-hover border border-gray-100 group">
-                            <div class="relative h-48 overflow-hidden bg-[#FEF3E8]">
+                        <div class="bg-white rounded-2xl shadow-sm overflow-hidden card-hover border border-gray-100/50 group transition-all duration-300 hover:shadow-md">
+                            <div class="relative h-40 overflow-hidden bg-[#FEF3E8]">
                                 <img src="${imagemUrl}" 
                                      alt="${centro.nome}" 
-                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                      loading="lazy"
-                                     onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=300&font-size=0.4'">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                                     onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=200&font-size=0.35'">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
                                 <div class="absolute bottom-3 left-3">
-                                    <h3 class="text-white font-bold text-lg drop-shadow-lg">${centro.nome}</h3>
-                                    <p class="text-white/80 text-sm drop-shadow-lg">${centro.bairro}</p>
+                                    <h4 class="text-white font-semibold text-sm drop-shadow-lg">${centro.nome}</h4>
+                                    <p class="text-white/70 text-xs drop-shadow-lg">${centro.bairro || ''}</p>
                                 </div>
                             </div>
-                            <div class="p-5">
-                                <p class="text-gray-500 text-sm">
-                                    <i class="fas fa-map-pin text-[#F4742B] mr-1"></i> ${centro.endereco}
-                                </p>
-                                <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                                    <span><i class="far fa-clock mr-1"></i> ${centro.horario_funcionamento || '06:00 - 22:00'}</span>
+                            <div class="p-4">
+                                <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                                    <span class="flex items-center gap-1">
+                                        <i class="far fa-clock text-[10px]"></i>
+                                        ${centro.horario_funcionamento || '06:00 - 22:00'}
+                                    </span>
                                     <span>•</span>
-                                    <span><i class="fas fa-users mr-1"></i> ${centro.vagas_padrao || 10} vagas</span>
+                                    <span class="flex items-center gap-1">
+                                        <i class="fas fa-users text-[10px]"></i>
+                                        ${centro.vagas_padrao || 10}
+                                    </span>
                                 </div>
                                 <button onclick="window.abrirAgendamento('${centro.id}', '${centro.nome}')" 
-                                        class="mt-4 w-full bg-[#F4742B] text-white py-2.5 rounded-lg font-semibold hover:bg-[#E0601A] transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md hover:shadow-[#F4742B]/25 flex items-center justify-center gap-2">
-                                    <i class="fas fa-calendar-plus"></i> Agendar
+                                        class="w-full bg-[#F4742B] text-white text-sm font-medium py-2 rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2">
+                                    <i class="fas fa-calendar-plus text-xs"></i>
+                                    Agendar
                                 </button>
                             </div>
                         </div>
                     `;
-                }).join('')}
+                }).join('') || `
+                    <div class="col-span-full text-center text-gray-400 py-8">
+                        <i class="fas fa-building text-3xl block mb-2 text-gray-300"></i>
+                        <p class="text-sm">Nenhum centro disponível no momento</p>
+                    </div>
+                `}
             </div>
         </div>
         
-        <!-- Agendamentos - VERSÃO MELHORADA -->
+        <!-- Meus Agendamentos - Apple Style -->
         <div>
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-[#4B4B4D]">
-                    <i class="fas fa-clock text-[#F4742B]"></i> Meus Agendamentos
+                <h3 class="text-base font-semibold text-[#4B4B4D] flex items-center gap-2">
+                    <i class="fas fa-clock text-[#F4742B]"></i>
+                    Meus Agendamentos
                 </h3>
-                <div class="flex items-center gap-3 text-sm">
-                    <span class="text-gray-500">${totalFuturos} futuros</span>
-                    <span class="text-gray-300">|</span>
-                    <span class="text-gray-500">${totalPassados} concluídos</span>
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                    <span>${totalFuturos} futuros</span>
+                    <span>•</span>
+                    <span>${totalPassados} concluídos</span>
                 </div>
             </div>
-            <div id="meusAgendamentos" class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 ${agendamentos?.length === 0 ? `
-                    <div class="text-center text-gray-500 py-12">
-                        <i class="fas fa-calendar-plus text-4xl mb-3 block text-[#F4742B]"></i>
-                        <p class="text-lg font-medium">Nenhum agendamento encontrado</p>
-                        <p class="text-sm mt-1">Agende sua primeira aula em um dos centros acima!</p>
+                    <div class="flex flex-col items-center justify-center py-12 px-4">
+                        <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                            <i class="fas fa-calendar-plus text-2xl text-gray-300"></i>
+                        </div>
+                        <p class="text-gray-500 text-sm font-medium">Nenhum agendamento</p>
+                        <p class="text-gray-400 text-xs mt-1">Agende sua primeira aula em um dos centros acima</p>
                     </div>
                 ` : `
-                    <!-- Abas de filtro -->
-                    <div class="flex border-b border-gray-200 bg-gray-50/50">
-                        <button onclick="filtrarAgendamentos('todos')" 
-                                class="px-4 py-2 text-sm font-medium text-[#F4742B] border-b-2 border-[#F4742B] transition" id="tabTodos">
+                    <!-- Tabs -->
+                    <div class="flex border-b border-gray-100 bg-gray-50/50 px-2">
+                        <button onclick="window.filtrarAgendamentos('todos')" 
+                                class="px-3 py-2 text-xs font-medium text-[#F4742B] border-b-2 border-[#F4742B] transition" 
+                                id="tabTodos">
                             Todos (${total})
                         </button>
-                        <button onclick="filtrarAgendamentos('futuros')" 
-                                class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition border-b-2 border-transparent" id="tabFuturos">
+                        <button onclick="window.filtrarAgendamentos('futuros')" 
+                                class="px-3 py-2 text-xs font-medium text-gray-400 hover:text-gray-600 transition border-b-2 border-transparent" 
+                                id="tabFuturos">
                             Futuros (${totalFuturos})
                         </button>
-                        <button onclick="filtrarAgendamentos('passados')" 
-                                class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition border-b-2 border-transparent" id="tabPassados">
+                        <button onclick="window.filtrarAgendamentos('passados')" 
+                                class="px-3 py-2 text-xs font-medium text-gray-400 hover:text-gray-600 transition border-b-2 border-transparent" 
+                                id="tabPassados">
                             Concluídos (${totalPassados})
                         </button>
                     </div>
                     
-                    <!-- Lista de agendamentos -->
+                    <!-- Lista -->
                     <div id="listaAgendamentos" class="divide-y divide-gray-100">
                         ${agendamentos.map(ag => {
                             const centroNome = ag.horarios?.centros?.nome || 'Centro não identificado';
@@ -232,44 +273,51 @@ export async function loadDashboardContent() {
                             const dataFormatada = formatarData(ag.data_agendamento);
                             const horaInicio = ag.horarios?.hora_inicio?.substring(0,5) || '--';
                             const horaFim = ag.horarios?.hora_fim?.substring(0,5) || '--';
-                            const isFuturo = new Date(ag.data_agendamento + 'T00:00:00') >= hoje;
+                            const futuro = new Date(ag.data_agendamento + 'T00:00:00') >= hoje;
+                            const hojeAgendamento = isHoje(ag.data_agendamento);
+                            
+                            let statusLabel = futuro ? (hojeAgendamento ? '🔥 Hoje' : '📅 Futuro') : '✅ Concluído';
+                            let statusColor = futuro ? (hojeAgendamento ? 'bg-[#FEF3E8] text-[#F4742B]' : 'bg-green-50 text-green-700') : 'bg-gray-100 text-gray-500';
                             
                             return `
-                                <div class="py-4 px-4 hover:bg-gray-50/50 transition agendamento-item" data-status="${isFuturo ? 'futuros' : 'passados'}">
-                                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                                        <div class="flex-1">
-                                            <div class="flex items-center gap-2">
-                                                <p class="font-semibold text-gray-800">${centroNome}</p>
-                                                <span class="text-xs px-2 py-0.5 rounded-full ${isFuturo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
-                                                    ${isFuturo ? '📅 Futuro' : '✅ Concluído'}
+                                <div class="py-3 px-4 hover:bg-gray-50/50 transition agendamento-item" data-status="${futuro ? 'futuros' : 'passados'}">
+                                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <p class="font-medium text-gray-800 text-sm truncate">${centroNome}</p>
+                                                <span class="text-[10px] px-2 py-0.5 rounded-full ${statusColor}">
+                                                    ${statusLabel}
                                                 </span>
                                             </div>
-                                            <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 mt-1">
-                                                <span>
-                                                    <i class="far fa-calendar mr-1"></i> ${dataFormatada}
+                                            <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-400 mt-0.5">
+                                                <span class="flex items-center gap-1">
+                                                    <i class="far fa-calendar text-[10px]"></i>
+                                                    ${dataFormatada}
                                                 </span>
-                                                <span>
-                                                    <i class="far fa-clock mr-1"></i> ${horaInicio} - ${horaFim}
+                                                <span class="flex items-center gap-1">
+                                                    <i class="far fa-clock text-[10px]"></i>
+                                                    ${horaInicio} - ${horaFim}
                                                 </span>
                                                 ${centroBairro ? `
-                                                    <span>
-                                                        <i class="fas fa-map-pin mr-1"></i> ${centroBairro}
+                                                    <span class="flex items-center gap-1">
+                                                        <i class="fas fa-map-pin text-[10px]"></i>
+                                                        ${centroBairro}
                                                     </span>
                                                 ` : ''}
                                             </div>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            ${isFuturo ? `
-                                                <button onclick="window.cancelarAgendamento('${ag.id}')" 
-                                                        class="text-xs px-3 py-1 border border-red-500 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition">
-                                                    <i class="fas fa-times mr-1"></i> Cancelar
-                                                </button>
-                                            ` : `
-                                                <span class="text-xs px-3 py-1 bg-gray-100 text-gray-500 rounded-lg">
-                                                    <i class="fas fa-check mr-1"></i> Concluído
-                                                </span>
-                                            `}
-                                        </div>
+                                        ${futuro ? `
+                                            <button onclick="window.cancelarAgendamento('${ag.id}')" 
+                                                    class="text-xs px-3 py-1 border border-red-300 text-red-400 hover:text-red-600 hover:border-red-500 rounded-lg hover:bg-red-50 transition flex-shrink-0">
+                                                <i class="fas fa-times text-[10px] mr-1"></i>
+                                                Cancelar
+                                            </button>
+                                        ` : `
+                                            <span class="text-xs px-3 py-1 bg-gray-100 text-gray-400 rounded-lg flex-shrink-0">
+                                                <i class="fas fa-check text-[10px] mr-1"></i>
+                                                Concluído
+                                            </span>
+                                        `}
                                     </div>
                                 </div>
                             `;
@@ -287,8 +335,10 @@ export async function loadDashboardContent() {
 window.filtrarAgendamentos = function(filtro) {
     // Atualizar abas
     document.querySelectorAll('#tabTodos, #tabFuturos, #tabPassados').forEach(tab => {
-        tab.classList.remove('text-[#F4742B]', 'border-[#F4742B]');
-        tab.classList.add('text-gray-500', 'border-transparent');
+        if (tab) {
+            tab.classList.remove('text-[#F4742B]', 'border-[#F4742B]');
+            tab.classList.add('text-gray-400', 'border-transparent');
+        }
     });
     
     const tabMap = {
@@ -299,7 +349,7 @@ window.filtrarAgendamentos = function(filtro) {
     
     const tabAtiva = document.getElementById(tabMap[filtro]);
     if (tabAtiva) {
-        tabAtiva.classList.remove('text-gray-500', 'border-transparent');
+        tabAtiva.classList.remove('text-gray-400', 'border-transparent');
         tabAtiva.classList.add('text-[#F4742B]', 'border-[#F4742B]');
     }
     
@@ -327,8 +377,30 @@ window.cancelarAgendamento = async function(agendamentoId) {
         
         if (error) throw error;
         
-        alert('✅ Agendamento cancelado com sucesso!');
-        window.location.reload();
+        // Mostrar feedback
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-check text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-[#4B4B4D]">Agendamento Cancelado!</h3>
+                <p class="text-sm text-gray-500 mt-1">Seu agendamento foi cancelado com sucesso.</p>
+                <button onclick="this.closest('.fixed').remove(); window.location.reload();" 
+                        class="mt-4 px-6 py-2 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition">
+                    OK
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.remove();
+                window.location.reload();
+            }
+        });
         
     } catch (error) {
         console.error('Erro ao cancelar:', error);
