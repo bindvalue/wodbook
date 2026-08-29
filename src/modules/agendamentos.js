@@ -2,7 +2,6 @@ import { supabase, getCurrentUser } from '../config/supabase.js';
 import { confirmModal, successModal, errorModal, infoModal } from './shared.js';
 import { loadPage } from './router.js';
 
-
 // ============================================
 // FUNÇÃO: Carregar Conteúdo de Agendamentos
 // ============================================
@@ -170,11 +169,12 @@ window.aplicarFiltros = async function() {
     `;
     
     try {
+        // 🔥 CORRIGIDO: Removido CPF da seleção
         let query = supabase
             .from('agendamentos')
             .select(`
                 *,
-                usuarios (nome, telefone, cpf),
+                usuarios (id, nome, telefone, email),
                 horarios (
                     *,
                     centros (*)
@@ -378,7 +378,6 @@ window.cancelarAgendamentoAdmin = function(id) {
                 
                 if (error) throw error;
                 
-                // 🔥 Fechar o modal de confirmação primeiro
                 window.closeModal();
                 
                 successModal({
@@ -386,14 +385,11 @@ window.cancelarAgendamentoAdmin = function(id) {
                     message: 'O agendamento foi cancelado com sucesso.',
                     confirmText: 'OK',
                     onConfirm: () => {
-                        // 🔥 Fechar o modal de sucesso
                         window.closeModal();
-                        // Recarregar a lista
                         window.aplicarFiltros();
                     }
                 });
                 
-                // 🔥 FALLBACK: Fechar automaticamente após 3 segundos
                 setTimeout(() => {
                     const modal = document.getElementById('customModal');
                     if (modal && modal.classList.contains('active')) {
@@ -437,23 +433,18 @@ window.concluirAgendamento = function(id) {
                 
                 if (error) throw error;
                 
-                // 🔥 Fechar o modal de confirmação primeiro
                 window.closeModal();
                 
-                // Mostrar modal de sucesso
                 successModal({
                     title: 'Agendamento Concluído!',
                     message: 'O agendamento foi marcado como concluído.',
                     confirmText: 'OK',
                     onConfirm: () => {
-                        // 🔥 Fechar o modal de sucesso
                         window.closeModal();
-                        // Recarregar a lista
                         window.aplicarFiltros();
                     }
                 });
                 
-                // 🔥 FALLBACK: Fechar automaticamente após 3 segundos
                 setTimeout(() => {
                     const modal = document.getElementById('customModal');
                     if (modal && modal.classList.contains('active')) {
@@ -479,7 +470,7 @@ window.concluirAgendamento = function(id) {
 };
 
 // ============================================
-// FUNÇÃO: Exportar para PDF (CORRIGIDA)
+// FUNÇÃO: Exportar para PDF
 // ============================================
 window.exportarPDF = async function() {
     const data = document.getElementById('filtroData')?.value || '';
@@ -495,12 +486,12 @@ window.exportarPDF = async function() {
     }
     
     try {
-        // Buscar agendamentos
+        // 🔥 CORRIGIDO: Removido CPF
         let query = supabase
             .from('agendamentos')
             .select(`
                 *,
-                usuarios (nome, telefone, cpf),
+                usuarios (id, nome, telefone, email),
                 horarios (
                     *,
                     centros (*)
@@ -527,11 +518,8 @@ window.exportarPDF = async function() {
         
         // Verificar se as bibliotecas estão carregadas
         if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
-            // Tentar carregar via CDN novamente
             await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
             await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js');
-            
-            // Aguardar um pouco para garantir o carregamento
             await new Promise(resolve => setTimeout(resolve, 500));
         }
         
@@ -578,7 +566,7 @@ window.exportarPDF = async function() {
             '📌 Concluído'
         ]);
         
-        // Usar autoTable (disponível globalmente)
+        // Usar autoTable
         if (typeof autoTable !== 'undefined') {
             autoTable(doc, {
                 head: [['Aluno', 'Telefone', 'Início', 'Fim', 'Unidade', 'Status']],
@@ -603,7 +591,7 @@ window.exportarPDF = async function() {
                 margin: { left: 14, right: 14 }
             });
         } else {
-            // Fallback: tabela manual se autoTable não estiver disponível
+            // Fallback
             doc.setFontSize(10);
             doc.text('Dados dos agendamentos:', 14, 50);
             
@@ -652,7 +640,6 @@ window.exportarPDF = async function() {
 // Função auxiliar para carregar scripts
 function carregarScript(src) {
     return new Promise((resolve, reject) => {
-        // Verificar se o script já existe
         const scripts = document.querySelectorAll(`script[src="${src}"]`);
         if (scripts.length > 0) {
             resolve();
@@ -678,7 +665,6 @@ function carregarScript(src) {
 // EVENTOS
 // ============================================
 export function setupAgendamentosEvents() {
-    // Aplicar filtros ao pressionar Enter
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const target = e.target;
@@ -692,7 +678,6 @@ export function setupAgendamentosEvents() {
         }
     });
     
-    // Carregar automaticamente ao mudar a data
     document.addEventListener('change', (e) => {
         if (e.target && e.target.id === 'filtroData') {
             if (typeof window.aplicarFiltros === 'function') {
