@@ -11,215 +11,438 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        
-        .bg-gradient-custom {
-            background: linear-gradient(135deg, #F4742B 0%, #E0601A 50%, #4B4B4D 100%);
+        * { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
         }
         
+        /* Apple-style gradient background */
+        .bg-gradient-register {
+            background: linear-gradient(145deg, #F4742B 0%, #E0601A 40%, #4B4B4D 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bg-gradient-register::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        .bg-gradient-register::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -20%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        /* Apple-style card */
+        .register-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Animations */
         .fade-in {
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.98);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
         }
         
-        .register-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        /* Apple-style inputs */
+        .input-apple {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 14px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            outline: none;
+            background: #F9FAFB;
+            color: #1F2937;
         }
         
-        .btn-primary {
-            background: #F4742B;
+        .input-apple:focus {
+            border-color: #F4742B;
+            background: #FFFFFF;
+            box-shadow: 0 0 0 4px rgba(244, 116, 43, 0.1);
+        }
+        
+        .input-apple.error {
+            border-color: #EF4444;
+            background: #FEF2F2;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+        }
+        
+        .input-apple::placeholder {
+            color: #9CA3AF;
+            font-weight: 400;
+        }
+        
+        /* Apple-style button */
+        .btn-apple-primary {
+            background: linear-gradient(135deg, #F4742B 0%, #E0601A 100%);
             color: white;
-            transition: all 0.3s ease;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         
-        .btn-primary:hover {
-            background: #E0601A;
-            transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(244, 116, 43, 0.4);
+        .btn-apple-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(244, 116, 43, 0.35);
         }
         
-        .btn-primary:active {
+        .btn-apple-primary:active {
             transform: scale(0.98);
         }
         
-        .btn-google {
-            background: white;
-            color: #4B4B4D;
-            border: 2px solid #E5E7EB;
-            transition: all 0.3s ease;
+        .btn-apple-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
         
-        .btn-google:hover {
+        /* Apple-style Google button */
+        .btn-apple-google {
+            width: 100%;
+            padding: 14px;
+            background: #FFFFFF;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #1F2937;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-apple-google:hover {
             background: #F9FAFB;
             border-color: #F4742B;
-            transform: scale(1.02);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
         
-        .input-field {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #E5E7EB;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            outline: none;
+        .btn-apple-google:active {
+            transform: scale(0.98);
         }
         
-        .input-field:focus {
-            border-color: #F4742B;
-            box-shadow: 0 0 0 3px rgba(244, 116, 43, 0.1);
+        /* Separator */
+        .separator {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #9CA3AF;
+            font-size: 13px;
         }
         
-        .error-message {
-            color: #EF4444;
-            font-size: 14px;
-            margin-top: 8px;
-            display: none;
+        .separator-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #E5E7EB, transparent);
         }
         
-        .error-message.show {
-            display: block;
+        /* Toggle password button */
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #9CA3AF;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s ease;
+            border-radius: 8px;
         }
         
-        .success-message {
-            color: #10B981;
-            font-size: 14px;
-            margin-top: 8px;
-            display: none;
+        .toggle-password:hover {
+            color: #F4742B;
         }
         
-        .success-message.show {
-            display: block;
-        }
-        
-        .password-strength {
-            height: 4px;
+        /* Checkbox Apple-style */
+        .checkbox-apple {
+            width: 18px;
+            height: 18px;
+            accent-color: #F4742B;
             border-radius: 4px;
-            margin-top: 8px;
+            border: 1.5px solid #D1D5DB;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .checkbox-apple:checked {
+            border-color: #F4742B;
+        }
+        
+        /* Messages */
+        .message {
+            font-size: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: none;
+            margin-top: 16px;
+        }
+        
+        .message-error {
+            background: #FEF2F2;
+            color: #EF4444;
+            border: 1px solid #FECACA;
+        }
+        
+        .message-success {
+            background: #F0FDF4;
+            color: #10B981;
+            border: 1px solid #BBF7D0;
+        }
+        
+        .message.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        /* Password strength */
+        .password-strength {
+            height: 3px;
+            border-radius: 4px;
+            margin-top: 10px;
             transition: all 0.3s ease;
             background: #E5E7EB;
+            width: 0%;
         }
         
-        .password-strength.weak { background: #EF4444; width: 33%; }
-        .password-strength.medium { background: #F59E0B; width: 66%; }
-        .password-strength.strong { background: #10B981; width: 100%; }
+        .password-strength.weak { 
+            background: #EF4444; 
+            width: 33%; 
+        }
+        .password-strength.medium { 
+            background: #F59E0B; 
+            width: 66%; 
+        }
+        .password-strength.strong { 
+            background: #10B981; 
+            width: 100%; 
+        }
         
-        .requisito-item.ativo { color: #10B981; }
-        .requisito-item.inativo { color: #9CA3AF; }
+        .requisito-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .requisito-item .icon {
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .requisito-item.ativo {
+            color: #10B981;
+        }
+        
+        .requisito-item.inativo {
+            color: #9CA3AF;
+        }
+        
+        /* Scrollable card on mobile */
+        @media (max-width: 640px) {
+            .register-card {
+                padding: 28px 20px !important;
+                max-height: 95vh;
+                overflow-y: auto;
+            }
+            
+            .input-apple {
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+            
+            .btn-apple-primary {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="min-h-screen bg-gradient-custom flex items-center justify-center p-4">
-        <div class="register-card w-full max-w-md p-8 fade-in">
+    <div class="min-h-screen bg-gradient-register flex items-center justify-center p-4 sm:p-6">
+        <div class="register-card w-full max-w-[400px] p-8 sm:p-10 fade-in">
+            
             <!-- Logo -->
-            <div class="text-center mb-6">
-                <div class="mx-auto w-24 h-24">
+            <div class="text-center mb-7">
+                <div class="mx-auto w-16 h-16 rounded-2xl bg-[#FEF3E8] flex items-center justify-center mb-3 shadow-sm">
                     <img src="src/img/logo_wodbook.png" 
                          alt="WODBOOK" 
-                         class="w-full h-full object-contain"
-                         onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=80'">
+                         class="w-11 h-11 object-contain"
+                         onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=44'">
                 </div>
-                <h1 class="text-2xl font-bold text-[#4B4B4D] mt-2">Criar Conta</h1>
-                <p class="text-gray-500 text-sm mt-1">Comece sua jornada no WODBOOK</p>
+                <h1 class="text-2xl font-bold text-[#4B4B4D] tracking-tight">Criar Conta</h1>
+                <p class="text-sm text-gray-400 mt-1">Comece sua jornada no WODBOOK</p>
             </div>
             
-            <form id="registerForm" class="space-y-4">
+            <!-- Formulário -->
+            <form id="registerForm" class="space-y-3.5">
+                <!-- Nome -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-user text-[#F4742B] mr-2"></i>Nome Completo *
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">
+                        <i class="fas fa-user text-[#F4742B] mr-1.5 text-xs"></i>
+                        Nome Completo *
                     </label>
-                    <input type="text" id="nome" class="input-field" placeholder="Seu nome completo" required>
+                    <input type="text" id="nome" class="input-apple" placeholder="Seu nome completo" required>
                 </div>
                 
+                <!-- Email -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-envelope text-[#F4742B] mr-2"></i>Email *
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">
+                        <i class="fas fa-envelope text-[#F4742B] mr-1.5 text-xs"></i>
+                        Email *
                     </label>
-                    <input type="email" id="email" class="input-field" placeholder="seu@email.com" required autocomplete="email">
+                    <input type="email" id="email" class="input-apple" placeholder="seu@email.com" required autocomplete="email">
                 </div>
                 
+                <!-- Telefone -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-phone text-[#F4742B] mr-2"></i>Telefone
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">
+                        <i class="fas fa-phone text-[#F4742B] mr-1.5 text-xs"></i>
+                        Telefone
                     </label>
-                    <input type="tel" id="telefone" class="input-field" placeholder="(11) 99999-9999" maxlength="15">
+                    <input type="tel" id="telefone" class="input-apple" placeholder="(11) 99999-9999" maxlength="15">
                 </div>
                 
+                <!-- Senha -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-lock text-[#F4742B] mr-2"></i>Senha *
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">
+                        <i class="fas fa-lock text-[#F4742B] mr-1.5 text-xs"></i>
+                        Senha *
                     </label>
                     <div class="relative">
-                        <input type="password" id="password" class="input-field w-full pr-12" placeholder="Mínimo 6 caracteres" required minlength="6">
-                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition">
-                            <i class="fas fa-eye"></i>
+                        <input type="password" id="password" class="input-apple w-full pr-12" placeholder="Mínimo 6 caracteres" required minlength="6">
+                        <button type="button" id="togglePassword" class="toggle-password" title="Mostrar senha">
+                            <i class="fas fa-eye text-sm"></i>
                         </button>
                     </div>
                     <div class="password-strength" id="passwordStrength"></div>
-                    <div class="text-xs space-y-1 mt-2" id="senhaRequisitos">
-                        <p class="flex items-center gap-2 requisito-item" id="reqTamanho"><span class="text-gray-300">○</span> Pelo menos 6 caracteres</p>
-                        <p class="flex items-center gap-2 requisito-item" id="reqMaiuscula"><span class="text-gray-300">○</span> Pelo menos uma letra maiúscula</p>
-                        <p class="flex items-center gap-2 requisito-item" id="reqMinuscula"><span class="text-gray-300">○</span> Pelo menos uma letra minúscula</p>
-                        <p class="flex items-center gap-2 requisito-item" id="reqNumero"><span class="text-gray-300">○</span> Pelo menos um número</p>
-                        <p class="flex items-center gap-2 requisito-item" id="reqEspecial"><span class="text-gray-300">○</span> Pelo menos um caractere especial</p>
+                    <div class="mt-2 space-y-1" id="senhaRequisitos">
+                        <p class="requisito-item inativo" id="reqTamanho">
+                            <span class="icon">○</span> Pelo menos 6 caracteres
+                        </p>
+                        <p class="requisito-item inativo" id="reqMaiuscula">
+                            <span class="icon">○</span> Uma letra maiúscula
+                        </p>
+                        <p class="requisito-item inativo" id="reqMinuscula">
+                            <span class="icon">○</span> Uma letra minúscula
+                        </p>
+                        <p class="requisito-item inativo" id="reqNumero">
+                            <span class="icon">○</span> Um número
+                        </p>
+                        <p class="requisito-item inativo" id="reqEspecial">
+                            <span class="icon">○</span> Um caractere especial
+                        </p>
                     </div>
                     <p class="text-xs text-gray-400 mt-1" id="passwordHint">Digite uma senha forte</p>
                 </div>
                 
+                <!-- Confirmar Senha -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-check-circle text-[#F4742B] mr-2"></i>Confirmar Senha *
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">
+                        <i class="fas fa-check-circle text-[#F4742B] mr-1.5 text-xs"></i>
+                        Confirmar Senha *
                     </label>
                     <div class="relative">
-                        <input type="password" id="confirmPassword" class="input-field w-full pr-12" placeholder="Digite a senha novamente" required>
-                        <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition">
-                            <i class="fas fa-eye"></i>
+                        <input type="password" id="confirmPassword" class="input-apple w-full pr-12" placeholder="Digite a senha novamente" required>
+                        <button type="button" id="toggleConfirmPassword" class="toggle-password" title="Mostrar senha">
+                            <i class="fas fa-eye text-sm"></i>
                         </button>
                     </div>
                 </div>
                 
-                <div class="flex items-start gap-2">
-                    <input type="checkbox" id="termos" class="mt-1 w-4 h-4 text-[#F4742B] focus:ring-[#F4742B] border-gray-300 rounded">
-                    <label for="termos" class="text-sm text-gray-600">
-                        Li e concordo com os <a href="#" class="text-[#F4742B] hover:underline">Termos de Serviço</a>
+                <!-- Termos -->
+                <div class="flex items-start gap-2.5">
+                    <input type="checkbox" id="termos" class="checkbox-apple">
+                    <label for="termos" class="text-sm text-gray-500 select-none cursor-pointer leading-relaxed">
+                        Li e concordo com os 
+                        <a href="#" class="text-[#F4742B] font-medium hover:underline transition">Termos de Serviço</a>
                     </label>
                 </div>
                 
-                <button type="submit" id="btnRegister" class="w-full btn-primary py-3 rounded-lg font-semibold flex items-center justify-center gap-2">
-                    <i class="fas fa-user-plus"></i> Criar Conta
+                <!-- Botão Criar Conta -->
+                <button type="submit" id="btnRegister" class="btn-apple-primary w-full flex items-center justify-center gap-2 mt-1">
+                    <i class="fas fa-user-plus text-sm"></i>
+                    Criar Conta
                 </button>
             </form>
             
-            <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
-                <div class="relative flex justify-center text-sm"><span class="px-4 bg-white text-gray-500">ou continue com</span></div>
+            <!-- Separador -->
+            <div class="separator my-6">
+                <span class="separator-line"></span>
+                <span>ou</span>
+                <span class="separator-line"></span>
             </div>
             
-            <button id="btnGoogle" class="w-full btn-google py-3 rounded-lg font-semibold flex items-center justify-center gap-2">
+            <!-- Google -->
+            <button id="btnGoogle" class="btn-apple-google">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 Cadastrar com Google
             </button>
             
-            <p class="text-center text-sm text-gray-600 mt-6">
-                Já tem conta? <a href="login.html" class="text-[#F4742B] font-semibold hover:underline">Faça login</a>
+            <!-- Link Login -->
+            <p class="text-center text-sm text-gray-500 mt-6">
+                Já tem conta? 
+                <a href="login.html" class="text-[#F4742B] font-semibold hover:underline transition">
+                    Faça login
+                </a>
             </p>
             
-            <div id="errorMessage" class="error-message mt-4"></div>
-            <div id="successMessage" class="success-message mt-4"></div>
+            <!-- Mensagens -->
+            <div id="errorMessage" class="message message-error"></div>
+            <div id="successMessage" class="message message-success"></div>
         </div>
     </div>
     
@@ -251,25 +474,48 @@
         // ============================================
         function showError(message) {
             errorMessage.textContent = message;
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
-            setTimeout(() => errorMessage.classList.remove('show'), 5000);
+            errorMessage.className = 'message message-error show';
+            successMessage.className = 'message message-success';
+            
+            // Remove error class from inputs
+            document.querySelectorAll('.input-apple').forEach(el => {
+                el.classList.remove('error');
+            });
+            
+            // Highlight relevant fields
+            if (message.includes('nome') || message.includes('Nome')) {
+                nomeInput.classList.add('error');
+            }
+            if (message.includes('email') || message.includes('Email')) {
+                emailInput.classList.add('error');
+            }
+            if (message.includes('senha') || message.includes('Senha')) {
+                passwordInput.classList.add('error');
+                confirmPasswordInput.classList.add('error');
+            }
+            
+            setTimeout(() => {
+                errorMessage.className = 'message message-error';
+            }, 5000);
         }
         
         function showSuccess(message) {
             successMessage.textContent = message;
-            successMessage.classList.add('show');
-            errorMessage.classList.remove('show');
-            setTimeout(() => successMessage.classList.remove('show'), 5000);
+            successMessage.className = 'message message-success show';
+            errorMessage.className = 'message message-error';
+            
+            setTimeout(() => {
+                successMessage.className = 'message message-success';
+            }, 5000);
         }
         
         function setLoading(isLoading) {
             if (isLoading) {
                 btnRegister.disabled = true;
-                btnRegister.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Criando conta...';
+                btnRegister.innerHTML = '<i class="fas fa-spinner fa-spin text-sm mr-2"></i>Criando conta...';
             } else {
                 btnRegister.disabled = false;
-                btnRegister.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Criar Conta';
+                btnRegister.innerHTML = '<i class="fas fa-user-plus text-sm mr-2"></i>Criar Conta';
             }
         }
         
@@ -353,15 +599,13 @@
             ids.forEach((id, index) => {
                 const el = document.getElementById(id);
                 if (el) {
-                    const span = el.querySelector('span');
+                    const icon = el.querySelector('.icon');
                     if (req[chaves[index]]) {
-                        span.textContent = '✅';
-                        span.className = 'text-green-500';
-                        el.className = 'flex items-center gap-2 requisito-item text-green-600';
+                        icon.textContent = '✅';
+                        el.className = 'requisito-item ativo';
                     } else {
-                        span.textContent = '○';
-                        span.className = 'text-gray-300';
-                        el.className = 'flex items-center gap-2 requisito-item text-gray-400';
+                        icon.textContent = '○';
+                        el.className = 'requisito-item inativo';
                     }
                 }
             });
@@ -372,13 +616,12 @@
             const resultado = getForcaSenha(senha);
             
             if (senha.length === 0) {
+                passwordStrength.className = 'password-strength';
                 passwordStrength.style.width = '0%';
-                passwordStrength.style.background = '#E5E7EB';
                 passwordHint.textContent = 'Digite uma senha forte';
                 passwordHint.style.color = '#9CA3AF';
             } else {
-                passwordStrength.style.width = resultado.forca === 1 ? '33%' : resultado.forca === 2 ? '66%' : '100%';
-                passwordStrength.style.background = resultado.cor;
+                passwordStrength.className = `password-strength ${resultado.forca === 1 ? 'weak' : resultado.forca === 2 ? 'medium' : 'strong'}`;
                 passwordHint.textContent = resultado.texto;
                 passwordHint.style.color = resultado.cor;
             }
@@ -413,7 +656,7 @@
                         p_email: email,
                         p_nome: nome,
                         p_telefone: telefone || '',
-                        p_cpf: '', // Envia string vazia
+                        p_cpf: '',
                         p_role: 'user'
                     });
                     
@@ -510,8 +753,8 @@
                     
                     // Limpa o formulário
                     registerForm.reset();
+                    passwordStrength.className = 'password-strength';
                     passwordStrength.style.width = '0%';
-                    passwordStrength.style.background = '#E5E7EB';
                     passwordHint.textContent = 'Digite uma senha forte';
                     passwordHint.style.color = '#9CA3AF';
                     
@@ -527,7 +770,7 @@
                 setLoading(false);
             } finally {
                 btnRegister.disabled = false;
-                btnRegister.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Criar Conta';
+                btnRegister.innerHTML = '<i class="fas fa-user-plus text-sm mr-2"></i>Criar Conta';
             }
         });
         
@@ -537,7 +780,7 @@
         btnGoogle.addEventListener('click', async () => {
             try {
                 btnGoogle.disabled = true;
-                btnGoogle.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Carregando...';
+                btnGoogle.innerHTML = '<i class="fas fa-spinner fa-spin text-sm mr-2"></i>Carregando...';
                 
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
@@ -549,7 +792,15 @@
             } catch (error) {
                 showError('Erro ao fazer cadastro com Google');
                 btnGoogle.disabled = false;
-                btnGoogle.innerHTML = 'Cadastrar com Google';
+                btnGoogle.innerHTML = `
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Cadastrar com Google
+                `;
             }
         });
         
