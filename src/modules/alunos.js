@@ -3,6 +3,32 @@ import { confirmModal, successModal, errorModal, infoModal } from './shared.js';
 import { loadPage } from './router.js';
 
 // ============================================
+// FUNÇÃO: Verificar se é Admin
+// ============================================
+async function verificarAdmin() {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return false;
+        
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+        
+        if (error) {
+            console.warn('⚠️ Erro ao verificar admin:', error);
+            return false;
+        }
+        
+        return data?.role === 'admin';
+    } catch (error) {
+        console.warn('⚠️ Erro ao verificar admin:', error);
+        return false;
+    }
+}
+
+// ============================================
 // FUNÇÃO: Carregar Conteúdo de Alunos
 // ============================================
 export async function loadAlunosContent() {
@@ -10,6 +36,17 @@ export async function loadAlunosContent() {
     if (!user) {
         window.location.href = '/login.html';
         return;
+    }
+    
+    // Verificar se é admin
+    const isAdmin = await verificarAdmin();
+    
+    // Se não for admin, redirecionar para dashboard
+    if (!isAdmin) {
+        if (window.loadPage) {
+            window.loadPage('dashboard');
+            return;
+        }
     }
     
     return `
@@ -137,6 +174,7 @@ window.aplicarFiltrosAlunos = async function() {
     `;
     
     try {
+        // 🔥 Buscar todos os usuários
         let query = supabase
             .from('usuarios')
             .select('*')
@@ -146,7 +184,7 @@ window.aplicarFiltrosAlunos = async function() {
         
         if (error) throw error;
         
-        // 🔥 CORREÇÃO: Buscar TODOS os agendamentos (sem filtrar por status ou data)
+        // 🔥 Buscar TODOS os agendamentos para contar por usuário
         const { data: agendamentos, error: agendamentosError } = await supabase
             .from('agendamentos')
             .select('usuario_id, status, data_agendamento');
@@ -159,10 +197,7 @@ window.aplicarFiltrosAlunos = async function() {
         const agendamentosConfirmadosPorUsuario = {};
         
         agendamentos?.forEach(ag => {
-            // Total de agendamentos (todos os status)
             agendamentosPorUsuario[ag.usuario_id] = (agendamentosPorUsuario[ag.usuario_id] || 0) + 1;
-            
-            // Agendamentos confirmados
             if (ag.status === 'confirmado' || ag.status === 'pendente') {
                 agendamentosConfirmadosPorUsuario[ag.usuario_id] = (agendamentosConfirmadosPorUsuario[ag.usuario_id] || 0) + 1;
             }
@@ -178,6 +213,7 @@ window.aplicarFiltrosAlunos = async function() {
         
         let filtered = usuariosComAuth;
         
+        // Aplicar filtros
         if (busca) {
             filtered = filtered.filter(u => 
                 u.nome?.toLowerCase().includes(busca) ||
@@ -198,6 +234,7 @@ window.aplicarFiltrosAlunos = async function() {
             filtered = filtered.filter(u => u.authProvider === 'email');
         }
         
+        // Estatísticas
         const totalAlunos = usuarios?.length || 0;
         const totalGoogle = usuariosComAuth.filter(u => u.authProvider === 'google').length;
         const ativos = usuariosComAuth.filter(u => u.ativo !== false).length;
@@ -208,6 +245,7 @@ window.aplicarFiltrosAlunos = async function() {
         document.getElementById('alunosAtivos').textContent = ativos;
         document.getElementById('alunosComAgendamentos').textContent = comAgendamentos;
         
+        // Lista de alunos
         if (filtered.length === 0) {
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-16 px-4">
@@ -239,15 +277,7 @@ window.aplicarFiltrosAlunos = async function() {
                 : '<i class="fas fa-envelope text-gray-400 text-xs"></i>';
             
             const isActive = aluno.ativo !== false;
-            
-            // 🔥 Mostrar quantidade de agendamentos do aluno
-            const agendamentoLabel = aluno.totalAgendamentos > 0 
-                ? `${aluno.totalAgendamentos} agendamentos`
-                : 'Sem agendamentos';
-            
-            const agendamentoColor = aluno.totalAgendamentos > 0 
-                ? 'bg-purple-50 text-purple-600'
-                : 'bg-gray-50 text-gray-400';
+            const temAgendamentos = aluno.totalAgendamentos > 0;
             
             html += `
                 <div class="px-4 py-4 hover:bg-gray-50/50 transition duration-150">
@@ -282,23 +312,28 @@ window.aplicarFiltrosAlunos = async function() {
                                         ${authIcon}
                                         ${aluno.authProvider === 'google' ? 'Google' : 'Email'}
                                     </span>
+                                    ${temAgendamentos ? `
+                                        <span class="flex items-center gap-1 text-purple-600">
+                                            <i class="fas fa-calendar-check text-[10px]"></i>
+                                            ${aluno.totalAgendamentos} agendamentos
+                                        </span>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Ações -->
                         <div class="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
-                            <span class="text-xs px-2 py-0.5 rounded-full ${agendamentoColor}">
-                                ${aluno.totalAgendamentos > 0 ? `${aluno.totalAgendamentos} agendamentos` : 'Sem agendamentos'}
-                            </span>
-                            ${aluno.totalAgendamentos > 0 ? `
+                            ${temAgendamentos ? `
                                 <button onclick="window.verAgendamentosAluno('${aluno.id}')" 
-                                        class="p-1.5 text-[#F4742B] hover:bg-[#FEF3E8] rounded-lg transition">
-                                    <i class="fas fa-calendar-check text-sm"></i>
+                                        class="px-3 py-1.5 text-xs bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition flex items-center gap-1">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Ver agendamentos
                                 </button>
                             ` : `
-                                <span class="p-1.5 text-gray-300 cursor-not-allowed">
-                                    <i class="fas fa-calendar-check text-sm"></i>
+                                <span class="px-3 py-1.5 text-xs bg-gray-50 text-gray-400 rounded-lg cursor-not-allowed flex items-center gap-1">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Sem agendamentos
                                 </span>
                             `}
                             ${aluno.telefone ? `
@@ -343,7 +378,7 @@ window.aplicarFiltrosAlunos = async function() {
 };
 
 // ============================================
-// FUNÇÃO: Ver Agendamentos do Aluno
+// FUNÇÃO: Ver Agendamentos do Aluno (Mostra todos os agendamentos)
 // ============================================
 window.verAgendamentosAluno = async function(alunoId) {
     try {
@@ -355,6 +390,7 @@ window.verAgendamentosAluno = async function(alunoId) {
         
         if (alunoError) throw alunoError;
         
+        // 🔥 Buscar TODOS os agendamentos do aluno (sem filtro de data)
         const { data: agendamentos, error: agendamentosError } = await supabase
             .from('agendamentos')
             .select(`
@@ -396,6 +432,7 @@ function criarModalAgendamentos(aluno, agendamentos) {
     overlay.style.alignItems = 'center';
     overlay.style.justifyContent = 'center';
     overlay.style.padding = '16px';
+    overlay.style.zIndex = '9999';
     
     let conteudoAgendamentos = '';
     
@@ -555,7 +592,6 @@ window.cancelarAgendamentoAluno = function(id) {
         confirmColor: '#EF4444',
         onConfirm: async () => {
             try {
-                // 🔥 Fechar modal de confirmação
                 window.closeModal();
                 
                 const { error } = await supabase
@@ -599,7 +635,6 @@ window.toggleStatusAluno = async function(id, ativo) {
     const acao = ativo ? 'desativar' : 'ativar';
     const acaoTexto = ativo ? 'Desativar' : 'Ativar';
     
-    // 🔥 Usar confirmModal com callback correto
     confirmModal({
         title: `${acaoTexto} Aluno`,
         message: `Tem certeza que deseja ${acao} este aluno?`,
@@ -608,10 +643,8 @@ window.toggleStatusAluno = async function(id, ativo) {
         confirmColor: ativo ? '#EF4444' : '#10B981',
         onConfirm: async () => {
             try {
-                // 🔥 Fechar o modal de confirmação primeiro
                 window.closeModal();
                 
-                // Atualizar o status no banco
                 const { error } = await supabase
                     .from('usuarios')
                     .update({ ativo: !ativo })
@@ -619,22 +652,18 @@ window.toggleStatusAluno = async function(id, ativo) {
                 
                 if (error) throw error;
                 
-                // Mostrar sucesso
                 successModal({
                     title: 'Status Alterado!',
                     message: `Aluno ${ativo ? 'desativado' : 'ativado'} com sucesso.`,
                     confirmText: 'OK',
                     onConfirm: () => {
-                        // Fechar modal de sucesso
                         window.closeModal();
-                        // Recarregar a lista
                         window.aplicarFiltrosAlunos();
                     }
                 });
                 
             } catch (error) {
                 console.error('Erro ao alterar status:', error);
-                // Fechar qualquer modal aberto
                 window.closeModal();
                 errorModal({
                     title: 'Erro ao Alterar Status',
@@ -647,7 +676,6 @@ window.toggleStatusAluno = async function(id, ativo) {
             }
         },
         onCancel: () => {
-            // Fechar modal ao cancelar
             window.closeModal();
         }
     });
