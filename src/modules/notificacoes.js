@@ -85,7 +85,6 @@ async function buscarNotificacoes(limit = 10) {
         const hoje = new Date().toISOString().split('T')[0];
         const isAdmin = await verificarAdmin();
         
-        // 🔥 Construir query base
         let query = supabase
             .from('agendamentos')
             .select(`
@@ -111,24 +110,20 @@ async function buscarNotificacoes(limit = 10) {
             .order('created_at', { ascending: false })
             .limit(limit);
         
-        // 🔥 Se NÃO for admin, filtrar apenas agendamentos do próprio usuário
         if (!isAdmin) {
             query = query.eq('usuario_id', user.id);
         }
-        // Se for admin, NÃO aplica filtro - vê todos
         
         const { data, error } = await query;
         
         if (error) throw error;
         
-        // 🔥 FILTRAR: Apenas agendamentos com horários ativos
         const notificacoesFiltradas = data?.filter(ag => {
             return ag.horarios && ag.horarios.ativo === true;
         }) || [];
         
         notificacoesCache = notificacoesFiltradas.map(ag => {
             const nomeUsuario = ag.usuarios?.nome || 'Aluno';
-            // Se for admin, mostrar quem agendou
             const mensagem = isAdmin 
                 ? `${nomeUsuario} agendou para ${formatarData(ag.data_agendamento)} às ${ag.horarios?.hora_inicio?.substring(0,5)}`
                 : `Você agendou para ${formatarData(ag.data_agendamento)} às ${ag.horarios?.hora_inicio?.substring(0,5)}`;
@@ -144,7 +139,8 @@ async function buscarNotificacoes(limit = 10) {
                 lida: notificacoesLidas.includes(ag.id),
                 dadosCompletos: ag,
                 isAdmin: isAdmin,
-                nomeUsuario: nomeUsuario
+                nomeUsuario: nomeUsuario,
+                telefoneUsuario: ag.usuarios?.telefone
             };
         }) || [];
         
@@ -288,6 +284,7 @@ export async function renderizarNotificacoes() {
     }
     
     const naoLidasCount = notificacoes.filter(n => !n.lida).length;
+    const isAdmin = notificacoes[0]?.isAdmin || false;
     
     container.innerHTML = `
         <div class="flex justify-between items-center px-4 py-2 border-b border-gray-100 bg-gray-50">
@@ -303,8 +300,6 @@ export async function renderizarNotificacoes() {
         </div>
         <div class="max-h-96 overflow-y-auto">
             ${notificacoes.map(notif => {
-                // Mostrar nome do aluno apenas se for admin
-                const nomeAluno = notif.isAdmin ? notif.nomeUsuario : '';
                 const mensagemDisplay = notif.isAdmin 
                     ? `${notif.nomeUsuario} - ${notif.mensagem}`
                     : notif.mensagem;
@@ -332,7 +327,7 @@ export async function renderizarNotificacoes() {
         <div class="p-2 border-t border-gray-100">
             <button onclick="window.verTodasNotificacoes()" 
                     class="w-full text-center text-sm text-[#F4742B] hover:text-[#E0601A] font-medium py-1">
-                Ver todas as notificações
+                <i class="fas fa-eye mr-1"></i> Ver todas as notificações
             </button>
         </div>
     `;
@@ -359,7 +354,7 @@ window.fecharDropdownNotificacoes = function() {
 };
 
 // ============================================
-// FUNÇÃO: Ver Notificação (Detalhes Completos)
+// FUNÇÃO: Ver Notificação (Detalhes Completos - COM PERMISSÃO)
 // ============================================
 window.verNotificacao = async function(id) {
     try {
@@ -430,10 +425,11 @@ window.verNotificacao = async function(id) {
             'pendente': 'bg-yellow-100 text-yellow-700'
         };
         
-        // Link do WhatsApp
-        const linkWhatsApp = telefone && telefone !== 'Não informado' 
-            ? gerarLinkWhatsApp(telefone, `Olá ${nomeAluno}! Sou da ${nomeEmpresa}. Gostaria de falar sobre seu agendamento do dia ${dataFormatada}.`)
-            : null;
+        // 🔥 Link do WhatsApp - APENAS PARA ADMIN
+        let linkWhatsApp = null;
+        if (isAdmin && telefone && telefone !== 'Não informado') {
+            linkWhatsApp = gerarLinkWhatsApp(telefone, `Olá ${nomeAluno}! Sou da ${nomeEmpresa}. Gostaria de falar sobre seu agendamento do dia ${dataFormatada}.`);
+        }
         
         const modalContent = `
             <div style="max-width: 500px; width: 100%;">
@@ -611,10 +607,28 @@ window.cancelarAgendamentoNotificacao = function(id) {
 };
 
 // ============================================
-// FUNÇÃO: Ver Todas as Notificações
+// FUNÇÃO: Ver Todas as Notificações (COM PERMISSÃO)
 // ============================================
-window.verTodasNotificacoes = function() {
-    if (window.loadPage) window.loadPage('agendamentos');
+window.verTodasNotificacoes = async function() {
+    // 🔥 Verificar se é admin antes de redirecionar
+    const isAdmin = await verificarAdmin();
+    
+    if (isAdmin) {
+        // Admin vai para agendamentos
+        if (window.loadPage) window.loadPage('agendamentos');
+    } else {
+        // Usuário comum vai para dashboard (ou mostra mensagem)
+        infoModal({
+            title: 'Apenas Administradores',
+            message: 'A lista completa de agendamentos está disponível apenas para administradores.',
+            confirmText: 'OK',
+            onConfirm: () => {
+                window.closeModal();
+                if (window.loadPage) window.loadPage('dashboard');
+            }
+        });
+    }
+    
     window.fecharDropdownNotificacoes();
 };
 
