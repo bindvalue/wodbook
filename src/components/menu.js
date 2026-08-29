@@ -1,94 +1,63 @@
 // ============================================
-// COMPONENTE: Menu Lateral (Estilizado e Moderno)
+// COMPONENTE: Menu Lateral (Apple Design)
 // ============================================
 
 import { supabase } from '../config/supabase.js';
 
 export function renderMenu(activePage = 'dashboard') {
-    // 🔥 Verificar se o usuário é admin (via localStorage)
     const isAdmin = localStorage.getItem('userRole') === 'admin';
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     
-    // Definir ícones com cores
-    const icons = {
-        dashboard: { icon: 'fa-home', color: '#F4742B' },
-        centros: { icon: 'fa-dumbbell', color: '#F4742B' },
-        alunos: { icon: 'fa-users', color: '#4B4B4D' },
-        agendamentos: { icon: 'fa-calendar-check', color: '#4B4B4D' },
-        configuracoes: { icon: 'fa-cog', color: '#4B4B4D' },
-        logout: { icon: 'fa-sign-out-alt', color: '#EF4444' }
-    };
+    // Itens do menu
+    const menuItems = [
+        { id: 'dashboard', icon: 'fa-house', label: 'Dashboard', adminOnly: false },
+        { id: 'centros', icon: 'fa-dumbbell', label: 'Centros', adminOnly: true },
+        { id: 'alunos', icon: 'fa-users', label: 'Alunos', adminOnly: true },
+        { id: 'agendamentos', icon: 'fa-calendar-check', label: 'Agendamentos', adminOnly: true },
+        { id: 'configuracoes', icon: 'fa-gear', label: 'Configurações', adminOnly: false },
+    ];
     
-    const menuHTML = `
+    const filteredItems = menuItems.filter(item => !item.adminOnly || isAdmin);
+    
+    return `
+        <!-- Desktop Sidebar -->
         <aside id="sidebar" class="sidebar ${isCollapsed ? 'sidebar-collapsed' : ''}">
-           <!-- Logo com efeito - DUAS VERSÕES -->
+            <!-- Logo -->
             <div class="flex items-center justify-center p-5 border-b border-white/5 relative group">
                 <div class="flex items-center justify-center w-full">
                     <div class="relative">
-                        <!-- Logo completa (quando expandido) -->
                         <img src="src/img/logo_wodbook.png" 
-                            alt="WODBOOK" 
-                            class="logo-completa w-auto h-16 object-contain flex-shrink-0 transition-all duration-300 group-hover:scale-105"
-                            onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=48'">
+                             alt="WODBOOK" 
+                             class="logo-completa w-auto h-14 object-contain flex-shrink-0 transition-all duration-300 group-hover:scale-105"
+                             onerror="this.src='https://ui-avatars.com/api/?name=WODBOOK&background=F4742B&color=fff&size=48'">
                         
-                        <!-- Logo ícone (quando colapsado) -->
                         <img src="src/img/favicon.png" 
-                            alt="WOD" 
-                            class="logo-icone w-12 h-12 object-contain flex-shrink-0 transition-all duration-300 group-hover:scale-105 hidden"
-                            onerror="this.src='https://ui-avatars.com/api/?name=W&background=F4742B&color=fff&size=40'">
+                             alt="WOD" 
+                             class="logo-icone w-10 h-10 object-contain flex-shrink-0 transition-all duration-300 group-hover:scale-105 hidden"
+                             onerror="this.src='https://ui-avatars.com/api/?name=W&background=F4742B&color=fff&size=40'">
                         
                         <div class="absolute -inset-1 bg-[#F4742B]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     </div>
                 </div>
-                <button onclick="window.toggleSidebarMobile()" class="md:hidden text-white/60 hover:text-white transition absolute right-4 top-1/2 -translate-y-1/2">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
             </div>
             
-            <!-- Menu com efeitos modernos -->
+            <!-- Menu Desktop -->
             <nav class="p-3 space-y-1" id="mainNav">
-                <!-- 📊 Dashboard -->
-                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'dashboard' ? 'active' : 'text-white/70 hover:text-white'}" data-page="dashboard" title="Dashboard">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'dashboard' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
-                        <i class="fas fa-home text-sm"></i>
-                    </div>
-                    <span class="font-medium">Dashboard</span>
-                </a>
-                
-                <!-- 🏢 Centros - SÓ ADMIN -->
-                ${isAdmin ? `
-                    <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'centros' ? 'active' : 'text-white/70 hover:text-white'}" data-page="centros" title="Centros">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'centros' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
-                            <i class="fas fa-dumbbell text-sm"></i>
+                ${filteredItems.map(item => `
+                    <a href="#" 
+                       class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === item.id ? 'active' : 'text-white/70 hover:text-white'}" 
+                       data-page="${item.id}" 
+                       title="${item.label}">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === item.id ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" 
+                             style="transition: all 0.3s ease;">
+                            <i class="fas ${item.icon} text-sm"></i>
                         </div>
-                        <span class="font-medium">Centros</span>
-                        ${activePage === 'centros' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
+                        <span class="font-medium text-sm">${item.label}</span>
+                        ${activePage === item.id ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
                     </a>
-                ` : ''}
+                `).join('')}
                 
-                <!-- 👥 Alunos - SÓ ADMIN -->
-                ${isAdmin ? `
-                    <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'alunos' ? 'active' : 'text-white/70 hover:text-white'}" data-page="alunos" title="Alunos">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'alunos' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
-                            <i class="fas fa-users text-sm"></i>
-                        </div>
-                        <span class="font-medium">Alunos</span>
-                        ${activePage === 'alunos' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
-                    </a>
-                ` : ''}
-                
-                <!-- 📅 Agendamentos - SÓ ADMIN (SEM BADGE) -->
-                ${isAdmin ? `
-                    <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'agendamentos' ? 'active' : 'text-white/70 hover:text-white'}" data-page="agendamentos" title="Agendamentos">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'agendamentos' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
-                            <i class="fas fa-calendar-check text-sm"></i>
-                        </div>
-                        <span class="font-medium">Agendamentos</span>
-                        ${activePage === 'agendamentos' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
-                    </a>
-                ` : ''}
-                
-                <!-- Separador com gradiente -->
+                <!-- Separador -->
                 <div class="relative my-4">
                     <div class="absolute inset-0 flex items-center">
                         <div class="w-full border-t border-white/5"></div>
@@ -98,21 +67,13 @@ export function renderMenu(activePage = 'dashboard') {
                     </div>
                 </div>
                 
-                <!-- ⚙️ Configurações - TODOS VEEM -->
-                <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'configuracoes' ? 'active' : 'text-white/70 hover:text-white'}" data-page="configuracoes" title="Configurações">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'configuracoes' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
-                        <i class="fas fa-cog text-sm"></i>
-                    </div>
-                    <span class="font-medium">Configurações</span>
-                    ${activePage === 'configuracoes' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
-                </a>
-                
-                <!-- 🚪 Sair - TODOS VEEM -->
-                <a href="#" id="btnLogout" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 group">
+                <!-- Sair -->
+                <a href="#" id="btnLogout" 
+                   class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 group">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 text-red-400 group-hover:bg-red-500/20 transition-all duration-300">
-                        <i class="fas fa-sign-out-alt text-sm"></i>
+                        <i class="fas fa-arrow-right-from-bracket text-sm"></i>
                     </div>
-                    <span class="font-medium">Sair</span>
+                    <span class="font-medium text-sm">Sair</span>
                 </a>
             </nav>
             
@@ -120,8 +81,10 @@ export function renderMenu(activePage = 'dashboard') {
             <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 bg-black/20 backdrop-blur-sm">
                 <div class="flex items-center gap-3 group cursor-pointer">
                     <div class="relative">
-                        <img id="userAvatarMenu" src="https://ui-avatars.com/api/?name=Usuário&background=F4742B&color=fff&size=40" 
-                             alt="Avatar" class="w-10 h-10 rounded-full border-2 border-[#F4742B]/50 group-hover:border-[#F4742B] transition-all duration-300">
+                        <img id="userAvatarMenu" 
+                             src="https://ui-avatars.com/api/?name=Usuário&background=F4742B&color=fff&size=40" 
+                             alt="Avatar" 
+                             class="w-10 h-10 rounded-full border-2 border-[#F4742B]/50 group-hover:border-[#F4742B] transition-all duration-300">
                         <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-[#4B4B4D] rounded-full"></div>
                     </div>
                     <div class="user-info flex-1 min-w-0">
@@ -137,9 +100,33 @@ export function renderMenu(activePage = 'dashboard') {
                 </div>
             </div>
         </aside>
+        
+        <!-- 🔥 MOBILE BOTTOM NAV - Instagram Style -->
+        <nav id="mobileBottomNav" class="mobile-bottom-nav">
+            <div class="mobile-bottom-nav-inner">
+                ${filteredItems.map(item => `
+                    <a href="#" 
+                       class="mobile-nav-item ${activePage === item.id ? 'active' : ''}" 
+                       data-page="${item.id}" 
+                       title="${item.label}">
+                        <i class="fas ${item.icon} text-xl"></i>
+                        <span class="mobile-nav-label">${item.label}</span>
+                        ${activePage === item.id ? `<span class="mobile-nav-indicator"></span>` : ''}
+                    </a>
+                `).join('')}
+                
+                <a href="#" id="btnLogoutMobile" 
+                   class="mobile-nav-item text-red-400/60 hover:text-red-400" 
+                   title="Sair">
+                    <i class="fas fa-arrow-right-from-bracket text-xl"></i>
+                    <span class="mobile-nav-label">Sair</span>
+                </a>
+            </div>
+        </nav>
+        
+        <!-- 🔥 Mobile Overlay (para fechar sidebar) -->
+        <div id="sidebarOverlay" class="sidebar-overlay" onclick="window.toggleSidebarMobile()"></div>
     `;
-    
-    return menuHTML;
 }
 
 // ============================================
@@ -166,6 +153,63 @@ export function initMenuMobile() {
             document.body.style.overflow = '';
         }
     };
+    
+    // Configurar navegação mobile
+    setupMobileNavigation();
+}
+
+// ============================================
+// FUNÇÃO: Navegação Mobile
+// ============================================
+function setupMobileNavigation() {
+    const mobileItems = document.querySelectorAll('.mobile-nav-item[data-page]');
+    const mobileLogout = document.getElementById('btnLogoutMobile');
+    
+    mobileItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.dataset.page;
+            
+            if (page && window.loadPage) {
+                // Atualizar ativos
+                document.querySelectorAll('.mobile-nav-item').forEach(el => {
+                    el.classList.remove('active');
+                    const indicator = el.querySelector('.mobile-nav-indicator');
+                    if (indicator) indicator.remove();
+                });
+                
+                this.classList.add('active');
+                
+                // Adicionar indicador
+                const existingIndicator = this.querySelector('.mobile-nav-indicator');
+                if (!existingIndicator) {
+                    const indicator = document.createElement('span');
+                    indicator.className = 'mobile-nav-indicator';
+                    this.appendChild(indicator);
+                }
+                
+                // Carregar página
+                window.loadPage(page);
+                
+                // Fechar sidebar se estiver aberto
+                if (window.innerWidth <= 768 && window.toggleSidebarMobile) {
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar && sidebar.classList.contains('mobile-open')) {
+                        window.toggleSidebarMobile();
+                    }
+                }
+            }
+        });
+    });
+    
+    // Logout mobile
+    if (mobileLogout) {
+        mobileLogout.addEventListener('click', function(e) {
+            e.preventDefault();
+            const logoutBtn = document.getElementById('btnLogout');
+            if (logoutBtn) logoutBtn.click();
+        });
+    }
 }
 
 // ============================================
@@ -231,7 +275,7 @@ function aplicarCollapse(collapsed) {
 }
 
 // ============================================
-// FUNÇÃO: Atualizar Perfil do Usuário (BUSCANDO DA TABELA PUBLIC)
+// FUNÇÃO: Atualizar Perfil do Usuário
 // ============================================
 export async function updateUserMenu(user) {
     const userNameMenu = document.getElementById('userNameMenu');
@@ -241,7 +285,6 @@ export async function updateUserMenu(user) {
     if (!user) return;
     
     try {
-        // 🔥 SELECT DIRETO (agora funciona sem RLS)
         const { data, error } = await supabase
             .from('usuarios')
             .select('nome, role')

@@ -6,16 +6,13 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="src/img/favicon.png">
     <link rel="shortcut icon" type="image/png" href="src/img/favicon.png">
-
-    <!-- Para navegadores mais antigos -->
     <link rel="icon" type="image/x-icon" href="src/img/favicon.png">
-
-    <!-- Para dispositivos Apple (iOS) -->
     <link rel="apple-touch-icon" href="src/img/favicon.png">
+    
     <title>WODBOOK - Agende. Treine. Supere.</title>
     <meta name="description" content="Sistema de agendamento para academias de CrossFit. Agende suas aulas, gerencie seus treinos e evolua com a WODBOOK.">
 
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://wodbook.pages.dev/">
     <meta property="og:title" content="WODBOOK - Agende. Treine. Supere.">
@@ -37,7 +34,7 @@
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://wodbook.pages.dev/">
     
-    <!-- CSP Corrigida -->
+    <!-- CSP -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self' https: data: blob:;
         connect-src 'self' https: wss: ws: http://127.0.0.1:* http://localhost:* https://*.supabase.co;
@@ -52,675 +49,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     
+    <!-- Tailwind & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- 🔥 CSS Principal (contém todas as definições) -->
     <link rel="stylesheet" href="src/styles.css">
     
+    <!-- Estilos mínimos (apenas o essencial para o funcionamento) -->
     <style>
         * { font-family: 'Inter', sans-serif; }
         
-        :root {
-            --primary: #F4742B;
-            --primary-dark: #E0601A;
-            --primary-light: #FF8F4A;
-            --primary-bg: #FEF3E8;
-            --secondary: #4B4B4D;
-            --secondary-dark: #333333;
-            --secondary-light: #6B6B6D;
-            --sidebar-bg: #535353;
-            --sidebar-hover: rgba(255, 255, 255, 0.06);
-            --sidebar-active: rgba(255, 255, 255, 0.08);
-            --sidebar-active-border: rgba(244, 116, 43, 0.4);
-            --sidebar-text: rgba(255, 255, 255, 0.75);
-            --sidebar-text-hover: rgba(255, 255, 255, 0.95);
-            --sidebar-text-active: #FFFFFF;
-            --sidebar-border: rgba(255, 255, 255, 0.06);
-            --sidebar-footer: rgba(0, 0, 0, 0.15);
-            --sidebar-shadow: rgba(0, 0, 0, 0.05);
+        .pulse-dot {
+            animation: pulse 2s infinite;
         }
         
-        /* ============================================
-        SIDEBAR - EFEITOS REFINADOS
-        ============================================ */
-        .sidebar {
-            background: var(--sidebar-bg) !important;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 260px;
-            min-height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 40;
-            overflow-y: auto;
-            overflow-x: hidden;
-            transform: translateX(0);
-            color: var(--sidebar-text);
-            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.08);
-        }
-
-        /* Cabeçalho do sidebar - área da logo */
-        .sidebar .border-b {
-            border-color: var(--sidebar-border) !important;
-        }
-
-        /* ============================================
-        ITENS DO MENU - EFEITOS ELEGANTES
-        ============================================ */
-        .sidebar .nav-item {
-            color: var(--sidebar-text);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 10px;
-            margin: 1px 6px;
-            padding: 10px 14px !important;
-            position: relative;
-            cursor: pointer;
-            text-decoration: none;
-            letter-spacing: 0.2px;
-            font-weight: 400;
-        }
-
-        /* Efeito Hover - Sutil e refinado */
-        .sidebar .nav-item:hover {
-            color: var(--sidebar-text-hover);
-            background: var(--sidebar-hover);
-            transform: translateX(2px);
-        }
-
-        /* Efeito Active - Elegante com borda sutil */
-        .sidebar .nav-item.active {
-            color: var(--sidebar-text-active);
-            background: var(--sidebar-active);
-            font-weight: 500;
-        }
-
-        /* Borda lateral sutil no item ativo */
-        .sidebar .nav-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 60%;
-            background: var(--primary);
-            border-radius: 0 4px 4px 0;
-            opacity: 0.6;
-            transition: all 0.3s ease;
-        }
-
-        /* ============================================
-        ÍCONES DOS ITENS DO MENU
-        ============================================ */
-        .sidebar .nav-item .w-8 {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.75);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 8px;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        /* Ícone no hover - sutil */
-        .sidebar .nav-item:hover .w-8 {
-            color: rgba(255, 255, 255, 0.8);
-            transform: scale(1.05);
-        }
-
-        /* Ícone no active - com cor primária suave */
-        .sidebar .nav-item.active .w-8 {
-            color: var(--primary-light) !important;
-            background: rgba(244, 116, 43, 0.12) !important;
-        }
-
-        /* ============================================
-        BADGE DE NOTIFICAÇÕES
-        ============================================ */
-        .sidebar .nav-item .bg-\[#F4742B\] {
-            background: var(--primary) !important;
-            color: #FFFFFF !important;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 20px;
-            box-shadow: 0 2px 8px rgba(244, 116, 43, 0.25);
-            transition: all 0.3s ease;
-            letter-spacing: 0.3px;
-        }
-
-        .sidebar .nav-item:hover .bg-\[#F4742B\] {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(244, 116, 43, 0.35);
-        }
-
-        /* ============================================
-        SEPARADOR DO MENU
-        ============================================ */
-        .sidebar .relative.my-4 {
-            margin: 16px 12px !important;
-        }
-
-        .sidebar .relative.my-4 .border-t {
-            border-color: var(--sidebar-border) !important;
-            opacity: 0.5;
-        }
-
-        .sidebar .relative.my-4 span {
-            color: rgba(255, 255, 255, 0.15) !important;
-            background: var(--sidebar-bg) !important;
-            font-size: 9px;
-            padding: 0 10px;
-            letter-spacing: 1px;
-            font-weight: 300;
-        }
-
-        /* ============================================
-        BOTÃO SAIR - ELEGANTE
-        ============================================ */
-        .sidebar .nav-item.text-red-400\/70 {
-            color: rgba(255, 120, 120, 0.5) !important;
-            margin-top: 4px;
-            border-top: 1px solid var(--sidebar-border);
-            border-radius: 0;
-            padding-top: 16px !important;
-        }
-
-        .sidebar .nav-item.text-red-400\/70:hover {
-            color: rgba(255, 120, 120, 0.85) !important;
-            background: rgba(255, 80, 80, 0.06) !important;
-            transform: translateX(2px);
-        }
-
-        .sidebar .nav-item.text-red-400\/70 .w-8 {
-            background: transparent !important;
-            color: rgba(255, 120, 120, 0.4) !important;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar .nav-item.text-red-400\/70:hover .w-8 {
-            color: rgba(255, 120, 120, 0.8) !important;
-            transform: scale(1.05);
-        }
-
-        .sidebar .nav-item.text-red-400\/70.active::before {
-            background: rgba(255, 80, 80, 0.5) !important;
-        }
-
-        /* ============================================
-        FOOTER DO USUÁRIO - ELEGANTE
-        ============================================ */
-        .sidebar .absolute.bottom-0 {
-            background: var(--sidebar-footer) !important;
-            border-color: var(--sidebar-border) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 14px 16px !important;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar .absolute.bottom-0 .group {
-            transition: all 0.3s ease;
-        }
-
-        .sidebar .absolute.bottom-0 .group:hover {
-            transform: translateY(-1px);
-        }
-
-        .sidebar .user-info p {
-            color: var(--sidebar-text-hover) !important;
-            font-weight: 500;
-            font-size: 14px;
-            letter-spacing: 0.2px;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar .user-info .text-white\/40 {
-            color: rgba(255, 255, 255, 0.35) !important;
-            font-size: 10px;
-            font-weight: 400;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-
-        .sidebar .user-info .text-\[#F4742B\] {
-            color: var(--primary-light) !important;
-            font-weight: 600;
-        }
-
-        /* Avatar do usuário */
-        .sidebar .user-avatar {
-            border: 2px solid rgba(255, 255, 255, 0.1) !important;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .sidebar .absolute.bottom-0 .group:hover .user-avatar {
-            border-color: rgba(244, 116, 43, 0.3) !important;
-            box-shadow: 0 4px 16px rgba(244, 116, 43, 0.15);
-        }
-
-        /* Status online */
-        .sidebar .w-3.h-3.bg-green-500 {
-            background: #22C55E !important;
-            border: 2px solid var(--sidebar-bg) !important;
-            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-            animation: pulse-dot 2s infinite;
-        }
-
-        @keyframes pulse-dot {
+        @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* ============================================
-        SCROLLBAR - ELEGANTE
-        ============================================ */
-        .sidebar::-webkit-scrollbar {
-            width: 3px;
-        }
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* ============================================
-        SIDEBAR - MODO COLAPSADO (REFINADO)
-        ============================================ */
-        .sidebar-collapsed {
-            width: 70px !important;
-        }
-
-        .sidebar-collapsed .nav-item {
-            justify-content: center !important;
-            padding: 8px 4px !important;
-            margin: 1px 4px !important;
-            min-height: 40px !important;
-            border-radius: 8px !important;
-        }
-
-        .sidebar-collapsed .nav-item span {
-            display: none !important;
-        }
-
-        .sidebar-collapsed .nav-item .badge {
-            display: none !important;
-        }
-
-        .sidebar-collapsed .logo-text {
-            display: none !important;
-        }
-
-        .sidebar-collapsed .user-info {
-            display: none !important;
-        }
-
-        .sidebar-collapsed .separator-text {
-            display: none !important;
-        }
-
-        /* ÍCONES NO MODO COLAPSADO */
-        .sidebar-collapsed .nav-item .w-8 {
-            width: 36px !important;
-            height: 36px !important;
-            font-size: 16px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border-radius: 8px !important;
-            background: transparent !important;
-            transition: all 0.25s ease;
-        }
-
-        .sidebar-collapsed .nav-item:hover .w-8 {
-            background: rgba(255, 255, 255, 0.08) !important;
-            transform: scale(1.05);
-        }
-
-        .sidebar-collapsed .nav-item.active .w-8 {
-            background: rgba(244, 116, 43, 0.15) !important;
-            color: var(--primary-light) !important;
-        }
-
-        .sidebar-collapsed .nav-item.active::before {
-            height: 50% !important;
-            width: 2px !important;
-            left: 0 !important;
-        }
-
-        .sidebar-collapsed .nav-item .flex {
-            gap: 0 !important;
-        }
-
-        /* SEPARADOR NO MODO COLAPSADO */
-        .sidebar-collapsed .relative.my-4 {
-            margin: 8px 0 !important;
-        }
-
-        .sidebar-collapsed .relative.my-4 .border-t {
-            margin: 0 12px !important;
-        }
-
-        .sidebar-collapsed .relative.my-4 span {
-            display: none !important;
-        }
-
-        /* TOOLTIP REFINADO PARA MODO COLAPSADO */
-        .sidebar-collapsed .nav-item[data-page] {
-            position: relative;
-        }
-
-        .sidebar-collapsed .nav-item[data-page]:hover::after {
-            content: attr(title);
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(30, 30, 30, 0.95);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            color: rgba(255, 255, 255, 0.95);
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 500;
-            white-space: nowrap;
-            margin-left: 8px;
-            z-index: 50;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-            letter-spacing: 0.2px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            pointer-events: none;
-        }
-
-        .sidebar-collapsed .nav-item[data-page]:hover::before {
-            content: '';
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            border: 4px solid transparent;
-            border-right-color: rgba(30, 30, 30, 0.95);
-            margin-left: -3px;
-            z-index: 50;
-            pointer-events: none;
-        }
-
-        /* ============================================
-        LOGO - DUAS VERSÕES
-        ============================================ */
-        .logo-completa,
-        .logo-icone {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            filter: brightness(1) drop-shadow(0 2px 4px rgba(0,0,0,0.05));
-        }
-
-        .logo-completa:hover,
-        .logo-icone:hover {
-            filter: brightness(1.05) drop-shadow(0 4px 12px rgba(244, 116, 43, 0.15));
-        }
-
-        .sidebar-collapsed .logo-completa {
-            display: none !important;
-        }
-
-        .sidebar-collapsed .logo-icone {
-            display: block !important;
-            width: 40px !important;
-            height: 40px !important;
-            margin: 0 auto !important;
-        }
-
-        .sidebar:not(.sidebar-collapsed) .logo-completa {
-            display: block !important;
-        }
-
-        .sidebar:not(.sidebar-collapsed) .logo-icone {
-            display: none !important;
-        }
-
-        /* Efeito glow da logo - mais sutil */
-        .sidebar .bg-\[#F4742B\]\/20 {
-            background: rgba(244, 116, 43, 0.06) !important;
-            transition: all 0.5s ease;
-        }
-
-        .sidebar .group:hover .bg-\[#F4742B\]\/20 {
-            background: rgba(244, 116, 43, 0.10) !important;
-        }
-
-        .sidebar-collapsed .flex.items-center.justify-center.p-5 {
-            padding: 16px 8px !important;
-        }
-
-        .sidebar-collapsed .group .relative {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-        }
-
-        /* ============================================
-        OVERLAY MOBILE
-        ============================================ */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 39;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            transition: all 0.3s ease;
-        }
-        .sidebar-overlay.active { display: block; }
-
-        /* ============================================
-        MAIN CONTENT
-        ============================================ */
-        .main-content {
-            margin-left: 260px;
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: calc(100% - 260px);
-            min-height: 100vh;
-            background: #F8F9FA;
-        }
-
-        .main-content-expanded {
-            margin-left: 70px !important;
-            width: calc(100% - 70px) !important;
-        }
-
-        /* ============================================
-        RESPONSIVIDADE
-        ============================================ */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px !important;
-                position: fixed;
-            }
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0 !important;
-                width: 100% !important;
-            }
-            .sidebar-overlay.active {
-                display: block;
-            }
-            .sidebar-collapsed {
-                width: 280px !important;
-            }
-            .sidebar-collapsed .nav-item span {
-                display: inline !important;
-            }
-            .sidebar-collapsed .logo-text {
-                display: block !important;
-            }
-            .sidebar-collapsed .user-info {
-                display: block !important;
-            }
-            .sidebar-collapsed .nav-item {
-                justify-content: flex-start !important;
-                padding: 10px 16px !important;
-            }
-            .sidebar-collapsed .nav-item[data-page]:hover::after {
-                display: none !important;
-            }
-            .sidebar-collapsed .nav-item[data-page]:hover::before {
-                display: none !important;
-            }
-            .sidebar-collapsed .logo-completa {
-                display: block !important;
-            }
-            .sidebar-collapsed .logo-icone {
-                display: none !important;
-            }
-        }
-
-        /* ============================================
-        ANIMAÇÕES GERAIS
-        ============================================ */
-        .fade-in { animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ============================================
-        LOADER
-        ============================================ */
-        .page-loader {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 200px;
-        }
-        .page-loader i {
-            font-size: 48px;
-            color: #F4742B;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* ============================================
-        NOTIFICAÇÕES DROPDOWN
-        ============================================ */
-        #notificacoesDropdown {
-            transition: all 0.2s ease;
-            transform-origin: top right;
-        }
-
-        #notificacoesDropdown.show {
-            display: block !important;
-            animation: dropdownIn 0.2s ease;
-        }
-
-        @keyframes dropdownIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        #notificacoesDropdown .max-h-96::-webkit-scrollbar {
-            width: 4px;
-        }
-        #notificacoesDropdown .max-h-96::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        #notificacoesDropdown .max-h-96::-webkit-scrollbar-thumb {
-            background: #E5E7EB;
-            border-radius: 10px;
-        }
-        #notificacoesDropdown .max-h-96::-webkit-scrollbar-thumb:hover {
-            background: #D1D5DB;
-        }
-
-        /* ============================================
-        MODAL DE TELEFONE
-        ============================================ */
-        #modalTelefone {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 9999;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        #modalTelefone.active {
-            display: flex;
-        }
-        #modalTelefone .modal-content {
-            animation: fadeIn 0.3s ease;
-        }
-
-        /* ============================================
-        TOOLTIP DOS HORÁRIOS
-        ============================================ */
-        #horariosList button .group-hover\:opacity-100 {
-            transition: opacity 0.2s ease;
-        }
-        #horariosList button .group-hover\:opacity-100 .break-words {
-            word-break: break-word;
-            white-space: normal;
-            line-height: 1.4;
-        }
-        #horariosList button .bg-\[\#4B4B4D\] {
-            background: #4B4B4D;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-        }
-        #horariosList button .bg-\[\#4B4B4D\] .rotate-45 {
-            background: #4B4B4D;
-        }
-
-        @media (max-width: 640px) {
-            #horariosList button .min-w-\[200px\] {
-                min-width: 160px !important;
-                max-width: 220px !important;
-            }
-            #horariosList button .text-\[11px\] {
-                font-size: 10px !important;
-            }
-        }
-
-        /* ============================================
-        RODAPÉ
-        ============================================ */
-        #footerContainer {
-            margin-left: 260px;
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .main-content-expanded + #footerContainer {
-            margin-left: 70px;
-        }
-
-        @media (max-width: 768px) {
-            #footerContainer {
-                margin-left: 0 !important;
-            }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -728,10 +75,10 @@
     <!-- Overlay -->
     <div id="sidebarOverlay" class="sidebar-overlay" onclick="window.toggleSidebarMobile()"></div>
     
-    <!-- Sidebar será renderizada pelo menu.js -->
+    <!-- Sidebar -->
     <div id="sidebarContainer"></div>
     
-    <!-- Main Content (Dinâmico) -->
+    <!-- Main Content -->
     <main class="main-content">
         <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-4 sticky top-0 z-30 shadow-sm">
             <div class="flex items-center justify-between">
@@ -757,7 +104,7 @@
                 
                 <!-- Ações do Header -->
                 <div class="flex items-center gap-4">
-                    <!-- Botão de Notificações com Dropdown -->
+                    <!-- Notificações -->
                     <div class="relative">
                         <button id="btnNotificacoes" 
                                 onclick="window.toggleDropdownNotificacoes()" 
@@ -809,6 +156,7 @@
             </div>
         </div>
     </main>
+    
     <!-- Rodapé -->
     <div id="footerContainer"></div>
     
@@ -837,12 +185,9 @@
         console.log('🚀 Iniciando aplicação...');
         console.log('📦 pageContent:', !!pageContent);
         console.log('📦 sidebarContainer:', !!sidebarContainer);
-        console.log('🔍 Verificando elementos:');
-        console.log('📦 pageTitle:', !!pageTitle);
-        console.log('📦 pageSubtitle:', !!pageSubtitle);
         
         // ============================================
-        // RENDERIZAR MENU - PRIMEIRO!
+        // RENDERIZAR MENU
         // ============================================
         if (sidebarContainer) {
             sidebarContainer.innerHTML = renderMenu('dashboard');
@@ -851,18 +196,17 @@
             console.error('❌ sidebarContainer não encontrado!');
         }
         
-        // Inicializar funcionalidades do menu
         initMenuMobile();
         initCollapseDesktop();
         
         // ============================================
-        // INICIALIZAR ROTEADOR - DEPOIS DO MENU
+        // INICIALIZAR ROTEADOR
         // ============================================
         console.log('🔄 Inicializando router...');
         initRouter({ pageContent, pageTitle, pageSubtitle });
         
         // ============================================
-        // FUNÇÃO: Navegação (SPA)
+        // NAVEGAÇÃO
         // ============================================
         function initNavigation() {
             const items = document.querySelectorAll('.nav-item[data-page]');
@@ -897,7 +241,7 @@
         }
         
         // ============================================
-        // FUNÇÃO: Menu Mobile
+        // MENU MOBILE
         // ============================================
         window.toggleSidebarMobile = function() {
             const sidebar = document.getElementById('sidebar');
@@ -940,18 +284,14 @@
                 
                 console.log('✅ Usuário autenticado:', user.email);
                 
-                // 🔥 IMPORTANTE: Atualizar dados do usuário ANTES de qualquer coisa
                 await updateUserData();
                 console.log('👤 Role do usuário:', localStorage.getItem('userRole'));
                 
-                // ✅ Funções importadas do shared.js
                 setupLogout();
                 await updateUserAvatar();
                 initNavigation();
                 initNotificacoes(); 
                 initFooter();
-                
-                // 🔥 Configurar eventos das configurações (máscara de telefone)
                 setupConfiguracoesEvents();
                 
                 console.log('📄 Carregando dashboard...');
@@ -963,7 +303,6 @@
             }
         }
         
-        // Aguardar o DOM carregar
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {

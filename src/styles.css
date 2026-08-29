@@ -4,16 +4,16 @@
 
 :root {
     /* Cores Principais */
-    --color-primary: #F4742B;        /* Laranja principal */
-    --color-primary-dark: #E0601A;   /* Laranja escuro (hover) */
-    --color-primary-light: #FF8F4A;  /* Laranja claro */
-    --color-primary-bg: #FEF3E8;     /* Fundo laranja suave */
+    --color-primary: #F4742B;
+    --color-primary-dark: #E0601A;
+    --color-primary-light: #FF8F4A;
+    --color-primary-bg: #FEF3E8;
     
     /* Cores Secundárias */
-    --color-secondary: #4B4B4D;      /* Cinza principal */
-    --color-secondary-dark: #333333; /* Cinza escuro */
-    --color-secondary-light: #6B6B6D;/* Cinza claro */
-    --color-secondary-bg: #F5F5F5;   /* Fundo cinza suave */
+    --color-secondary: #4B4B4D;
+    --color-secondary-dark: #333333;
+    --color-secondary-light: #6B6B6D;
+    --color-secondary-bg: #F5F5F5;
     
     /* Cores Neutras */
     --color-white: #FFFFFF;
@@ -41,92 +41,456 @@
 }
 
 /* ============================================
-   ESTILOS DO CALENDÁRIO
+   SIDEBAR - APPLE DESIGN REFINADO
    ============================================ */
 
-/* Fade-in para o modal */
-.fade-in {
-    animation: fadeIn 0.3s ease;
+.sidebar {
+    background: var(--color-secondary);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 260px;
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 40;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateX(0);
+    color: rgba(255, 255, 255, 0.75);
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.08);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+.sidebar .border-b {
+    border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-/* Scroll suave */
-#modalAgendamento .overflow-y-auto {
-    scrollbar-width: thin;
-    scrollbar-color: #c4b5fd #f3f4f6;
-}
+/* ============================================
+   ITENS DO MENU
+   ============================================ */
 
-#modalAgendamento .overflow-y-auto::-webkit-scrollbar {
-    width: 6px;
-}
-
-#modalAgendamento .overflow-y-auto::-webkit-scrollbar-track {
-    background: #f3f4f6;
+.sidebar .nav-item {
+    color: rgba(255, 255, 255, 0.75);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 10px;
+    margin: 1px 6px;
+    padding: 10px 14px !important;
+    position: relative;
+    cursor: pointer;
+    text-decoration: none;
+    letter-spacing: 0.2px;
+    font-weight: 400;
 }
 
-#modalAgendamento .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #c4b5fd;
-    border-radius: 10px;
+.sidebar .nav-item:hover {
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateX(2px);
 }
 
-#modalAgendamento .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #8b5cf6;
+.sidebar .nav-item.active {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
+    font-weight: 500;
 }
 
-/* Botões do calendário */
-#modalAgendamento button[onclick^="selecionarData"] {
-    transition: all 0.2s ease;
+.sidebar .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: var(--color-primary);
+    border-radius: 0 4px 4px 0;
+    opacity: 0.6;
+    transition: all 0.3s ease;
 }
 
-#modalAgendamento button[onclick^="selecionarData"]:hover:not(:disabled) {
+.sidebar .nav-item .w-8 {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.sidebar .nav-item:hover .w-8 {
+    color: rgba(255, 255, 255, 0.8);
     transform: scale(1.05);
 }
 
-#modalAgendamento button[onclick^="selecionarData"]:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.sidebar .nav-item.active .w-8 {
+    color: var(--color-primary-light) !important;
+    background: rgba(244, 116, 43, 0.12) !important;
 }
 
-/* Horários */
-#horariosList button {
+/* ============================================
+   SIDEBAR - MODO COLAPSADO
+   ============================================ */
+
+.sidebar-collapsed {
+    width: 70px !important;
+}
+
+.sidebar-collapsed .nav-item {
+    justify-content: center !important;
+    padding: 8px 4px !important;
+    margin: 1px 4px !important;
+    min-height: 40px !important;
+    border-radius: 8px !important;
+}
+
+.sidebar-collapsed .nav-item span {
+    display: none !important;
+}
+
+.sidebar-collapsed .nav-item .badge {
+    display: none !important;
+}
+
+.sidebar-collapsed .logo-text {
+    display: none !important;
+}
+
+.sidebar-collapsed .user-info {
+    display: none !important;
+}
+
+.sidebar-collapsed .separator-text {
+    display: none !important;
+}
+
+.sidebar-collapsed .nav-item .w-8 {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    transition: all 0.25s ease;
+}
+
+.sidebar-collapsed .nav-item:hover .w-8 {
+    background: rgba(255, 255, 255, 0.08) !important;
+    transform: scale(1.05);
+}
+
+.sidebar-collapsed .nav-item.active .w-8 {
+    background: rgba(244, 116, 43, 0.15) !important;
+    color: var(--color-primary-light) !important;
+}
+
+.sidebar-collapsed .nav-item.active::before {
+    height: 50% !important;
+    width: 2px !important;
+    left: 0 !important;
+}
+
+.sidebar-collapsed .nav-item .flex {
+    gap: 0 !important;
+}
+
+.sidebar-collapsed .relative.my-4 {
+    margin: 8px 0 !important;
+}
+
+.sidebar-collapsed .relative.my-4 .border-t {
+    margin: 0 12px !important;
+}
+
+.sidebar-collapsed .relative.my-4 span {
+    display: none !important;
+}
+
+/* ============================================
+   LOGO - DUAS VERSÕES
+   ============================================ */
+
+.logo-completa,
+.logo-icone {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: brightness(1) drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+}
+
+.logo-completa:hover,
+.logo-icone:hover {
+    filter: brightness(1.05) drop-shadow(0 4px 12px rgba(244, 116, 43, 0.15));
+}
+
+.sidebar-collapsed .logo-completa {
+    display: none !important;
+}
+
+.sidebar-collapsed .logo-icone {
+    display: block !important;
+    width: 40px !important;
+    height: 40px !important;
+    margin: 0 auto !important;
+}
+
+.sidebar:not(.sidebar-collapsed) .logo-completa {
+    display: block !important;
+}
+
+.sidebar:not(.sidebar-collapsed) .logo-icone {
+    display: none !important;
+}
+
+.sidebar .bg-\[#F4742B\]\/20 {
+    background: rgba(244, 116, 43, 0.06) !important;
+    transition: all 0.5s ease;
+}
+
+.sidebar .group:hover .bg-\[#F4742B\]\/20 {
+    background: rgba(244, 116, 43, 0.10) !important;
+}
+
+.sidebar-collapsed .flex.items-center.justify-center.p-5 {
+    padding: 16px 8px !important;
+}
+
+.sidebar-collapsed .group .relative {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* ============================================
+   MOBILE BOTTOM NAV - INSTAGRAM STYLE
+   ============================================ */
+
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+    padding: 6px 0 env(safe-area-inset-bottom, 6px) 0;
+    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-bottom-nav-inner {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 0 8px;
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 12px;
+    min-width: 50px;
+    position: relative;
+    text-decoration: none;
+    color: #8E8E93;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item i {
+    font-size: 22px;
     transition: all 0.2s ease;
 }
 
-#horariosList button:hover:not(:disabled) {
-    transform: translateY(-2px);
+.mobile-nav-item .mobile-nav-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    transition: all 0.2s ease;
+    opacity: 0.7;
 }
 
-#horariosList button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.mobile-nav-item.active {
+    color: var(--color-primary);
 }
 
-/* Responsivo para mobile */
-@media (max-width: 640px) {
-    #modalAgendamento .max-w-2xl {
-        margin: 1rem;
-        padding: 1rem;
-        max-height: 95vh;
+.mobile-nav-item.active .mobile-nav-label {
+    opacity: 1;
+    color: var(--color-primary);
+}
+
+.mobile-nav-item.active i {
+    transform: scale(1.05);
+}
+
+.mobile-nav-indicator {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    animation: indicatorPop 0.3s ease;
+}
+
+@keyframes indicatorPop {
+    0% { transform: translateX(-50%) scale(0); }
+    50% { transform: translateX(-50%) scale(1.3); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+
+.mobile-nav-item:active {
+    transform: scale(0.92);
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .mobile-bottom-nav {
+        display: block;
     }
     
-    #horariosList {
-        grid-template-columns: repeat(2, 1fr) !important;
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 60;
+        height: 100vh;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 55;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding-bottom: 80px !important;
+    }
+    
+    .sidebar-collapsed {
+        width: 280px !important;
+    }
+    
+    .sidebar-collapsed .nav-item span {
+        display: inline !important;
+    }
+    .sidebar-collapsed .logo-text {
+        display: block !important;
+    }
+    .sidebar-collapsed .user-info {
+        display: block !important;
+    }
+    .sidebar-collapsed .nav-item {
+        justify-content: flex-start !important;
+        padding: 10px 16px !important;
+    }
+    .sidebar-collapsed .nav-item[data-page]:hover::after {
+        display: none !important;
+    }
+    .sidebar-collapsed .nav-item[data-page]:hover::before {
+        display: none !important;
+    }
+    .sidebar-collapsed .logo-completa {
+        display: block !important;
+    }
+    .sidebar-collapsed .logo-icone {
+        display: none !important;
+    }
+    
+    #footerContainer {
+        margin-left: 0 !important;
+        padding-bottom: 70px !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-bottom-nav {
+        display: none !important;
     }
 }
 
 /* ============================================
-   MODAL REUTILIZÁVEL
+   SIDEBAR OVERLAY
+   ============================================ */
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 39;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+
+.main-content {
+    margin-left: 260px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: calc(100% - 260px);
+    min-height: 100vh;
+    background: #F8F9FA;
+}
+
+.main-content-expanded {
+    margin-left: 70px !important;
+    width: calc(100% - 70px) !important;
+}
+
+/* ============================================
+   RODAPÉ
+   ============================================ */
+
+#footerContainer {
+    margin-left: 260px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content-expanded + #footerContainer {
+    margin-left: 70px;
+}
+
+/* ============================================
+   MODAL REUTILIZÁVEL - APPLE DESIGN
    ============================================ */
 
 .modal-overlay {
@@ -135,6 +499,7 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     z-index: 9999;
     align-items: center;
     justify-content: center;
@@ -287,4 +652,234 @@
         width: 100%;
         justify-content: center;
     }
+}
+
+/* ============================================
+   ESTILOS DO CALENDÁRIO
+   ============================================ */
+
+.fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#modalAgendamento .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #c4b5fd #f3f4f6;
+}
+
+#modalAgendamento .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+#modalAgendamento .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 10px;
+}
+
+#modalAgendamento .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #c4b5fd;
+    border-radius: 10px;
+}
+
+#modalAgendamento .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #8b5cf6;
+}
+
+#modalAgendamento button[onclick^="selecionarData"] {
+    transition: all 0.2s ease;
+}
+
+#modalAgendamento button[onclick^="selecionarData"]:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+
+#modalAgendamento button[onclick^="selecionarData"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#horariosList button {
+    transition: all 0.2s ease;
+}
+
+#horariosList button:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+#horariosList button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    #modalAgendamento .max-w-2xl {
+        margin: 1rem;
+        padding: 1rem;
+        max-height: 95vh;
+    }
+    
+    #horariosList {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* ============================================
+   NOTIFICAÇÕES DROPDOWN
+   ============================================ */
+
+#notificacoesDropdown {
+    transition: all 0.2s ease;
+    transform-origin: top right;
+}
+
+#notificacoesDropdown.show {
+    display: block !important;
+    animation: dropdownIn 0.2s ease;
+}
+
+@keyframes dropdownIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+#notificacoesDropdown .max-h-96::-webkit-scrollbar {
+    width: 4px;
+}
+#notificacoesDropdown .max-h-96::-webkit-scrollbar-track {
+    background: transparent;
+}
+#notificacoesDropdown .max-h-96::-webkit-scrollbar-thumb {
+    background: #E5E7EB;
+    border-radius: 10px;
+}
+#notificacoesDropdown .max-h-96::-webkit-scrollbar-thumb:hover {
+    background: #D1D5DB;
+}
+
+/* ============================================
+   MODAL DE TELEFONE
+   ============================================ */
+
+#modalTelefone {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+#modalTelefone.active {
+    display: flex;
+}
+
+#modalTelefone .modal-content {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ============================================
+   TOOLTIP DOS HORÁRIOS
+   ============================================ */
+
+#horariosList button .group-hover\:opacity-100 {
+    transition: opacity 0.2s ease;
+}
+
+#horariosList button .group-hover\:opacity-100 .break-words {
+    word-break: break-word;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+#horariosList button .bg-\[\#4B4B4D\] {
+    background: #4B4B4D;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+#horariosList button .bg-\[\#4B4B4D\] .rotate-45 {
+    background: #4B4B4D;
+}
+
+@media (max-width: 640px) {
+    #horariosList button .min-w-\[200px\] {
+        min-width: 160px !important;
+        max-width: 220px !important;
+    }
+    #horariosList button .text-\[11px\] {
+        font-size: 10px !important;
+    }
+}
+
+/* ============================================
+   PULSE DOT
+   ============================================ */
+
+.pulse-dot {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ============================================
+   SCROLLBAR DO SIDEBAR
+   ============================================ */
+
+.sidebar::-webkit-scrollbar {
+    width: 3px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   LOADER
+   ============================================ */
+
+.page-loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.page-loader i {
+    font-size: 48px;
+    color: var(--color-primary);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
