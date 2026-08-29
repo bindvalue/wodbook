@@ -47,6 +47,32 @@ async function salvarConfiguracao(chave, valor) {
 }
 
 // ============================================
+// FUNÇÃO: Atualizar Menu e Header
+// ============================================
+async function atualizarInterfaceUsuario(nome) {
+    // Atualizar menu lateral
+    const userNameMenu = document.getElementById('userNameMenu');
+    const userAvatarMenu = document.getElementById('userAvatarMenu');
+    
+    if (userNameMenu) {
+        userNameMenu.textContent = nome;
+    }
+    
+    if (userAvatarMenu) {
+        userAvatarMenu.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=F4742B&color=fff&size=40`;
+    }
+    
+    // Atualizar header
+    const userAvatarHeader = document.getElementById('userAvatarHeader');
+    if (userAvatarHeader) {
+        userAvatarHeader.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=F4742B&color=fff&size=40`;
+    }
+    
+    // Atualizar localStorage
+    localStorage.setItem('userName', nome);
+}
+
+// ============================================
 // FUNÇÃO: Carregar Conteúdo de Configurações
 // ============================================
 export async function loadConfiguracoesContent() {
@@ -428,7 +454,7 @@ window.salvarConfigUnidade = async function(centroId) {
 // FUNÇÕES DE CONFIGURAÇÃO (TODOS)
 // ============================================
 
-// Salvar Perfil - TODOS
+// Salvar Perfil - TODOS (VERSÃO CORRIGIDA)
 window.salvarPerfil = async function() {
     const nome = document.getElementById('configNome')?.value?.trim();
     if (!nome) {
@@ -445,6 +471,7 @@ window.salvarPerfil = async function() {
         const user = await getCurrentUser();
         if (!user) return;
         
+        // 🔥 ATUALIZA APENAS A TABELA public.usuarios
         const { error } = await supabase
             .from('usuarios')
             .update({ nome })
@@ -452,12 +479,16 @@ window.salvarPerfil = async function() {
         
         if (error) throw error;
         
+        // 🔥 ATUALIZA A INTERFACE DO USUÁRIO NO MENU E HEADER
+        await atualizarInterfaceUsuario(nome);
+        
         successModal({
-            title: 'Perfil Atualizado!',
+            title: 'Perfil Atualizado! ✅',
             message: 'Seu perfil foi atualizado com sucesso.',
             confirmText: 'OK',
             onConfirm: () => {
                 window.closeModal();
+                // Recarregar a página de configurações para refletir as mudanças
                 loadPage('configuracoes');
             }
         });
@@ -726,7 +757,6 @@ window.confirmarAlterarSenha = async function() {
     
     // Verificar se a senha atual está correta
     try {
-        const { supabase } = await import('../config/supabase.js');
         const user = await getCurrentUser();
         
         if (!user) {

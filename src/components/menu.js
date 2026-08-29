@@ -2,6 +2,8 @@
 // COMPONENTE: Menu Lateral (Estilizado e Moderno)
 // ============================================
 
+import { supabase } from '../config/supabase.js';
+
 export function renderMenu(activePage = 'dashboard') {
     // 🔥 Verificar se o usuário é admin (via localStorage)
     const isAdmin = localStorage.getItem('userRole') === 'admin';
@@ -126,7 +128,7 @@ export function renderMenu(activePage = 'dashboard') {
                     <div class="user-info flex-1 min-w-0">
                         <p id="userNameMenu" class="text-sm font-medium text-white truncate">Carregando...</p>
                         <div class="flex items-center gap-1.5">
-                            <span class="text-[10px] text-white/40">${isAdmin ? 'Administrador' : 'Aluno'}</span>
+                            <span id="userRoleMenu" class="text-[10px] text-white/40">${isAdmin ? 'Administrador' : 'Aluno'}</span>
                             ${isAdmin ? `
                                 <span class="w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>
                                 <span class="text-[10px] text-[#F4742B] font-medium">●</span>
@@ -230,19 +232,62 @@ function aplicarCollapse(collapsed) {
 }
 
 // ============================================
-// FUNÇÃO: Atualizar Perfil do Usuário
+// FUNÇÃO: Atualizar Perfil do Usuário (BUSCANDO DA TABELA PUBLIC)
 // ============================================
-export function updateUserMenu(user) {
+export async function updateUserMenu(user) {
     const userNameMenu = document.getElementById('userNameMenu');
     const userAvatarMenu = document.getElementById('userAvatarMenu');
+    const userRoleMenu = document.getElementById('userRoleMenu');
     
-    if (userNameMenu) {
-        const nome = user?.user_metadata?.nome || user?.email?.split('@')[0] || 'Usuário';
-        userNameMenu.textContent = nome;
+    if (!user) {
+        console.warn('⚠️ Usuário não fornecido para updateUserMenu');
+        return;
     }
     
-    if (userAvatarMenu) {
-        const nome = user?.user_metadata?.nome || 'Usuário';
-        userAvatarMenu.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=F4742B&color=fff&size=40`;
+    try {
+        // 🔥 BUSCAR DA TABELA public.usuarios
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select('nome, role')
+            .eq('id', user.id)
+            .single();
+        
+        if (error) {
+            console.error('❌ Erro ao buscar perfil:', error);
+            // Fallback: usar o email
+            const fallbackNome = user.email?.split('@')[0] || 'Usuário';
+            if (userNameMenu) userNameMenu.textContent = fallbackNome;
+            if (userAvatarMenu) {
+                userAvatarMenu.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackNome)}&background=F4742B&color=fff&size=40`;
+            }
+            return;
+        }
+        
+        const nome = data?.nome || user.email?.split('@')[0] || 'Usuário';
+        const role = data?.role || 'user';
+        
+        // Atualizar o nome no menu
+        if (userNameMenu) {
+            userNameMenu.textContent = nome;
+        }
+        
+        // Atualizar o avatar
+        if (userAvatarMenu) {
+            userAvatarMenu.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=F4742B&color=fff&size=40`;
+        }
+        
+        // Atualizar o role no menu
+        if (userRoleMenu) {
+            userRoleMenu.textContent = role === 'admin' ? 'Administrador' : 'Aluno';
+        }
+        
+        // Atualizar o role no localStorage
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userName', nome);
+        
+        console.log('✅ Menu atualizado com:', { nome, role });
+        
+    } catch (error) {
+        console.error('❌ Erro ao atualizar menu do usuário:', error);
     }
 }
