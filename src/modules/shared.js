@@ -92,7 +92,6 @@ export async function updateUserData() {
         
         if (error) {
             console.warn('⚠️ Erro ao buscar role:', error.message);
-            // Fallback: se não encontrar, considerar como 'user'
             localStorage.setItem('userRole', 'user');
             localStorage.setItem('userName', user.email?.split('@')[0] || 'Usuário');
             return { role: 'user', nome: user.email?.split('@')[0] || 'Usuário' };
@@ -107,7 +106,6 @@ export async function updateUserData() {
         return data;
     } catch (error) {
         console.error('❌ Erro ao atualizar dados do usuário:', error);
-        // Fallback
         localStorage.setItem('userRole', 'user');
         return { role: 'user', nome: 'Usuário' };
     }
@@ -151,13 +149,15 @@ export function setupLogout() {
                             await supabase.auth.signOut();
                             console.log('✅ Logout realizado!');
                             
-                            // Fechar o modal de confirmação
+                            // Limpar localStorage
+                            localStorage.removeItem('userRole');
+                            localStorage.removeItem('userName');
+                            
                             window.closeModal();
                             
-                            // 🔥 MOSTRAR ANIMAÇÃO DE REDIRECIONAMENTO
+                            // Mostrar animação de logout
                             mostrarAnimacaoLogout();
                             
-                            // Redirecionar após 2.5 segundos
                             setTimeout(() => {
                                 window.location.href = '/login.html';
                             }, 2500);
@@ -191,13 +191,11 @@ export function setupLogout() {
 // FUNÇÃO: Mostrar Animação de Logout
 // ============================================
 function mostrarAnimacaoLogout() {
-    // Remover qualquer animação anterior
     const animacaoExistente = document.getElementById('logoutAnimation');
     if (animacaoExistente) {
         animacaoExistente.remove();
     }
     
-    // Criar overlay da animação
     const overlay = document.createElement('div');
     overlay.id = 'logoutAnimation';
     overlay.style.cssText = `
@@ -215,36 +213,26 @@ function mostrarAnimacaoLogout() {
     
     overlay.innerHTML = `
         <div style="text-align: center; max-width: 400px; padding: 40px;">
-            <!-- Logo animado -->
             <div style="width: 80px; height: 80px; margin: 0 auto 24px;">
                 <img src="src/img/logo_wodbook.png" 
                      alt="WODBOOK" 
                      style="width: 100%; height: 100%; object-fit: contain; animation: pulse 1.5s ease-in-out infinite;">
             </div>
-            
-            <!-- Título -->
             <h2 style="font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 700; color: white; margin-bottom: 8px;">
                 Até logo! 👋
             </h2>
-            
-            <!-- Mensagem -->
             <p style="font-family: 'Inter', sans-serif; font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 24px;">
                 Você saiu do sistema com sucesso.
             </p>
-            
-            <!-- Barra de progresso -->
             <div style="width: 100%; max-width: 300px; margin: 0 auto; background: rgba(255,255,255,0.15); border-radius: 8px; overflow: hidden; height: 4px;">
                 <div id="logoutProgress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #F4742B, #FF8F4A); border-radius: 8px; transition: width 0.1s linear;"></div>
             </div>
-            
-            <!-- Texto de redirecionamento -->
             <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 12px;">
                 Redirecionando...
             </p>
         </div>
     `;
     
-    // Adicionar estilos de animação
     const style = document.createElement('style');
     style.textContent = `
         @keyframes pulse {
@@ -252,22 +240,15 @@ function mostrarAnimacaoLogout() {
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
-        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
-        }
-        
-        @keyframes progress {
-            from { width: 0%; }
-            to { width: 100%; }
         }
     `;
     document.head.appendChild(style);
     
     document.body.appendChild(overlay);
     
-    // Iniciar animação da barra de progresso
     const progressBar = document.getElementById('logoutProgress');
     let progress = 0;
     const interval = setInterval(() => {

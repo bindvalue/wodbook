@@ -85,6 +85,11 @@
             box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
         }
         
+        .input-field.success {
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
         .error-message {
             color: #EF4444;
             font-size: 14px;
@@ -115,9 +120,21 @@
             background: #E5E7EB;
         }
         
-        .password-strength.weak { background: #EF4444; width: 25%; }
-        .password-strength.medium { background: #F59E0B; width: 50%; }
+        .password-strength.weak { background: #EF4444; width: 33%; }
+        .password-strength.medium { background: #F59E0B; width: 66%; }
         .password-strength.strong { background: #10B981; width: 100%; }
+        
+        .requisito-item {
+            transition: all 0.3s ease;
+        }
+        
+        .requisito-item.ativo {
+            color: #10B981;
+        }
+        
+        .requisito-item.inativo {
+            color: #9CA3AF;
+        }
     </style>
 </head>
 <body>
@@ -194,36 +211,81 @@
                     >
                 </div>
                 
-                <!-- Senha -->
+                <!-- Senha com visualizador -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-lock text-[#F4742B] mr-2"></i>Senha *
                     </label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        class="input-field"
-                        placeholder="Mínimo 6 caracteres"
-                        required
-                        autocomplete="new-password"
-                    >
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="input-field w-full pr-12"
+                            placeholder="Mínimo 6 caracteres"
+                            required
+                            autocomplete="new-password"
+                            minlength="6"
+                        >
+                        <button 
+                            type="button" 
+                            id="togglePassword" 
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition"
+                            title="Mostrar senha"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                     <div class="password-strength" id="passwordStrength"></div>
+                    
+                    <!-- Requisitos de senha -->
+                    <div class="text-xs space-y-1 mt-2" id="senhaRequisitos">
+                        <p class="flex items-center gap-2 requisito-item" id="reqTamanho">
+                            <span class="text-gray-300">○</span>
+                            Pelo menos 6 caracteres
+                        </p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqMaiuscula">
+                            <span class="text-gray-300">○</span>
+                            Pelo menos uma letra maiúscula
+                        </p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqMinuscula">
+                            <span class="text-gray-300">○</span>
+                            Pelo menos uma letra minúscula
+                        </p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqNumero">
+                            <span class="text-gray-300">○</span>
+                            Pelo menos um número
+                        </p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqEspecial">
+                            <span class="text-gray-300">○</span>
+                            Pelo menos um caractere especial (!@#$%...)
+                        </p>
+                    </div>
                     <p class="text-xs text-gray-400 mt-1" id="passwordHint">Digite uma senha forte</p>
                 </div>
                 
-                <!-- Confirmar Senha -->
+                <!-- Confirmar Senha com visualizador -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-check-circle text-[#F4742B] mr-2"></i>Confirmar Senha *
                     </label>
-                    <input 
-                        type="password" 
-                        id="confirmPassword" 
-                        class="input-field"
-                        placeholder="Digite a senha novamente"
-                        required
-                        autocomplete="new-password"
-                    >
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            class="input-field w-full pr-12"
+                            placeholder="Digite a senha novamente"
+                            required
+                            autocomplete="new-password"
+                        >
+                        <button 
+                            type="button" 
+                            id="toggleConfirmPassword" 
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition"
+                            title="Mostrar senha"
+                        >
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Termos -->
@@ -304,6 +366,8 @@
         const successMessage = document.getElementById('successMessage');
         const passwordStrength = document.getElementById('passwordStrength');
         const passwordHint = document.getElementById('passwordHint');
+        const togglePassword = document.getElementById('togglePassword');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
         
         // ============================================
         // FUNÇÕES
@@ -335,6 +399,23 @@
                 btnRegister.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Criar Conta';
             }
         }
+        
+        // ============================================
+        // VISUALIZAR SENHA
+        // ============================================
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+        
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPasswordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
         
         // ============================================
         // MÁSCARAS
@@ -387,41 +468,64 @@
         }
         
         // ============================================
-        // VALIDAÇÃO DE SENHA
+        // VALIDAÇÃO DE SENHA (MAIS ROBUSTA)
         // ============================================
-        passwordInput.addEventListener('input', function() {
-            const senha = this.value;
-            let forca = 0;
+        function validarSenha(senha) {
+            return {
+                tamanho: senha.length >= 6,
+                maiuscula: /[A-Z]/.test(senha),
+                minuscula: /[a-z]/.test(senha),
+                numero: /\d/.test(senha),
+                especial: /[^a-zA-Z0-9]/.test(senha)
+            };
+        }
+        
+        function getForcaSenha(senha) {
+            if (senha.length === 0) return { forca: 0, texto: 'Digite uma senha forte', cor: '#9CA3AF' };
             
-            if (senha.length >= 6) forca++;
-            if (senha.length >= 10) forca++;
-            if (/[a-z]/.test(senha) && /[A-Z]/.test(senha)) forca++;
-            if (/\d/.test(senha)) forca++;
-            if (/[^a-zA-Z0-9]/.test(senha)) forca++;
+            const req = validarSenha(senha);
+            let pontos = 0;
+            if (req.tamanho) pontos++;
+            if (req.maiuscula) pontos++;
+            if (req.minuscula) pontos++;
+            if (req.numero) pontos++;
+            if (req.especial) pontos++;
             
-            passwordStrength.className = 'password-strength';
-            
-            if (senha.length === 0) {
-                passwordStrength.style.width = '0%';
-                passwordHint.textContent = 'Digite uma senha forte';
-                passwordHint.style.color = '#9CA3AF';
-                return;
-            }
-            
-            if (forca <= 2) {
-                passwordStrength.classList.add('weak');
-                passwordHint.textContent = 'Senha fraca';
-                passwordHint.style.color = '#EF4444';
-            } else if (forca <= 4) {
-                passwordStrength.classList.add('medium');
-                passwordHint.textContent = 'Senha média';
-                passwordHint.style.color = '#F59E0B';
+            if (pontos <= 2) {
+                return { forca: 1, texto: 'Senha fraca', cor: '#EF4444' };
+            } else if (pontos <= 3) {
+                return { forca: 2, texto: 'Senha média', cor: '#F59E0B' };
             } else {
-                passwordStrength.classList.add('strong');
-                passwordHint.textContent = 'Senha forte!';
-                passwordHint.style.color = '#10B981';
+                return { forca: 3, texto: 'Senha forte!', cor: '#10B981' };
             }
-        });
+        }
+        
+        function atualizarRequisitos(senha) {
+            const req = validarSenha(senha);
+            const requisitos = {
+                reqTamanho: req.tamanho,
+                reqMaiuscula: req.maiuscula,
+                reqMinuscula: req.minuscula,
+                reqNumero: req.numero,
+                reqEspecial: req.especial
+            };
+            
+            Object.keys(requisitos).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const span = el.querySelector('span');
+                    if (requisitos[id]) {
+                        span.textContent = '✅';
+                        span.className = 'text-green-500';
+                        el.className = 'flex items-center gap-2 requisito-item text-green-600';
+                    } else {
+                        span.textContent = '○';
+                        span.className = 'text-gray-300';
+                        el.className = 'flex items-center gap-2 requisito-item text-gray-400';
+                    }
+                }
+            });
+        }
         
         // ============================================
         // MASCARAS NOS INPUTS
@@ -432,6 +536,30 @@
         
         cpfInput.addEventListener('input', function() {
             mascaraCPF(this);
+        });
+        
+        // ============================================
+        // VALIDAÇÃO DE SENHA EM TEMPO REAL
+        // ============================================
+        passwordInput.addEventListener('input', function() {
+            const senha = this.value;
+            const resultado = getForcaSenha(senha);
+            
+            // Atualizar barra de força
+            if (senha.length === 0) {
+                passwordStrength.style.width = '0%';
+                passwordStrength.style.background = '#E5E7EB';
+                passwordHint.textContent = 'Digite uma senha forte';
+                passwordHint.style.color = '#9CA3AF';
+            } else {
+                passwordStrength.style.width = resultado.forca === 1 ? '33%' : resultado.forca === 2 ? '66%' : '100%';
+                passwordStrength.style.background = resultado.cor;
+                passwordHint.textContent = resultado.texto;
+                passwordHint.style.color = resultado.cor;
+            }
+            
+            // Atualizar requisitos
+            atualizarRequisitos(senha);
         });
         
         // ============================================
@@ -447,22 +575,37 @@
             const password = passwordInput.value;
             const confirmPassword = confirmPasswordInput.value;
             
-            // Validações
+            // Validações básicas
             if (!nome || !email || !password || !confirmPassword) {
                 showError('Preencha todos os campos obrigatórios');
                 return;
             }
             
+            // Validação de email
+            if (!email.includes('@') || !email.includes('.')) {
+                showError('Por favor, informe um email válido');
+                return;
+            }
+            
+            // Validação de senha
             if (password.length < 6) {
                 showError('A senha deve ter pelo menos 6 caracteres');
                 return;
             }
             
+            // Verificar se a senha tem pelo menos uma letra e um número
+            if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+                showError('A senha deve conter pelo menos uma letra e um número');
+                return;
+            }
+            
+            // Confirmar senha
             if (password !== confirmPassword) {
                 showError('As senhas não coincidem');
                 return;
             }
             
+            // Termos
             if (!termosCheck.checked) {
                 showError('Você precisa aceitar os termos de serviço');
                 return;
@@ -471,7 +614,6 @@
             setLoading(true);
             
             try {
-                // Criar usuário no Supabase Auth
                 const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
@@ -484,19 +626,40 @@
                     }
                 });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Erro do Supabase:', error);
+                    
+                    if (error.message.includes('User already registered')) {
+                        throw new Error('Este email já está cadastrado. Faça login ou use "Esqueceu a senha".');
+                    } else if (error.message.includes('Password should be at least 6 characters')) {
+                        throw new Error('A senha deve ter pelo menos 6 caracteres');
+                    } else if (error.message.includes('password')) {
+                        throw new Error('A senha não atende aos requisitos de segurança. Use letras, números e caracteres especiais.');
+                    } else {
+                        throw new Error(error.message);
+                    }
+                }
                 
-                // Se o usuário foi criado com sucesso
                 if (data.user) {
                     showSuccess('✅ Conta criada com sucesso! Verifique seu email para confirmar o cadastro.');
                     
-                    // Limpar formulário
                     registerForm.reset();
                     passwordStrength.style.width = '0%';
+                    passwordStrength.style.background = '#E5E7EB';
                     passwordHint.textContent = 'Digite uma senha forte';
                     passwordHint.style.color = '#9CA3AF';
                     
-                    // Aguardar o usuário confirmar o email antes de redirecionar
+                    // Resetar requisitos
+                    ['reqTamanho', 'reqMaiuscula', 'reqMinuscula', 'reqNumero', 'reqEspecial'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            const span = el.querySelector('span');
+                            span.textContent = '○';
+                            span.className = 'text-gray-300';
+                            el.className = 'flex items-center gap-2 requisito-item text-gray-400';
+                        }
+                    });
+                    
                     setTimeout(() => {
                         window.location.href = '/login.html';
                     }, 4000);
@@ -504,15 +667,11 @@
                 
             } catch (error) {
                 console.error('Erro no cadastro:', error);
-                
-                if (error.message.includes('User already registered')) {
-                    showError('Este email já está cadastrado. Faça login ou use "Esqueceu a senha".');
-                } else if (error.message.includes('Password should be at least 6 characters')) {
-                    showError('A senha deve ter pelo menos 6 caracteres');
-                } else {
-                    showError(error.message || 'Erro ao criar conta. Tente novamente.');
-                }
+                showError(error.message || 'Erro ao criar conta. Tente novamente.');
                 setLoading(false);
+            } finally {
+                btnRegister.disabled = false;
+                btnRegister.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Criar Conta';
             }
         });
         
@@ -547,6 +706,7 @@
         async function checkAuth() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
+                await updateUserData();
                 window.location.href = '/index.html';
             }
         }
