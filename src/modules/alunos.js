@@ -65,19 +65,7 @@ export async function loadAlunosContent() {
             <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Agendamentos</p>
-                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1" id="totalAgendamentos">0</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-                        <i class="fas fa-calendar-check text-purple-500 text-sm"></i>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Alunos Ativos</p>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Ativos</p>
                         <p class="text-2xl font-bold text-[#4B4B4D] mt-1" id="alunosAtivos">0</p>
                     </div>
                     <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
@@ -94,6 +82,18 @@ export async function loadAlunosContent() {
                     </div>
                     <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
                         <i class="fab fa-google text-blue-500 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Agendamentos</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1" id="totalAgendamentos">0</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
+                        <i class="fas fa-calendar-check text-purple-500 text-sm"></i>
                     </div>
                 </div>
             </div>
@@ -141,7 +141,7 @@ export async function loadAlunosContent() {
             </div>
         </div>
         
-        <!-- Lista de Alunos com Agendamentos -->
+        <!-- Lista de Alunos -->
         <div id="alunosList" class="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div class="flex items-center justify-center py-16">
                 <div class="text-center">
@@ -181,38 +181,29 @@ window.aplicarFiltrosAlunos = async function() {
         const { data: usuarios, error } = await query;
         if (error) throw error;
         
-        // 🔥 Buscar TODOS os agendamentos com dados completos
+        // 🔥 Buscar contagem de agendamentos por usuário
         const { data: agendamentos, error: agendamentosError } = await supabase
             .from('agendamentos')
-            .select(`
-                *,
-                usuarios (id, nome, telefone, email),
-                horarios (
-                    *,
-                    centros (*)
-                )
-            `)
-            .order('data_agendamento', { ascending: false });
+            .select('usuario_id, status');
         
         if (agendamentosError) {
             console.warn('⚠️ Erro ao buscar agendamentos:', agendamentosError);
         }
         
-        // Agrupar agendamentos por usuário
-        const agendamentosPorUsuario = {};
+        // Contar agendamentos por usuário
+        const contagemAgendamentos = {};
         agendamentos?.forEach(ag => {
-            if (!agendamentosPorUsuario[ag.usuario_id]) {
-                agendamentosPorUsuario[ag.usuario_id] = [];
+            if (!contagemAgendamentos[ag.usuario_id]) {
+                contagemAgendamentos[ag.usuario_id] = 0;
             }
-            agendamentosPorUsuario[ag.usuario_id].push(ag);
+            contagemAgendamentos[ag.usuario_id]++;
         });
         
-        // Processar usuários com seus agendamentos
         const usuariosComDados = usuarios?.map(u => ({
             ...u,
             authProvider: u.email?.includes('@gmail.com') ? 'google' : 'email',
-            agendamentos: agendamentosPorUsuario[u.id] || [],
-            totalAgendamentos: agendamentosPorUsuario[u.id]?.length || 0
+            totalAgendamentos: contagemAgendamentos[u.id] || 0,
+            temAgendamentos: (contagemAgendamentos[u.id] || 0) > 0
         })) || [];
         
         let filtered = usuariosComDados;
@@ -282,145 +273,78 @@ window.aplicarFiltrosAlunos = async function() {
             
             const isActive = aluno.ativo !== false;
             const temAgendamentos = aluno.totalAgendamentos > 0;
-            const agendamentosAluno = aluno.agendamentos || [];
             
             html += `
                 <div class="px-4 py-4 hover:bg-gray-50/50 transition duration-150">
-                    <div class="flex flex-col gap-3">
-                        <!-- Cabeçalho do Aluno -->
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                            <div class="flex items-center gap-3 flex-1 min-w-0">
-                                <div class="relative flex-shrink-0">
-                                    <div class="w-12 h-12 rounded-full bg-[#FEF3E8] flex items-center justify-center text-[#F4742B] font-semibold text-lg">
-                                        ${initial}
-                                    </div>
-                                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-400'} border-2 border-white"></div>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <!-- Avatar e Nome -->
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <div class="relative flex-shrink-0">
+                                <div class="w-12 h-12 rounded-full bg-[#FEF3E8] flex items-center justify-center text-[#F4742B] font-semibold text-lg">
+                                    ${initial}
                                 </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <p class="font-semibold text-gray-800 truncate">${aluno.nome || 'Sem nome'}</p>
-                                        <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
-                                            ${isActive ? 'Ativo' : 'Inativo'}
-                                        </span>
+                                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-400'} border-2 border-white"></div>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <p class="font-semibold text-gray-800 truncate">${aluno.nome || 'Sem nome'}</p>
+                                    <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                                        ${isActive ? 'Ativo' : 'Inativo'}
+                                    </span>
+                                    ${temAgendamentos ? `
                                         <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">
                                             ${aluno.totalAgendamentos} agendamentos
                                         </span>
-                                    </div>
-                                    <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 mt-0.5">
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-envelope text-[10px]"></i>
-                                            ${aluno.email || 'N/E'}
-                                        </span>
-                                        ${aluno.telefone ? `
-                                            <span class="flex items-center gap-1">
-                                                <i class="fas fa-phone text-[10px]"></i>
-                                                ${aluno.telefone}
-                                            </span>
-                                        ` : ''}
-                                        <span class="flex items-center gap-1">
-                                            ${authIcon}
-                                            ${aluno.authProvider === 'google' ? 'Google' : 'Email'}
-                                        </span>
-                                    </div>
+                                    ` : ''}
                                 </div>
-                            </div>
-                            
-                            <!-- Ações -->
-                            <div class="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
-                                ${aluno.telefone ? `
-                                    <button onclick="window.abrirWhatsAppAluno('${aluno.telefone}', '${aluno.nome || 'Aluno'}')" 
-                                            class="p-1.5 text-green-500 hover:bg-green-50 rounded-lg transition">
-                                        <i class="fab fa-whatsapp text-sm"></i>
-                                    </button>
-                                ` : `
-                                    <span class="p-1.5 text-gray-300 cursor-not-allowed">
-                                        <i class="fab fa-whatsapp text-sm"></i>
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 mt-0.5">
+                                    <span class="flex items-center gap-1">
+                                        <i class="fas fa-envelope text-[10px]"></i>
+                                        ${aluno.email || 'N/E'}
                                     </span>
-                                `}
-                                <button onclick="window.toggleStatusAluno('${aluno.id}', ${isActive})" 
-                                        class="p-1.5 ${isActive ? 'text-red-400 hover:text-red-600 hover:bg-red-50' : 'text-green-400 hover:text-green-600 hover:bg-green-50'} rounded-lg transition">
-                                    <i class="fas ${isActive ? 'fa-pause' : 'fa-play'} text-sm"></i>
-                                </button>
+                                    ${aluno.telefone ? `
+                                        <span class="flex items-center gap-1">
+                                            <i class="fas fa-phone text-[10px]"></i>
+                                            ${aluno.telefone}
+                                        </span>
+                                    ` : ''}
+                                    <span class="flex items-center gap-1">
+                                        ${authIcon}
+                                        ${aluno.authProvider === 'google' ? 'Google' : 'Email'}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- 🔥 LISTA DE AGENDAMENTOS DO ALUNO -->
-                        ${temAgendamentos ? `
-                            <div class="ml-15 pl-15 border-l-2 border-purple-200 pl-4 mt-1">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5">
-                                    ${agendamentosAluno.slice(0, 4).map(ag => {
-                                        const statusColors = {
-                                            'confirmado': 'bg-green-50 text-green-700',
-                                            'cancelado': 'bg-red-50 text-red-700',
-                                            'concluido': 'bg-gray-100 text-gray-600'
-                                        };
-                                        const statusLabels = {
-                                            'confirmado': 'Confirmado',
-                                            'cancelado': 'Cancelado',
-                                            'concluido': 'Concluído'
-                                        };
-                                        const statusIcons = {
-                                            'confirmado': '✅',
-                                            'cancelado': '❌',
-                                            'concluido': '📌'
-                                        };
-                                        const centroNome = ag.horarios?.centros?.nome || 'Sem centro';
-                                        const dataObj = new Date(ag.data_agendamento + 'T00:00:00');
-                                        const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-                                        const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-                                        const dataFormatada = `${diasSemana[dataObj.getDay()]}, ${String(dataObj.getDate()).padStart(2, '0')} ${meses[dataObj.getMonth()]}`;
-                                        const horaInicio = ag.horarios?.hora_inicio?.substring(0,5) || '--';
-                                        const horaFim = ag.horarios?.hora_fim?.substring(0,5) || '--';
-                                        
-                                        return `
-                                            <div class="bg-gray-50/80 rounded-lg p-2 hover:bg-gray-100 transition border border-gray-100/50 text-xs">
-                                                <div class="flex items-center justify-between gap-1">
-                                                    <div class="flex-1 min-w-0">
-                                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                                            <span class="font-medium text-gray-700 truncate">${centroNome}</span>
-                                                            <span class="text-[10px] px-1.5 py-0.5 rounded-full ${statusColors[ag.status] || 'bg-gray-100 text-gray-600'}">
-                                                                ${statusIcons[ag.status] || ''} ${statusLabels[ag.status] || ag.status}
-                                                            </span>
-                                                        </div>
-                                                        <div class="flex items-center gap-2 text-gray-400 mt-0.5">
-                                                            <span class="flex items-center gap-0.5">
-                                                                <i class="far fa-calendar text-[9px]"></i>
-                                                                ${dataFormatada}
-                                                            </span>
-                                                            <span class="flex items-center gap-0.5">
-                                                                <i class="far fa-clock text-[9px]"></i>
-                                                                ${horaInicio} - ${horaFim}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    ${ag.status === 'confirmado' ? `
-                                                        <button onclick="window.cancelarAgendamentoAluno('${ag.id}')" 
-                                                                class="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition flex-shrink-0">
-                                                            <i class="fas fa-times text-[10px]"></i>
-                                                        </button>
-                                                    ` : ''}
-                                                </div>
-                                            </div>
-                                        `;
-                                    }).join('')}
-                                    ${agendamentosAluno.length > 4 ? `
-                                        <div class="text-xs text-purple-500 font-medium flex items-center justify-center p-1">
-                                            + ${agendamentosAluno.length - 4} mais agendamentos
-                                        </div>
-                                    ` : ''}
-                                </div>
-                                ${agendamentosAluno.length > 4 ? `
-                                    <button onclick="window.verAgendamentosAluno('${aluno.id}')" 
-                                            class="mt-1 text-xs text-[#F4742B] hover:text-[#E0601A] font-medium transition">
-                                        <i class="fas fa-eye mr-1"></i> Ver todos (${agendamentosAluno.length})
-                                    </button>
-                                ` : ''}
-                            </div>
-                        ` : `
-                            <div class="ml-15 pl-15 border-l-2 border-gray-200 pl-4 mt-1">
-                                <span class="text-xs text-gray-400">Sem agendamentos</span>
-                            </div>
-                        `}
+                        <!-- Ações -->
+                        <div class="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
+                            ${temAgendamentos ? `
+                                <button onclick="window.verAgendamentosAluno('${aluno.id}')" 
+                                        class="px-3 py-1.5 text-xs bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition flex items-center gap-1">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Ver agendamentos
+                                </button>
+                            ` : `
+                                <span class="px-3 py-1.5 text-xs bg-gray-50 text-gray-400 rounded-lg cursor-not-allowed flex items-center gap-1">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Sem agendamentos
+                                </span>
+                            `}
+                            ${aluno.telefone ? `
+                                <button onclick="window.abrirWhatsAppAluno('${aluno.telefone}', '${aluno.nome || 'Aluno'}')" 
+                                        class="p-1.5 text-green-500 hover:bg-green-50 rounded-lg transition">
+                                    <i class="fab fa-whatsapp text-sm"></i>
+                                </button>
+                            ` : `
+                                <span class="p-1.5 text-gray-300 cursor-not-allowed">
+                                    <i class="fab fa-whatsapp text-sm"></i>
+                                </span>
+                            `}
+                            <button onclick="window.toggleStatusAluno('${aluno.id}', ${isActive})" 
+                                    class="p-1.5 ${isActive ? 'text-red-400 hover:text-red-600 hover:bg-red-50' : 'text-green-400 hover:text-green-600 hover:bg-green-50'} rounded-lg transition">
+                                <i class="fas ${isActive ? 'fa-pause' : 'fa-play'} text-sm"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -448,7 +372,7 @@ window.aplicarFiltrosAlunos = async function() {
 };
 
 // ============================================
-// FUNÇÃO: Ver Agendamentos do Aluno (Modal Completo)
+// FUNÇÃO: Ver Agendamentos do Aluno (Modal)
 // ============================================
 window.verAgendamentosAluno = async function(alunoId) {
     try {
@@ -488,7 +412,7 @@ window.verAgendamentosAluno = async function(alunoId) {
 };
 
 // ============================================
-// FUNÇÃO: Criar Modal de Agendamentos
+// FUNÇÃO: Criar Modal de Agendamentos (Apple Design)
 // ============================================
 function criarModalAgendamentos(aluno, agendamentos) {
     const modalExistente = document.getElementById('modalAgendamentosAluno');
@@ -537,11 +461,10 @@ function criarModalAgendamentos(aluno, agendamentos) {
         conteudoAgendamentos = agendamentos.map(ag => {
             const centroNome = ag.horarios?.centros?.nome || 'Centro não identificado';
             const dataObj = new Date(ag.data_agendamento + 'T00:00:00');
-            const diasSemana = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+            const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
             const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
             
             const dataFormatada = `${diasSemana[dataObj.getDay()]}, ${String(dataObj.getDate()).padStart(2, '0')} ${meses[dataObj.getMonth()]}`;
-            
             const horaInicio = ag.horarios?.hora_inicio?.substring(0,5) || '--';
             const horaFim = ag.horarios?.hora_fim?.substring(0,5) || '--';
             
