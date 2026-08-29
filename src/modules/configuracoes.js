@@ -93,6 +93,18 @@ export async function loadConfiguracoesContent() {
         .select('id, nome, horario_funcionamento, vagas_padrao')
         .order('nome', { ascending: true }) : { data: [] };
     
+    // 🔥 FORMATAR TELEFONE PARA EXIBIÇÃO
+    let telefoneExibicao = profile?.telefone || '';
+    if (telefoneExibicao) {
+        const numeros = telefoneExibicao.replace(/\D/g, '');
+        if (numeros.length >= 10 && numeros.length <= 11) {
+            const tempInput = document.createElement('input');
+            tempInput.value = numeros;
+            mascaraTelefone(tempInput);
+            telefoneExibicao = tempInput.value;
+        }
+    }
+    
     let html = `
         <div class="mb-6">
             <h2 class="text-2xl font-bold text-[#4B4B4D] flex items-center gap-2">
@@ -143,7 +155,7 @@ export async function loadConfiguracoesContent() {
                             <i class="fas fa-phone mr-1 text-[#F4742B]"></i> Telefone
                         </label>
                         <input type="tel" id="configTelefone" 
-                               value="${profile?.telefone || ''}"
+                               value="${telefoneExibicao}"
                                placeholder="(11) 99999-9999"
                                maxlength="15"
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
@@ -367,6 +379,41 @@ export async function loadConfiguracoesContent() {
     }
     
     html += `</div>`;
+    
+    // 🔥 APLICAR MÁSCARA DE TELEFONE APÓS RENDERIZAR
+    setTimeout(() => {
+        const telefoneInput = document.getElementById('configTelefone');
+        if (telefoneInput) {
+            // Aplicar máscara no valor carregado
+            if (telefoneInput.value) {
+                mascaraTelefone(telefoneInput);
+            }
+            
+            // Evento de input
+            telefoneInput.addEventListener('input', function() {
+                mascaraTelefone(this);
+                this.classList.remove('border-red-500');
+                this.classList.add('border-gray-300');
+            });
+            
+            // Validação ao perder foco
+            telefoneInput.addEventListener('blur', function() {
+                if (this.value && !validarTelefone(this.value)) {
+                    this.classList.add('border-red-500');
+                    this.classList.remove('border-gray-300');
+                } else {
+                    this.classList.remove('border-red-500');
+                    this.classList.add('border-gray-300');
+                }
+            });
+            
+            // Remover erro ao focar
+            telefoneInput.addEventListener('focus', function() {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-gray-300');
+            });
+        }
+    }, 300);
     
     return html;
 }
@@ -922,8 +969,15 @@ export function setupConfiguracoesEvents() {
     setTimeout(() => {
         const telefoneInput = document.getElementById('configTelefone');
         if (telefoneInput) {
+            // 🔥 Aplica a máscara no valor existente
+            if (telefoneInput.value) {
+                mascaraTelefone(telefoneInput);
+            }
+            
             telefoneInput.addEventListener('input', function() {
                 mascaraTelefone(this);
+                this.classList.remove('border-red-500');
+                this.classList.add('border-gray-300');
             });
             
             telefoneInput.addEventListener('blur', function() {
