@@ -1,6 +1,7 @@
 import { supabase, getCurrentUser } from '../config/supabase.js';
 import { confirmModal, successModal, errorModal, infoModal, warningModal } from './shared.js';
 import { loadPage } from './router.js';
+import { mascaraTelefone, removerMascaraTelefone, validarTelefone } from '../components/mascara.js';
 
 // ============================================
 // FUNÇÃO: Buscar Configurações
@@ -147,15 +148,34 @@ export async function loadConfiguracoesContent() {
                 
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-user mr-1 text-[#F4742B]"></i> Nome
+                        </label>
                         <input type="text" id="configNome" value="${profile?.nome || ''}"
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
                     </div>
+                    
+                    <!-- 🔥 CAMPO DE TELEFONE ADICIONADO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-phone mr-1 text-[#F4742B]"></i> Telefone
+                        </label>
+                        <input type="tel" id="configTelefone" 
+                               value="${profile?.telefone || ''}"
+                               placeholder="(11) 99999-9999"
+                               maxlength="15"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
+                        <p class="text-xs text-gray-400 mt-1">Exemplo: (11) 99999-9999</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-envelope mr-1 text-[#F4742B]"></i> Email
+                        </label>
                         <input type="email" value="${user.email}" disabled
                                class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed">
                     </div>
+                    
                     <button onclick="window.salvarPerfil()" 
                             class="w-full py-2 bg-[#F4742B] text-white rounded-lg hover:bg-[#E0601A] transition flex items-center justify-center gap-2">
                         <i class="fas fa-save"></i> Salvar Perfil
@@ -454,9 +474,11 @@ window.salvarConfigUnidade = async function(centroId) {
 // FUNÇÕES DE CONFIGURAÇÃO (TODOS)
 // ============================================
 
-// Salvar Perfil - TODOS (VERSÃO CORRIGIDA)
+// Salvar Perfil - TODOS (COM TELEFONE)
 window.salvarPerfil = async function() {
     const nome = document.getElementById('configNome')?.value?.trim();
+    const telefone = document.getElementById('configTelefone')?.value?.trim();
+    
     if (!nome) {
         warningModal({
             title: 'Campo Obrigatório',
@@ -467,14 +489,36 @@ window.salvarPerfil = async function() {
         return;
     }
     
+    // Validar telefone se foi preenchido
+    if (telefone && !validarTelefone(telefone)) {
+        warningModal({
+            title: 'Telefone Inválido',
+            message: 'Por favor, informe um número de telefone válido. Exemplo: (11) 99999-9999',
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+        document.getElementById('configTelefone')?.focus();
+        return;
+    }
+    
     try {
         const user = await getCurrentUser();
         if (!user) return;
         
-        // 🔥 UPDATE DIRETO (agora funciona sem RLS)
+        // 🔥 ATUALIZAR NOME E TELEFONE
+        const dadosAtualizar = { nome };
+        
+        // Se o telefone foi preenchido, atualizar
+        if (telefone) {
+            dadosAtualizar.telefone = telefone;
+        } else {
+            // Se o campo está vazio, remover o telefone (ou manter como null)
+            dadosAtualizar.telefone = null;
+        }
+        
         const { error } = await supabase
             .from('usuarios')
-            .update({ nome })
+            .update(dadosAtualizar)
             .eq('id', user.id);
         
         if (error) throw error;
@@ -961,5 +1005,13 @@ window.sairSistema = function() {
 // EVENTOS
 // ============================================
 export function setupConfiguracoesEvents() {
-    // Nenhum evento específico necessário por enquanto
+    // Adicionar máscara de telefone quando a página carregar
+    setTimeout(() => {
+        const telefoneInput = document.getElementById('configTelefone');
+        if (telefoneInput) {
+            telefoneInput.addEventListener('input', function() {
+                mascaraTelefone(this);
+            });
+        }
+    }, 500);
 }
