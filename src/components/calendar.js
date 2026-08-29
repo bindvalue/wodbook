@@ -10,7 +10,8 @@ let estado = {
     mesAtual: 0,
     anoAtual: 0,
     dataSelecionada: null,
-    horarioSelecionado: null
+    horarioSelecionado: null,
+    filtroDescricao: ''
 };
 
 // Cores da marca
@@ -44,13 +45,11 @@ const CORES = {
 // FUNÇÃO: Renderizar Calendário
 // ============================================
 export function renderCalendar(centroId, centroNome) {
-    // Se já existe um modal, remove
     if (modalAtivo) {
         modalAtivo.remove();
         modalAtivo = null;
     }
 
-    // Inicializar estado
     const hoje = new Date();
     estado.centroId = centroId;
     estado.centroNome = centroNome;
@@ -58,9 +57,8 @@ export function renderCalendar(centroId, centroNome) {
     estado.anoAtual = hoje.getFullYear();
     estado.dataSelecionada = null;
     estado.horarioSelecionado = null;
-    estado.filtroDescricao = ''; // ← ADICIONADO
+    estado.filtroDescricao = '';
 
-    // Criar modal
     const modal = document.createElement('div');
     modal.id = 'modalAgendamento';
     modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in';
@@ -112,11 +110,9 @@ export function renderCalendar(centroId, centroNome) {
             </div>
             
             <!-- Grid de Dias -->
-            <div id="diasGrid" class="grid grid-cols-7 gap-1 mb-4">
-                <!-- Será preenchido pelo JavaScript -->
-            </div>
+            <div id="diasGrid" class="grid grid-cols-7 gap-1 mb-4"></div>
             
-            <!-- 🔥 FILTRO POR TIPO DE AULA - ADICIONADO -->
+            <!-- Filtro por tipo de aula -->
             <div class="mb-4 p-3 bg-gray-50 rounded-lg">
                 <div class="flex flex-wrap items-center gap-2">
                     <label class="text-xs font-medium text-gray-700 flex items-center gap-1">
@@ -178,13 +174,9 @@ export function renderCalendar(centroId, centroNome) {
     document.body.appendChild(modal);
     modalAtivo = modal;
     
-    // Renderizar dias inicialmente
     renderizarDias();
-    
-    // Mostrar modal
     modal.style.display = 'flex';
     
-    // Fechar ao clicar fora
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             window.fecharModalAgendamento();
@@ -210,12 +202,10 @@ function renderizarDias() {
     
     let html = '';
     
-    // Dias vazios no início
     for (let i = 0; i < diaSemanaInicio; i++) {
         html += `<div class="h-9"></div>`;
     }
     
-    // Dias do mês
     for (let dia = 1; dia <= diasNoMes; dia++) {
         const data = new Date(estado.anoAtual, estado.mesAtual, dia);
         const dataStr = data.toISOString().split('T')[0];
@@ -243,7 +233,7 @@ function renderizarDias() {
             <button 
                 onclick="window.selecionarData('${dataStr}')"
                 class="h-9 text-sm rounded-lg transition-all duration-200 ${classes}"
-                style="${estilo} ${isPast ? '' : 'hover:bg-opacity-20'}"
+                style="${estilo}"
                 ${isPast ? 'disabled' : ''}
             >
                 ${dia}
@@ -253,7 +243,6 @@ function renderizarDias() {
     
     grid.innerHTML = html;
     
-    // Atualizar título do mês
     const titulo = document.getElementById('tituloMes');
     if (titulo) {
         titulo.textContent = `${getNomeMes(estado.mesAtual)} ${estado.anoAtual}`;
@@ -266,7 +255,6 @@ function renderizarDias() {
 window.selecionarData = function(dataStr) {
     console.log('📅 Data selecionada:', dataStr);
     
-    // Se já estiver selecionada, desmarcar
     if (estado.dataSelecionada === dataStr) {
         estado.dataSelecionada = null;
         estado.horarioSelecionado = null;
@@ -340,9 +328,6 @@ window.mudarMes = function(delta) {
 // ============================================
 // FUNÇÃO: Carregar Horários
 // ============================================
-// ============================================
-// FUNÇÃO: Carregar Horários (COM VALIDAÇÃO DE HORÁRIO ATUAL)
-// ============================================
 async function carregarHorarios() {
     const container = document.getElementById('horariosList');
     if (!container) return;
@@ -372,7 +357,6 @@ async function carregarHorarios() {
         const dataObj = new Date(ano, mes, dia);
         const diaSemana = dataObj.getDay();
         
-        // 🔥 VERIFICAR SE A DATA É HOJE
         const hoje = new Date();
         const hojeStr = hoje.toISOString().split('T')[0];
         const isHoje = estado.dataSelecionada === hojeStr;
@@ -402,7 +386,6 @@ async function carregarHorarios() {
             return;
         }
         
-        // 🔥 VERIFICAR VAGAS E HORÁRIOS PASSADOS
         const horariosComVagas = await Promise.all(data.map(async (horario) => {
             const { count, error: countError } = await supabase
                 .from('agendamentos')
@@ -415,7 +398,6 @@ async function carregarHorarios() {
             
             const vagasDisponiveis = horario.vagas - (count || 0);
             
-            // 🔥 VERIFICAR SE O HORÁRIO JÁ PASSOU (SE FOR HOJE)
             let horarioPassado = false;
             if (isHoje) {
                 const [horaInicio, minutoInicio] = horario.hora_inicio.split(':').map(Number);
@@ -438,7 +420,6 @@ async function carregarHorarios() {
             return 0;
         });
         
-        // 🔥 RENDERIZAR HORÁRIOS COM INDICAÇÃO DE PASSADO
         container.innerHTML = horariosComVagas.map(horario => {
             const isPassado = horario.horarioPassado;
             const descricao = horario.descricao || '';
@@ -478,7 +459,6 @@ async function carregarHorarios() {
             `;
         }).join('');
         
-        // Aplicar filtro se houver um selecionado
         if (estado.filtroDescricao) {
             window.aplicarFiltroAula();
         }
@@ -499,7 +479,6 @@ async function carregarHorarios() {
 window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
     console.log('🕐 Horário selecionado:', horarioId, horaInicio, horaFim);
     
-    // Se o mesmo horário for clicado novamente, desmarcar
     if (estado.horarioSelecionado && estado.horarioSelecionado.id === horarioId) {
         estado.horarioSelecionado = null;
         
@@ -517,7 +496,6 @@ window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
         return;
     }
     
-    // Selecionar novo horário
     estado.horarioSelecionado = { id: horarioId, inicio: horaInicio, fim: horaFim };
     
     const btn = document.getElementById('btnConfirmarAgendamento');
@@ -564,7 +542,7 @@ window.fecharModalTelefone = function() {
 };
 
 // ============================================
-// FUNÇÃO: Confirmar Agendamento (GLOBAL)
+// FUNÇÃO: Confirmar Agendamento (GLOBAL - CORRIGIDA)
 // ============================================
 window.confirmarAgendamento = async function() {
     console.log('🔍 Confirmar agendamento chamado!');
@@ -587,38 +565,32 @@ window.confirmarAgendamento = async function() {
         }
         
         console.log('👤 Usuário:', user.email);
-        console.log('🆔 User ID:', user.id);
         
-        // 🔥 CORREÇÃO: Buscar perfil com mais campos para debug
+        // Buscar perfil do usuário
         const { data: profile, error: profileError } = await supabase
             .from('usuarios')
-            .select('*')
+            .select('id, nome, telefone')
             .eq('id', user.id)
-            .maybeSingle(); // Usar maybeSingle para não dar erro se não encontrar
+            .maybeSingle();
         
-        console.log('📞 Perfil completo:', profile);
         console.log('📞 Telefone do perfil:', profile?.telefone);
-        console.log('📞 Tipo do telefone:', typeof profile?.telefone);
-        console.log('📞 Telefone é vazio?', profile?.telefone === '');
-        console.log('📞 Telefone é null?', profile?.telefone === null);
-        console.log('📞 Telefone é undefined?', profile?.telefone === undefined);
         
-        // 🔥 CORREÇÃO: Verificar se o telefone existe E não está vazio
-        const telefoneExiste = profile?.telefone && profile.telefone.trim() !== '';
+        // Verificar se o telefone existe E não está vazio
+        const telefoneExiste = profile?.telefone && profile.telefone.trim() !== '' && profile.telefone !== 'null';
         
         console.log('📞 Telefone existe?', telefoneExiste);
         
         // Se NÃO tiver telefone, pedir para cadastrar
         if (!telefoneExiste) {
             console.log('📱 Usuário SEM telefone, mostrando modal...');
-            await mostrarModalTelefone(profile, user, btn, mensagem);
+            await mostrarModalTelefone(profile, user);
             return;
         }
         
         console.log('✅ Usuário já tem telefone cadastrado:', profile.telefone);
         
         // Se já tem telefone, continuar com o agendamento
-        await window.confirmarAgendamentoComTelefone(user.id, btn, mensagem);
+        await processarAgendamento(user.id, btn, mensagem);
         
     } catch (error) {
         console.error('❌ Erro ao verificar telefone:', error);
@@ -627,13 +599,11 @@ window.confirmarAgendamento = async function() {
 };
 
 // ============================================
-// FUNÇÃO: Mostrar Modal de Telefone (Separada)
+// FUNÇÃO: Mostrar Modal de Telefone (Separada - CORRIGIDA)
 // ============================================
-async function mostrarModalTelefone(profile, user, btn, mensagem) {
-    // Importar supabase
+async function mostrarModalTelefone(profile, user) {
     const { supabase } = await import('../config/supabase.js');
     
-    // Mostrar modal para cadastrar telefone
     const telefoneModal = document.createElement('div');
     telefoneModal.id = 'modalTelefone';
     telefoneModal.className = 'modal-overlay active';
@@ -641,9 +611,10 @@ async function mostrarModalTelefone(profile, user, btn, mensagem) {
     telefoneModal.style.alignItems = 'center';
     telefoneModal.style.justifyContent = 'center';
     telefoneModal.style.padding = '20px';
+    telefoneModal.style.zIndex = '10001';
     
     telefoneModal.innerHTML = `
-        <div class="modal-content" style="max-width: 450px; width: 100%;">
+        <div class="modal-content" style="max-width: 450px; width: 100%; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-[#FEF3E8] rounded-full flex items-center justify-center mx-auto mb-3">
                     <i class="fas fa-phone text-[#F4742B] text-2xl"></i>
@@ -659,8 +630,7 @@ async function mostrarModalTelefone(profile, user, btn, mensagem) {
                     </label>
                     <input type="text" id="inputNome" 
                            value="${profile?.nome || ''}"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition"
-                           placeholder="Seu nome completo">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -690,29 +660,11 @@ async function mostrarModalTelefone(profile, user, btn, mensagem) {
     
     document.body.appendChild(telefoneModal);
     
-    // 🔥 ADICIONAR MÁSCARA DE TELEFONE
+    // Adicionar máscara de telefone
     const inputTelefone = document.getElementById('inputTelefone');
     if (inputTelefone) {
         inputTelefone.addEventListener('input', function() {
             mascaraTelefone(this);
-            
-            // Remover classe de erro enquanto digita
-            this.classList.remove('border-red-500');
-        });
-        
-        // Validação ao perder o foco
-        inputTelefone.addEventListener('blur', function() {
-            if (this.value && !validarTelefone(this.value)) {
-                this.classList.add('border-red-500');
-                this.classList.remove('border-gray-300');
-            } else {
-                this.classList.remove('border-red-500');
-                this.classList.add('border-gray-300');
-            }
-        });
-        
-        inputTelefone.addEventListener('focus', function() {
-            this.classList.remove('border-red-500');
         });
     }
     
@@ -723,15 +675,6 @@ async function mostrarModalTelefone(profile, user, btn, mensagem) {
         }
     });
     
-    // Fechar com ESC
-    const handleEsc = function(e) {
-        if (e.key === 'Escape') {
-            window.fecharModalTelefone();
-            document.removeEventListener('keydown', handleEsc);
-        }
-    };
-    document.addEventListener('keydown', handleEsc);
-    
     // Submeter formulário
     document.getElementById('formTelefone').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -739,45 +682,39 @@ async function mostrarModalTelefone(profile, user, btn, mensagem) {
         const telefone = document.getElementById('inputTelefone').value.trim();
         const nome = document.getElementById('inputNome').value.trim();
         
-        // Validar telefone com máscara
-        if (!telefone) {
-            alert('Por favor, informe seu número de telefone.');
-            document.getElementById('inputTelefone').focus();
-            return;
-        }
-        
-        if (!validarTelefone(telefone)) {
+        if (!telefone || !validarTelefone(telefone)) {
             alert('Por favor, informe um número de telefone válido (DDD + 8 ou 9 dígitos).');
             document.getElementById('inputTelefone').focus();
             return;
         }
-        
-        // Remover máscara para salvar no banco
-        const telefoneLimpo = removerMascaraTelefone(telefone);
         
         try {
             const btnConfirmar = document.getElementById('btnConfirmarTelefone');
             btnConfirmar.disabled = true;
             btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
             
-            // Salvar telefone no perfil
-            const { error: updateError } = await supabase
+            // 🔥 USAR UPSERT EM VEZ DE UPDATE (mais seguro)
+            const { error } = await supabase
                 .from('usuarios')
-                .update({ 
+                .upsert({
+                    id: user.id,
+                    nome: nome || profile?.nome || user.email?.split('@')[0],
                     telefone: telefone,
-                    nome: nome || profile?.nome || user.email?.split('@')[0]
-                })
-                .eq('id', user.id);
+                    email: user.email,
+                    role: 'user'
+                }, { onConflict: 'id' });
             
-            if (updateError) throw updateError;
+            if (error) throw error;
             
             console.log('✅ Telefone salvo com sucesso!');
             
-            // Fechar modal e continuar com o agendamento
+            // Fechar modal
             window.fecharModalTelefone();
             
-            // Continuar com a confirmação do agendamento
-            await window.confirmarAgendamentoComTelefone(user.id, btn, mensagem);
+            // 🔥 Recarregar a página para atualizar os dados
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
             
         } catch (error) {
             console.error('Erro ao salvar telefone:', error);
@@ -790,12 +727,11 @@ async function mostrarModalTelefone(profile, user, btn, mensagem) {
     });
 }
 
-
 // ============================================
-// FUNÇÃO: Confirmar Agendamento com Telefone (GLOBAL)
+// FUNÇÃO: Processar Agendamento (Separada)
 // ============================================
-window.confirmarAgendamentoComTelefone = async function(userId, btn, mensagem) {
-    console.log('🔄 Confirmando agendamento...');
+async function processarAgendamento(userId, btn, mensagem) {
+    console.log('🔄 Processando agendamento...');
     
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Confirmando...';
@@ -825,6 +761,20 @@ window.confirmarAgendamentoComTelefone = async function(userId, btn, mensagem) {
             throw new Error('Você já tem um agendamento para este horário');
         }
         
+        // 🔥 VERIFICAR VAGAS ANTES DE AGENDAR
+        const { data: horario, error: horarioError } = await supabase
+            .from('horarios')
+            .select('vagas')
+            .eq('id', estado.horarioSelecionado.id)
+            .single();
+        
+        if (horarioError) throw horarioError;
+        
+        if (horario.vagas <= 0) {
+            throw new Error('Não há vagas disponíveis para este horário');
+        }
+        
+        // Criar agendamento
         const { error } = await supabase
             .from('agendamentos')
             .insert({
@@ -835,6 +785,12 @@ window.confirmarAgendamentoComTelefone = async function(userId, btn, mensagem) {
             });
         
         if (error) throw error;
+        
+        // 🔥 ATUALIZAR VAGAS
+        await supabase
+            .from('horarios')
+            .update({ vagas: horario.vagas - 1 })
+            .eq('id', estado.horarioSelecionado.id);
         
         console.log('✅ Agendamento confirmado!');
         
@@ -869,7 +825,7 @@ window.confirmarAgendamentoComTelefone = async function(userId, btn, mensagem) {
         btn.style.opacity = '1';
         btn.style.background = CORES.primary;
     }
-};
+}
 
 // ============================================
 // FUNÇÃO AUXILIAR: Nome do Mês
@@ -906,7 +862,6 @@ window.aplicarFiltroAula = function() {
         }
     });
     
-    // Atualizar contagem
     const contagem = document.getElementById('contagemHorarios');
     if (contagem) {
         contagem.textContent = filtro ? `(${visiveis} filtrados)` : '';
