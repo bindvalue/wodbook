@@ -824,7 +824,13 @@
     import { initNotificacoes } from './src/modules/notificacoes.js';
     import { initFooter } from './src/components/footer.js';
     import { setupLogout, updateUserAvatar, updateUserData } from './src/modules/shared.js'; // ← ADICIONADO
-    
+    import { setupConfiguracoesEvents } from './src/modules/configuracoes.js';
+
+// Dentro do init()
+setupConfiguracoesEvents();import { setupConfiguracoesEvents } from './src/modules/configuracoes.js';
+
+// Dentro do init()
+setupConfiguracoesEvents();
     // ============================================
     // ELEMENTOS
     // ============================================
