@@ -31,6 +31,9 @@ async function verificarAdmin() {
 // ============================================
 // FUNÇÃO: Carregar Conteúdo de Centros
 // ============================================
+// ============================================
+// FUNÇÃO: Carregar Conteúdo de Centros
+// ============================================
 export async function loadCentrosContent() {
     const user = await getCurrentUser();
     if (!user) {
@@ -69,25 +72,41 @@ export async function loadCentrosContent() {
         `;
     }
     
-    // 🔥 CORREÇÃO: Buscar horários ativos para estatísticas corretas
+    // 🔥 CORREÇÃO: Buscar apenas horários ATIVOS de centros ATIVOS
     const { data: horarios } = await supabase
         .from('horarios')
-        .select('*')
-        .eq('ativo', true);
+        .select('*, centros!inner(ativo)')
+        .eq('ativo', true)
+        .eq('centros.ativo', true);
     
-    // 🔥 CORREÇÃO: Contar apenas horários ativos para vagas
+    // Calcular estatísticas corretas
     let totalVagas = 0;
-    let totalHorariosAtivos = 0;
+    const totalHorariosAtivos = horarios?.length || 0;
     horarios?.forEach(h => {
-        if (h.ativo !== false) {
-            totalVagas += h.vagas || 0;
-            totalHorariosAtivos++;
-        }
+        totalVagas += h.vagas || 0;
     });
     
     // Centros ativos
     const centrosAtivos = centros?.filter(c => c.ativo !== false) || [];
     const totalCentrosAtivos = centrosAtivos.length;
+    
+    // 🔥 Buscar horários por centro para exibir no card
+    const { data: horariosPorCentro } = await supabase
+        .from('horarios')
+        .select('centro_id, vagas')
+        .eq('ativo', true);
+    
+    // Agrupar horários por centro
+    const horariosPorCentroMap = {};
+    const vagasPorCentroMap = {};
+    horariosPorCentro?.forEach(h => {
+        if (!horariosPorCentroMap[h.centro_id]) {
+            horariosPorCentroMap[h.centro_id] = 0;
+            vagasPorCentroMap[h.centro_id] = 0;
+        }
+        horariosPorCentroMap[h.centro_id]++;
+        vagasPorCentroMap[h.centro_id] += h.vagas || 0;
+    });
     
     return `
         <!-- Modal de Cadastro/Edição -->
@@ -173,7 +192,7 @@ export async function loadCentrosContent() {
             </div>
         </div>
 
-        <!-- Estatísticas - Apple Style -->
+        <!-- Estatísticas - Apple Style (CORRIGIDAS) -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
             <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
@@ -224,7 +243,7 @@ export async function loadCentrosContent() {
             </div>
         </div>
         
-        <!-- Barra de busca e ações - Apple Style -->
+        <!-- Barra de busca e ações -->
         <div class="bg-white rounded-2xl shadow-sm p-4 mb-6">
             <div class="flex flex-col md:flex-row gap-3">
                 <div class="flex-1 relative">
@@ -253,17 +272,17 @@ export async function loadCentrosContent() {
             </div>
         </div>
         
-        <!-- Lista de Centros - Apple Style -->
+        <!-- Lista de Centros -->
         <div id="centrosListAdmin" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${renderCentrosCards(centros)}
+            ${renderCentrosCards(centros, horariosPorCentroMap, vagasPorCentroMap)}
         </div>
     `;
 }
 
 // ============================================
-// RENDER: Cards de Centros (Apple Design)
+// RENDER: Cards de Centros (Apple Design com estatísticas por centro)
 // ============================================
-function renderCentrosCards(centros) {
+function renderCentrosCards(centros, horariosMap, vagasMap) {
     if (!centros || centros.length === 0) {
         return `
             <div class="col-span-full flex flex-col items-center justify-center py-16 px-4">
@@ -279,6 +298,10 @@ function renderCentrosCards(centros) {
     return centros.map(centro => {
         const isActive = centro.ativo !== false;
         const imagemUrl = centro.imagem || `https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=200&font-size=0.35`;
+        
+        // 🔥 Estatísticas do centro (apenas horários ativos)
+        const totalHorariosCentro = horariosMap?.[centro.id] || 0;
+        const totalVagasCentro = vagasMap?.[centro.id] || 0;
         
         return `
             <div class="bg-white rounded-2xl shadow-sm overflow-hidden card-hover border border-gray-100/50 transition-all duration-300 hover:shadow-md group" data-centro-id="${centro.id}">
@@ -318,15 +341,24 @@ function renderCentrosCards(centros) {
                         </div>
                     ` : ''}
                     
-                    <div class="flex items-center gap-4 text-[10px] text-gray-400 mb-3">
+                    <!-- 🔥 Estatísticas do centro -->
+                    <div class="flex items-center gap-3 text-[10px] text-gray-400 mb-3">
                         <span class="flex items-center gap-1">
                             <i class="far fa-clock text-[#F4742B]"></i>
                             ${centro.horario_funcionamento || '06:00 - 22:00'}
                         </span>
-                        <span class="flex items-center gap-1">
-                            <i class="fas fa-users text-[#F4742B]"></i>
-                            ${centro.vagas_padrao || 10}
-                        </span>
+                        ${totalHorariosCentro > 0 ? `
+                            <span class="flex items-center gap-1">
+                                <i class="fas fa-clock text-[#F4742B]"></i>
+                                ${totalHorariosCentro}h
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i class="fas fa-users text-[#F4742B]"></i>
+                                ${totalVagasCentro}
+                            </span>
+                        ` : `
+                            <span class="text-gray-300">Sem horários</span>
+                        `}
                     </div>
                     
                     <div class="flex gap-1.5">

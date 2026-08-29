@@ -5,7 +5,8 @@ import { loadPage } from './router.js';
 // ============================================
 // CONSTANTES
 // ============================================
-const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const diasSemanaAbreviados = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 // ============================================
 // FUNÇÃO: Carregar Conteúdo de Horários
@@ -20,9 +21,16 @@ export async function loadHorariosContent(params) {
     const { centroId, centroNome } = params || {};
     if (!centroId) {
         return `
-            <div class="text-center text-red-500 py-12">
-                <i class="fas fa-exclamation-circle text-4xl mb-3 block"></i>
-                Centro não encontrado.
+            <div class="flex flex-col items-center justify-center py-16 px-4">
+                <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                    <i class="fas fa-exclamation-circle text-3xl text-red-400"></i>
+                </div>
+                <p class="text-lg font-medium text-gray-600">Centro não encontrado</p>
+                <p class="text-sm text-gray-400 mt-1">Selecione um centro para gerenciar os horários</p>
+                <button onclick="window.voltarParaCentros()" 
+                        class="mt-4 px-6 py-2 bg-[#F4742B] text-white text-sm rounded-xl hover:bg-[#E0601A] transition">
+                    Voltar para Centros
+                </button>
             </div>
         `;
     }
@@ -38,9 +46,16 @@ export async function loadHorariosContent(params) {
     if (error) {
         console.error('Erro ao carregar horários:', error);
         return `
-            <div class="text-center text-red-500 py-12">
-                <i class="fas fa-exclamation-circle text-4xl mb-3 block"></i>
-                Erro ao carregar horários.
+            <div class="flex flex-col items-center justify-center py-16 px-4">
+                <div class="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                    <i class="fas fa-exclamation-circle text-3xl text-red-400"></i>
+                </div>
+                <p class="text-lg font-medium text-gray-600">Erro ao carregar</p>
+                <p class="text-sm text-gray-400 mt-1">Tente novamente mais tarde</p>
+                <button onclick="window.recarregarHorarios()" 
+                        class="mt-4 px-6 py-2 bg-[#F4742B] text-white text-sm rounded-xl hover:bg-[#E0601A] transition">
+                    Tentar novamente
+                </button>
             </div>
         `;
     }
@@ -51,12 +66,16 @@ export async function loadHorariosContent(params) {
         horariosPorDia[index] = horarios?.filter(h => h.dia_semana === index) || [];
     });
     
+    // Estatísticas
+    const totalHorarios = horarios?.length || 0;
+    const totalAtivos = horarios?.filter(h => h.ativo !== false).length || 0;
+    
     return `
         <!-- Modal de Horário -->
         <div id="modalHorario" class="modal-overlay" onclick="window.fecharModalHorario(event)">
             <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold text-[#4B4B4D]">
+                    <h3 class="text-xl font-bold text-[#4B4B4D]">
                         <i class="fas fa-clock text-[#F4742B]"></i>
                         <span id="modalHorarioTitle">Novo Horário</span>
                     </h3>
@@ -74,7 +93,7 @@ export async function loadHorariosContent(params) {
                             <i class="fas fa-calendar-day text-[#F4742B] mr-1"></i> Dia da Semana *
                         </label>
                         <select id="dia_semana" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white appearance-none">
                             ${diasSemana.map((dia, index) => `
                                 <option value="${index}">${dia}</option>
                             `).join('')}
@@ -84,17 +103,17 @@ export async function loadHorariosContent(params) {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                <i class="fas fa-clock text-[#F4742B] mr-1"></i> Hora Início *
+                                <i class="fas fa-clock text-[#F4742B] mr-1"></i> Início *
                             </label>
                             <input type="time" id="hora_inicio" required
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">
-                                <i class="fas fa-clock text-[#F4742B] mr-1"></i> Hora Fim *
+                                <i class="fas fa-clock text-[#F4742B] mr-1"></i> Fim *
                             </label>
                             <input type="time" id="hora_fim" required
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
                         </div>
                     </div>
                     
@@ -103,16 +122,15 @@ export async function loadHorariosContent(params) {
                             <i class="fas fa-users text-[#F4742B] mr-1"></i> Vagas
                         </label>
                         <input type="number" id="vagas" value="20" min="1" max="50"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
                     </div>
                     
-                    <!-- ✅ CAMPO DESCRIÇÃO - EDITÁVEL -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-info-circle text-[#F4742B] mr-1"></i> Descrição (opcional)
+                            <i class="fas fa-info-circle text-[#F4742B] mr-1"></i> Descrição
                         </label>
                         <input type="text" id="descricao" 
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white"
                                placeholder="Ex: Team WOD, Open Box, Aula da manhã...">
                         <p class="text-xs text-gray-400 mt-1">Descreva o tipo de aula (opcional)</p>
                     </div>
@@ -125,11 +143,11 @@ export async function loadHorariosContent(params) {
                     
                     <div class="flex gap-3 pt-4 border-t border-gray-200">
                         <button type="button" onclick="window.fecharModalHorario()"
-                                class="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg font-semibold hover:bg-gray-50 transition">
+                                class="flex-1 px-4 py-2 border-2 border-gray-200 rounded-xl font-semibold hover:bg-gray-50 transition">
                             Cancelar
                         </button>
                         <button type="submit"
-                                class="flex-1 px-4 py-2 bg-[#F4742B] text-white rounded-lg font-semibold hover:bg-[#E0601A] transition hover:shadow-lg">
+                                class="flex-1 px-4 py-2 bg-[#F4742B] text-white rounded-xl font-semibold hover:bg-[#E0601A] transition hover:shadow-lg">
                             <i class="fas fa-save mr-2"></i>
                             <span id="btnSubmitHorarioText">Salvar</span>
                         </button>
@@ -139,85 +157,147 @@ export async function loadHorariosContent(params) {
         </div>
 
         <!-- Cabeçalho -->
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
-                <h2 class="text-2xl font-bold text-[#4B4B4D]">
-                    <i class="fas fa-clock text-[#F4742B]"></i>
-                    Horários - ${centroNome}
-                </h2>
-                <p class="text-gray-500 text-sm">Configure os horários de atendimento para cada dia da semana</p>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.voltarParaCentros()" 
+                            class="text-gray-400 hover:text-[#F4742B] transition">
+                        <i class="fas fa-arrow-left text-lg"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-[#4B4B4D]">
+                        <i class="fas fa-clock text-[#F4742B]"></i>
+                        ${centroNome}
+                    </h2>
+                </div>
+                <p class="text-gray-500 text-sm mt-0.5">Configure os horários de atendimento da unidade</p>
             </div>
-            <div class="flex gap-2">
-                <button onclick="window.voltarParaCentros()" 
-                        class="px-4 py-2 border-2 border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition">
-                    <i class="fas fa-arrow-left mr-2"></i> Voltar
-                </button>
-                <button onclick="window.adicionarHorario('${centroId}')" 
-                        class="px-4 py-2 bg-[#F4742B] text-white rounded-lg hover:bg-[#E0601A] transition flex items-center gap-2">
-                    <i class="fas fa-plus"></i> Adicionar Horário
-                </button>
+            <button onclick="window.adicionarHorario('${centroId}')" 
+                    class="px-4 py-2 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center gap-2">
+                <i class="fas fa-plus text-xs"></i>
+                Adicionar Horário
+            </button>
+        </div>
+        
+        <!-- Estatísticas -->
+        <div class="grid grid-cols-3 gap-3 md:gap-4 mb-6">
+            <div class="bg-white rounded-2xl p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1">${totalHorarios}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                        <i class="fas fa-clock text-[#F4742B] text-sm"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Ativos</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1">${totalAtivos}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-2xl p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Dias</p>
+                        <p class="text-2xl font-bold text-[#4B4B4D] mt-1">${diasSemana.length}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
+                        <i class="fas fa-calendar-day text-purple-500 text-sm"></i>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <!-- Grid de Dias -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            ${diasSemana.map((dia, index) => `
-                <div class="bg-white rounded-2xl shadow-sm overflow-hidden card-hover">
-                    <div class="p-4 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">${dia}</h3>
-                        <span class="text-sm text-gray-500">${horariosPorDia[index]?.length || 0} horários</span>
-                    </div>
-                    <div class="p-4 space-y-2 max-h-80 overflow-y-auto">
-                        ${horariosPorDia[index]?.length === 0 ? `
-                            <div class="text-center text-gray-400 text-sm py-4">
-                                <i class="fas fa-clock mb-2 block"></i>
-                                Nenhum horário cadastrado
+        <!-- Grid de Dias - Apple Style -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            ${diasSemana.map((dia, index) => {
+                const horariosDia = horariosPorDia[index] || [];
+                const temHorarios = horariosDia.length > 0;
+                const ativosDia = horariosDia.filter(h => h.ativo !== false).length;
+                
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden card-hover border border-gray-100/50 transition-all duration-300 hover:shadow-md">
+                        <div class="px-4 py-3 bg-gray-50/80 border-b border-gray-100 flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-[#4B4B4D] text-sm">${dia}</h3>
+                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full ${temHorarios ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-400'}">
+                                    ${temHorarios ? `${ativosDia}/${horariosDia.length}` : '0'}
+                                </span>
                             </div>
-                        ` : horariosPorDia[index].map(horario => `
-                            <div class="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition group border border-gray-100">
-                                <div class="flex flex-col">
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex-1">
-                                            <div class="font-medium text-gray-800">
-                                                ${horario.hora_inicio.substring(0, 5)} - ${horario.hora_fim.substring(0, 5)}
-                                            </div>
-                                            <div class="text-sm text-gray-500 flex flex-wrap items-center gap-2 mt-0.5">
-                                                <span>
-                                                    <i class="fas fa-users mr-1"></i> ${horario.vagas} vagas
-                                                </span>
-                                                ${!horario.ativo ? '<span class="text-red-500 text-xs font-medium">(Inativo)</span>' : ''}
-                                            </div>
-                                            ${horario.descricao ? `
-                                                <div class="text-xs text-[#F4742B] mt-1 flex items-center gap-1 bg-[#FEF3E8] px-2 py-0.5 rounded-full inline-flex">
-                                                    <i class="fas fa-info-circle"></i> ${horario.descricao}
+                            ${temHorarios ? `
+                                <span class="text-[10px] text-gray-400">${ativosDia} ativos</span>
+                            ` : ''}
+                        </div>
+                        <div class="p-3 space-y-2 max-h-[300px] overflow-y-auto">
+                            ${!temHorarios ? `
+                                <div class="flex flex-col items-center justify-center py-6 text-center">
+                                    <i class="fas fa-clock text-gray-200 text-2xl mb-2"></i>
+                                    <p class="text-xs text-gray-400">Nenhum horário</p>
+                                    <button onclick="window.adicionarHorarioDia('${centroId}', ${index})" 
+                                            class="mt-2 text-xs text-[#F4742B] hover:text-[#E0601A] transition font-medium">
+                                        + Adicionar
+                                    </button>
+                                </div>
+                            ` : horariosDia.map(horario => {
+                                const isActive = horario.ativo !== false;
+                                const descricao = horario.descricao || '';
+                                
+                                return `
+                                    <div class="bg-gray-50/80 rounded-xl p-3 hover:bg-gray-100 transition group border border-gray-100/50">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span class="font-medium text-gray-800 text-sm">
+                                                        ${horario.hora_inicio.substring(0, 5)} - ${horario.hora_fim.substring(0, 5)}
+                                                    </span>
+                                                    <span class="text-[10px] px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                                                        ${isActive ? 'Ativo' : 'Inativo'}
+                                                    </span>
                                                 </div>
-                                            ` : `
-                                                <div class="text-xs text-gray-400 mt-1 italic">
-                                                    Sem descrição
+                                                <div class="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                                                    <span class="flex items-center gap-1">
+                                                        <i class="fas fa-users text-[10px]"></i>
+                                                        ${horario.vagas} vagas
+                                                    </span>
                                                 </div>
-                                            `}
-                                        </div>
-                                        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition ml-2 flex-shrink-0">
-                                            <button onclick="window.editarHorario('${horario.id}')" 
-                                                    class="p-1.5 text-gray-400 hover:text-[#F4742B] transition rounded-lg hover:bg-[#FEF3E8]" title="Editar">
-                                                <i class="fas fa-edit text-sm"></i>
-                                            </button>
-                                            <button onclick="window.toggleHorarioStatus('${horario.id}', ${horario.ativo})" 
-                                                    class="p-1.5 ${horario.ativo ? 'text-green-500 hover:text-red-500' : 'text-red-500 hover:text-green-500'} transition rounded-lg hover:bg-[#FEF3E8]" title="${horario.ativo ? 'Desativar' : 'Ativar'}">
-                                                <i class="fas ${horario.ativo ? 'fa-toggle-on' : 'fa-toggle-off'} text-sm"></i>
-                                            </button>
-                                            <button onclick="window.excluirHorario('${horario.id}')" 
-                                                    class="p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50" title="Excluir">
-                                                <i class="fas fa-trash text-sm"></i>
-                                            </button>
+                                                ${descricao ? `
+                                                    <div class="mt-1 text-[10px] text-[#F4742B] bg-[#FEF3E8] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                                        <i class="fas fa-tag text-[9px]"></i>
+                                                        ${descricao}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition flex-shrink-0">
+                                                <button onclick="window.editarHorario('${horario.id}')" 
+                                                        class="p-1.5 text-gray-400 hover:text-[#F4742B] transition rounded-lg hover:bg-[#FEF3E8]" title="Editar">
+                                                    <i class="fas fa-edit text-xs"></i>
+                                                </button>
+                                                <button onclick="window.toggleHorarioStatus('${horario.id}', ${isActive})" 
+                                                        class="p-1.5 ${isActive ? 'text-green-500 hover:text-red-500' : 'text-red-500 hover:text-green-500'} transition rounded-lg hover:bg-[#FEF3E8]" title="${isActive ? 'Desativar' : 'Ativar'}">
+                                                    <i class="fas ${isActive ? 'fa-toggle-on' : 'fa-toggle-off'} text-sm"></i>
+                                                </button>
+                                                <button onclick="window.excluirHorario('${horario.id}')" 
+                                                        class="p-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50" title="Excluir">
+                                                    <i class="fas fa-trash text-xs"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        `).join('')}
+                                `;
+                            }).join('')}
+                        </div>
                     </div>
-                </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     `;
 }
@@ -230,6 +310,14 @@ export async function loadHorariosContent(params) {
 window.voltarParaCentros = function() {
     if (window.loadPage) {
         window.loadPage('centros');
+    }
+};
+
+// Recarregar horários
+window.recarregarHorarios = function() {
+    const centroId = document.getElementById('horarioCentroId')?.value;
+    if (centroId && window.loadPage) {
+        window.loadPage('horarios', { centroId });
     }
 };
 
@@ -248,6 +336,15 @@ window.adicionarHorario = function(centroId) {
     document.getElementById('horarioCentroId').value = centroId;
     
     modal.classList.add('active');
+};
+
+// Adicionar horário em um dia específico
+window.adicionarHorarioDia = function(centroId, diaSemana) {
+    window.adicionarHorario(centroId);
+    setTimeout(() => {
+        const select = document.getElementById('dia_semana');
+        if (select) select.value = diaSemana;
+    }, 100);
 };
 
 // Fechar modal de horário
@@ -279,7 +376,7 @@ window.editarHorario = async function(id) {
         document.getElementById('hora_inicio').value = data.hora_inicio;
         document.getElementById('hora_fim').value = data.hora_fim;
         document.getElementById('vagas').value = data.vagas || 20;
-        document.getElementById('horario_ativo').checked = data.ativo;
+        document.getElementById('horario_ativo').checked = data.ativo !== false;
         document.getElementById('horarioCentroId').value = data.centro_id;
         document.getElementById('descricao').value = data.descricao || '';
         
@@ -299,15 +396,18 @@ window.editarHorario = async function(id) {
 // Toggle status do horário
 window.toggleHorarioStatus = async function(id, ativo) {
     const acao = ativo ? 'desativar' : 'ativar';
+    const acaoTexto = ativo ? 'Desativar' : 'Ativar';
     
     confirmModal({
-        title: `${ativo ? 'Desativar' : 'Ativar'} Horário`,
+        title: `${acaoTexto} Horário`,
         message: `Tem certeza que deseja ${acao} este horário?`,
-        confirmText: ativo ? 'Desativar' : 'Ativar',
+        confirmText: acaoTexto,
         cancelText: 'Cancelar',
         confirmColor: ativo ? '#EF4444' : '#10B981',
         onConfirm: async () => {
             try {
+                window.closeModal();
+                
                 const { error } = await supabase
                     .from('horarios')
                     .update({ ativo: !ativo })
@@ -316,11 +416,6 @@ window.toggleHorarioStatus = async function(id, ativo) {
                 if (error) throw error;
                 
                 const centroId = document.getElementById('horarioCentroId')?.value;
-                const { data: centro } = await supabase
-                    .from('centros')
-                    .select('nome')
-                    .eq('id', centroId)
-                    .single();
                 
                 successModal({
                     title: 'Status Alterado!',
@@ -328,13 +423,12 @@ window.toggleHorarioStatus = async function(id, ativo) {
                     confirmText: 'OK',
                     onConfirm: () => {
                         window.closeModal();
-                        if (window.loadPage) {
-                            window.loadPage('horarios', { centroId, centroNome: centro?.nome || 'Centro' });
-                        }
+                        window.recarregarHorarios();
                     }
                 });
             } catch (error) {
                 console.error('Erro ao alterar status:', error);
+                window.closeModal();
                 errorModal({
                     title: 'Erro ao Alterar Status',
                     message: error.message || 'Ocorreu um erro ao alterar o status do horário.',
@@ -356,6 +450,8 @@ window.excluirHorario = function(id) {
         confirmColor: '#EF4444',
         onConfirm: async () => {
             try {
+                window.closeModal();
+                
                 const { error } = await supabase
                     .from('horarios')
                     .delete()
@@ -363,26 +459,18 @@ window.excluirHorario = function(id) {
                 
                 if (error) throw error;
                 
-                const centroId = document.getElementById('horarioCentroId')?.value;
-                const { data: centro } = await supabase
-                    .from('centros')
-                    .select('nome')
-                    .eq('id', centroId)
-                    .single();
-                
                 successModal({
                     title: 'Horário Excluído!',
                     message: 'O horário foi excluído com sucesso.',
                     confirmText: 'OK',
                     onConfirm: () => {
                         window.closeModal();
-                        if (window.loadPage) {
-                            window.loadPage('horarios', { centroId, centroNome: centro?.nome || 'Centro' });
-                        }
+                        window.recarregarHorarios();
                     }
                 });
             } catch (error) {
                 console.error('Erro ao excluir horário:', error);
+                window.closeModal();
                 errorModal({
                     title: 'Erro ao Excluir',
                     message: error.message || 'Ocorreu um erro ao excluir o horário.',
@@ -395,7 +483,7 @@ window.excluirHorario = function(id) {
 };
 
 // ============================================
-// FUNÇÃO: Salvar Horário (COM DESCRIÇÃO)
+// FUNÇÃO: Salvar Horário
 // ============================================
 window.salvarHorario = async function() {
     const id = document.getElementById('horarioId').value;
@@ -406,8 +494,6 @@ window.salvarHorario = async function() {
     const vagas = parseInt(document.getElementById('vagas').value) || 20;
     const ativo = document.getElementById('horario_ativo').checked;
     const descricao = document.getElementById('descricao').value.trim();
-    
-    console.log('📝 Salvando horário:', { id, centroId, dia_semana, hora_inicio, hora_fim, vagas, ativo, descricao });
     
     if (!hora_inicio || !hora_fim) {
         warningModal({
@@ -450,21 +536,13 @@ window.salvarHorario = async function() {
         
         window.fecharModalHorario();
         
-        const { data: centro } = await supabase
-            .from('centros')
-            .select('nome')
-            .eq('id', centroId)
-            .single();
-        
         successModal({
             title: id ? 'Horário Atualizado!' : 'Horário Cadastrado!',
             message: id ? 'O horário foi atualizado com sucesso.' : 'O horário foi cadastrado com sucesso.',
             confirmText: 'OK',
             onConfirm: () => {
                 window.closeModal();
-                if (window.loadPage) {
-                    window.loadPage('horarios', { centroId, centroNome: centro?.nome || 'Centro' });
-                }
+                window.recarregarHorarios();
             }
         });
         
