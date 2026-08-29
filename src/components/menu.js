@@ -77,14 +77,13 @@ export function renderMenu(activePage = 'dashboard') {
                     </a>
                 ` : ''}
                 
-                <!-- 📅 Agendamentos - SÓ ADMIN -->
+                <!-- 📅 Agendamentos - SÓ ADMIN (SEM BADGE) -->
                 ${isAdmin ? `
                     <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${activePage === 'agendamentos' ? 'active' : 'text-white/70 hover:text-white'}" data-page="agendamentos" title="Agendamentos">
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center ${activePage === 'agendamentos' ? 'bg-[#F4742B]/20 text-[#F4742B]' : 'bg-white/5 text-white/60 group-hover:bg-white/10'}" style="transition: all 0.3s ease;">
                             <i class="fas fa-calendar-check text-sm"></i>
                         </div>
                         <span class="font-medium">Agendamentos</span>
-                        <span class="ml-auto bg-[#F4742B] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg shadow-[#F4742B]/30">3</span>
                         ${activePage === 'agendamentos' ? `<span class="ml-auto w-1.5 h-1.5 bg-[#F4742B] rounded-full"></span>` : ''}
                     </a>
                 ` : ''}

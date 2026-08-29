@@ -49,7 +49,33 @@ async function buscarNomeEmpresa() {
 }
 
 // ============================================
-// FUNÇÃO: Buscar Notificações (SEM CPF)
+// FUNÇÃO: Verificar se é Admin
+// ============================================
+async function verificarAdmin() {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return false;
+        
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+        
+        if (error) {
+            console.warn('⚠️ Erro ao verificar admin:', error);
+            return false;
+        }
+        
+        return data?.role === 'admin';
+    } catch (error) {
+        console.warn('⚠️ Erro ao verificar admin:', error);
+        return false;
+    }
+}
+
+// ============================================
+// FUNÇÃO: Buscar Notificações (COM PERMISSÃO)
 // ============================================
 async function buscarNotificacoes(limit = 10) {
     try {
@@ -57,9 +83,10 @@ async function buscarNotificacoes(limit = 10) {
         if (!user) return [];
         
         const hoje = new Date().toISOString().split('T')[0];
+        const isAdmin = await verificarAdmin();
         
-        // 🔥 Buscar agendamentos - REMOVIDO CPF
-        const { data, error } = await supabase
+        // 🔥 Construir query base
+        let query = supabase
             .from('agendamentos')
             .select(`
                 *,
@@ -84,6 +111,14 @@ async function buscarNotificacoes(limit = 10) {
             .order('created_at', { ascending: false })
             .limit(limit);
         
+        // 🔥 Se NÃO for admin, filtrar apenas agendamentos do próprio usuário
+        if (!isAdmin) {
+            query = query.eq('usuario_id', user.id);
+        }
+        // Se for admin, NÃO aplica filtro - vê todos
+        
+        const { data, error } = await query;
+        
         if (error) throw error;
         
         // 🔥 FILTRAR: Apenas agendamentos com horários ativos
@@ -91,19 +126,29 @@ async function buscarNotificacoes(limit = 10) {
             return ag.horarios && ag.horarios.ativo === true;
         }) || [];
         
-        notificacoesCache = notificacoesFiltradas.map(ag => ({
-            id: ag.id,
-            tipo: 'agendamento',
-            mensagem: `${ag.usuarios?.nome || 'Aluno'} agendou para ${formatarData(ag.data_agendamento)} às ${ag.horarios?.hora_inicio?.substring(0,5)}`,
-            data: ag.data_agendamento,
-            hora: ag.horarios?.hora_inicio,
-            centro: ag.horarios?.centros?.nome,
-            status: ag.status,
-            lida: notificacoesLidas.includes(ag.id),
-            dadosCompletos: ag
-        })) || [];
+        notificacoesCache = notificacoesFiltradas.map(ag => {
+            const nomeUsuario = ag.usuarios?.nome || 'Aluno';
+            // Se for admin, mostrar quem agendou
+            const mensagem = isAdmin 
+                ? `${nomeUsuario} agendou para ${formatarData(ag.data_agendamento)} às ${ag.horarios?.hora_inicio?.substring(0,5)}`
+                : `Você agendou para ${formatarData(ag.data_agendamento)} às ${ag.horarios?.hora_inicio?.substring(0,5)}`;
+            
+            return {
+                id: ag.id,
+                tipo: 'agendamento',
+                mensagem: mensagem,
+                data: ag.data_agendamento,
+                hora: ag.horarios?.hora_inicio,
+                centro: ag.horarios?.centros?.nome,
+                status: ag.status,
+                lida: notificacoesLidas.includes(ag.id),
+                dadosCompletos: ag,
+                isAdmin: isAdmin,
+                nomeUsuario: nomeUsuario
+            };
+        }) || [];
         
-        console.log(`📢 ${notificacoesCache.length} notificações encontradas`);
+        console.log(`📢 ${notificacoesCache.length} notificações encontradas (${isAdmin ? 'Admin' : 'Usuário'})`);
         
         return notificacoesCache;
     } catch (error) {
@@ -257,24 +302,32 @@ export async function renderizarNotificacoes() {
             ` : ''}
         </div>
         <div class="max-h-96 overflow-y-auto">
-            ${notificacoes.map(notif => `
-                <div class="px-4 py-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0 cursor-pointer ${!notif.lida ? 'bg-[#FFF8F3]' : ''}" 
-                     onclick="window.verNotificacao('${notif.id}')">
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full ${!notif.lida ? 'bg-[#F4742B]' : 'bg-[#FEF3E8]'} flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-calendar-check text-white text-sm"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm text-gray-800 font-medium truncate">${notif.mensagem}</p>
-                            <div class="flex items-center gap-2 mt-1">
-                                ${notif.centro ? `<span class="text-xs text-gray-400"><i class="fas fa-location-dot mr-1"></i> ${notif.centro}</span>` : ''}
-                                <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">${notif.status}</span>
-                                ${!notif.lida ? `<span class="text-xs px-2 py-0.5 rounded-full bg-[#F4742B] text-white">Nova</span>` : ''}
+            ${notificacoes.map(notif => {
+                // Mostrar nome do aluno apenas se for admin
+                const nomeAluno = notif.isAdmin ? notif.nomeUsuario : '';
+                const mensagemDisplay = notif.isAdmin 
+                    ? `${notif.nomeUsuario} - ${notif.mensagem}`
+                    : notif.mensagem;
+                
+                return `
+                    <div class="px-4 py-3 hover:bg-gray-50 transition border-b border-gray-100 last:border-b-0 cursor-pointer ${!notif.lida ? 'bg-[#FFF8F3]' : ''}" 
+                         onclick="window.verNotificacao('${notif.id}')">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full ${!notif.lida ? 'bg-[#F4742B]' : 'bg-[#FEF3E8]'} flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-calendar-check text-white text-sm"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-gray-800 font-medium truncate">${mensagemDisplay}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    ${notif.centro ? `<span class="text-xs text-gray-400"><i class="fas fa-location-dot mr-1"></i> ${notif.centro}</span>` : ''}
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">${notif.status}</span>
+                                    ${!notif.lida ? `<span class="text-xs px-2 py-0.5 rounded-full bg-[#F4742B] text-white">Nova</span>` : ''}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
         <div class="p-2 border-t border-gray-100">
             <button onclick="window.verTodasNotificacoes()" 
@@ -306,13 +359,14 @@ window.fecharDropdownNotificacoes = function() {
 };
 
 // ============================================
-// FUNÇÃO: Ver Notificação (Detalhes Completos - SEM CPF)
+// FUNÇÃO: Ver Notificação (Detalhes Completos)
 // ============================================
 window.verNotificacao = async function(id) {
     try {
         marcarComoLida(id);
 
         const nomeEmpresa = await buscarNomeEmpresa();
+        const isAdmin = await verificarAdmin();
         
         const { data: agendamento, error } = await supabase
             .from('agendamentos')
@@ -449,14 +503,14 @@ window.verNotificacao = async function(id) {
                 
                 <!-- Ações -->
                 <div class="flex gap-2">
-                    ${agendamento.status === 'confirmado' ? `
+                    ${agendamento.status === 'confirmado' && isAdmin ? `
                         <button onclick="window.cancelarAgendamentoNotificacao('${agendamento.id}')" 
                                 class="flex-1 px-4 py-2 border-2 border-red-500 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition">
                             <i class="fas fa-times mr-1"></i> Cancelar
                         </button>
                     ` : ''}
                     <button onclick="window.fecharDetalhesAgendamento()" 
-                            class="${agendamento.status === 'confirmado' ? 'flex-1' : 'w-full'} px-4 py-2 bg-[#F4742B] text-white rounded-lg hover:bg-[#E0601A] transition">
+                            class="${agendamento.status === 'confirmado' && isAdmin ? 'flex-1' : 'w-full'} px-4 py-2 bg-[#F4742B] text-white rounded-lg hover:bg-[#E0601A] transition">
                         <i class="fas fa-check mr-1"></i> Fechar
                     </button>
                 </div>
