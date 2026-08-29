@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - WODBOOK</title>
     
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="src/img/favicon.png">
     <link rel="shortcut icon" type="image/png" href="src/img/favicon.png">
     <link rel="apple-touch-icon" href="src/img/favicon.png">
@@ -80,16 +79,6 @@
             box-shadow: 0 0 0 3px rgba(244, 116, 43, 0.1);
         }
         
-        .input-field.error {
-            border-color: #EF4444;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-        }
-        
-        .input-field.success {
-            border-color: #10B981;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-        }
-        
         .error-message {
             color: #EF4444;
             font-size: 14px;
@@ -124,17 +113,8 @@
         .password-strength.medium { background: #F59E0B; width: 66%; }
         .password-strength.strong { background: #10B981; width: 100%; }
         
-        .requisito-item {
-            transition: all 0.3s ease;
-        }
-        
-        .requisito-item.ativo {
-            color: #10B981;
-        }
-        
-        .requisito-item.inativo {
-            color: #9CA3AF;
-        }
+        .requisito-item.ativo { color: #10B981; }
+        .requisito-item.inativo { color: #9CA3AF; }
     </style>
 </head>
 <body>
@@ -152,194 +132,94 @@
                 <p class="text-gray-500 text-sm mt-1">Comece sua jornada no WODBOOK</p>
             </div>
             
-            <!-- Formulário de Cadastro -->
             <form id="registerForm" class="space-y-4">
-                <!-- Nome -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-user text-[#F4742B] mr-2"></i>Nome Completo *
                     </label>
-                    <input 
-                        type="text" 
-                        id="nome" 
-                        class="input-field"
-                        placeholder="Seu nome completo"
-                        required
-                    >
+                    <input type="text" id="nome" class="input-field" placeholder="Seu nome completo" required>
                 </div>
                 
-                <!-- Email -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-envelope text-[#F4742B] mr-2"></i>Email *
                     </label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        class="input-field"
-                        placeholder="seu@email.com"
-                        required
-                        autocomplete="email"
-                    >
+                    <input type="email" id="email" class="input-field" placeholder="seu@email.com" required autocomplete="email">
                 </div>
                 
-                <!-- Telefone -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-phone text-[#F4742B] mr-2"></i>Telefone
                     </label>
-                    <input 
-                        type="tel" 
-                        id="telefone" 
-                        class="input-field"
-                        placeholder="(11) 99999-9999"
-                        maxlength="15"
-                    >
+                    <input type="tel" id="telefone" class="input-field" placeholder="(11) 99999-9999" maxlength="15">
                 </div>
                 
-                <!-- CPF -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-id-card text-[#F4742B] mr-2"></i>CPF
                     </label>
-                    <input 
-                        type="text" 
-                        id="cpf" 
-                        class="input-field"
-                        placeholder="123.456.789-00"
-                        maxlength="14"
-                    >
+                    <input type="text" id="cpf" class="input-field" placeholder="123.456.789-00" maxlength="14">
                 </div>
                 
-                <!-- Senha com visualizador -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-lock text-[#F4742B] mr-2"></i>Senha *
                     </label>
                     <div class="relative">
-                        <input 
-                            type="password" 
-                            id="password" 
-                            class="input-field w-full pr-12"
-                            placeholder="Mínimo 6 caracteres"
-                            required
-                            autocomplete="new-password"
-                            minlength="6"
-                        >
-                        <button 
-                            type="button" 
-                            id="togglePassword" 
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition"
-                            title="Mostrar senha"
-                        >
+                        <input type="password" id="password" class="input-field w-full pr-12" placeholder="Mínimo 6 caracteres" required minlength="6">
+                        <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
                     <div class="password-strength" id="passwordStrength"></div>
-                    
-                    <!-- Requisitos de senha -->
                     <div class="text-xs space-y-1 mt-2" id="senhaRequisitos">
-                        <p class="flex items-center gap-2 requisito-item" id="reqTamanho">
-                            <span class="text-gray-300">○</span>
-                            Pelo menos 6 caracteres
-                        </p>
-                        <p class="flex items-center gap-2 requisito-item" id="reqMaiuscula">
-                            <span class="text-gray-300">○</span>
-                            Pelo menos uma letra maiúscula
-                        </p>
-                        <p class="flex items-center gap-2 requisito-item" id="reqMinuscula">
-                            <span class="text-gray-300">○</span>
-                            Pelo menos uma letra minúscula
-                        </p>
-                        <p class="flex items-center gap-2 requisito-item" id="reqNumero">
-                            <span class="text-gray-300">○</span>
-                            Pelo menos um número
-                        </p>
-                        <p class="flex items-center gap-2 requisito-item" id="reqEspecial">
-                            <span class="text-gray-300">○</span>
-                            Pelo menos um caractere especial (!@#$%...)
-                        </p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqTamanho"><span class="text-gray-300">○</span> Pelo menos 6 caracteres</p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqMaiuscula"><span class="text-gray-300">○</span> Pelo menos uma letra maiúscula</p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqMinuscula"><span class="text-gray-300">○</span> Pelo menos uma letra minúscula</p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqNumero"><span class="text-gray-300">○</span> Pelo menos um número</p>
+                        <p class="flex items-center gap-2 requisito-item" id="reqEspecial"><span class="text-gray-300">○</span> Pelo menos um caractere especial</p>
                     </div>
                     <p class="text-xs text-gray-400 mt-1" id="passwordHint">Digite uma senha forte</p>
                 </div>
                 
-                <!-- Confirmar Senha com visualizador -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-check-circle text-[#F4742B] mr-2"></i>Confirmar Senha *
                     </label>
                     <div class="relative">
-                        <input 
-                            type="password" 
-                            id="confirmPassword" 
-                            class="input-field w-full pr-12"
-                            placeholder="Digite a senha novamente"
-                            required
-                            autocomplete="new-password"
-                        >
-                        <button 
-                            type="button" 
-                            id="toggleConfirmPassword" 
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition"
-                            title="Mostrar senha"
-                        >
+                        <input type="password" id="confirmPassword" class="input-field w-full pr-12" placeholder="Digite a senha novamente" required>
+                        <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#F4742B] transition">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
                 
-                <!-- Termos -->
                 <div class="flex items-start gap-2">
                     <input type="checkbox" id="termos" class="mt-1 w-4 h-4 text-[#F4742B] focus:ring-[#F4742B] border-gray-300 rounded">
                     <label for="termos" class="text-sm text-gray-600">
-                        Li e concordo com os 
-                        <a href="#" class="text-[#F4742B] hover:underline">Termos de Serviço</a> 
-                        e 
-                        <a href="#" class="text-[#F4742B] hover:underline">Política de Privacidade</a>
+                        Li e concordo com os <a href="#" class="text-[#F4742B] hover:underline">Termos de Serviço</a>
                     </label>
                 </div>
                 
-                <button 
-                    type="submit" 
-                    id="btnRegister"
-                    class="w-full btn-primary py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
-                >
-                    <i class="fas fa-user-plus"></i>
-                    Criar Conta
+                <button type="submit" id="btnRegister" class="w-full btn-primary py-3 rounded-lg font-semibold flex items-center justify-center gap-2">
+                    <i class="fas fa-user-plus"></i> Criar Conta
                 </button>
             </form>
             
-            <!-- Separador -->
             <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-200"></div>
-                </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-4 bg-white text-gray-500">ou continue com</span>
-                </div>
+                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+                <div class="relative flex justify-center text-sm"><span class="px-4 bg-white text-gray-500">ou continue com</span></div>
             </div>
             
-            <!-- Botão Google -->
-            <button 
-                id="btnGoogle"
-                class="w-full btn-google py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
-            >
-                <svg class="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
+            <button id="btnGoogle" class="w-full btn-google py-3 rounded-lg font-semibold flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">...</svg>
                 Cadastrar com Google
             </button>
             
-            <!-- Link para login -->
             <p class="text-center text-sm text-gray-600 mt-6">
-                Já tem conta? 
-                <a href="login.html" class="text-[#F4742B] font-semibold hover:underline">Faça login</a>
+                Já tem conta? <a href="login.html" class="text-[#F4742B] font-semibold hover:underline">Faça login</a>
             </p>
             
-            <!-- Mensagens -->
             <div id="errorMessage" class="error-message mt-4"></div>
             <div id="successMessage" class="success-message mt-4"></div>
         </div>
@@ -376,18 +256,14 @@
             errorMessage.textContent = message;
             errorMessage.classList.add('show');
             successMessage.classList.remove('show');
-            setTimeout(() => {
-                errorMessage.classList.remove('show');
-            }, 5000);
+            setTimeout(() => errorMessage.classList.remove('show'), 5000);
         }
         
         function showSuccess(message) {
             successMessage.textContent = message;
             successMessage.classList.add('show');
             errorMessage.classList.remove('show');
-            setTimeout(() => {
-                successMessage.classList.remove('show');
-            }, 5000);
+            setTimeout(() => successMessage.classList.remove('show'), 5000);
         }
         
         function setLoading(isLoading) {
@@ -423,11 +299,7 @@
         function mascaraTelefone(input) {
             let valor = input.value.replace(/\D/g, '');
             if (valor.length > 11) valor = valor.slice(0, 11);
-            
-            if (valor.length === 0) {
-                input.value = '';
-                return;
-            }
+            if (valor.length === 0) { input.value = ''; return; }
             
             let formatado = '';
             if (valor.length <= 2) {
@@ -448,11 +320,7 @@
         function mascaraCPF(input) {
             let valor = input.value.replace(/\D/g, '');
             if (valor.length > 11) valor = valor.slice(0, 11);
-            
-            if (valor.length === 0) {
-                input.value = '';
-                return;
-            }
+            if (valor.length === 0) { input.value = ''; return; }
             
             let formatado = '';
             if (valor.length <= 3) {
@@ -467,8 +335,11 @@
             input.value = formatado;
         }
         
+        telefoneInput.addEventListener('input', function() { mascaraTelefone(this); });
+        cpfInput.addEventListener('input', function() { mascaraCPF(this); });
+        
         // ============================================
-        // VALIDAÇÃO DE SENHA (MAIS ROBUSTA)
+        // VALIDAÇÃO DE SENHA
         // ============================================
         function validarSenha(senha) {
             return {
@@ -491,30 +362,21 @@
             if (req.numero) pontos++;
             if (req.especial) pontos++;
             
-            if (pontos <= 2) {
-                return { forca: 1, texto: 'Senha fraca', cor: '#EF4444' };
-            } else if (pontos <= 3) {
-                return { forca: 2, texto: 'Senha média', cor: '#F59E0B' };
-            } else {
-                return { forca: 3, texto: 'Senha forte!', cor: '#10B981' };
-            }
+            if (pontos <= 2) return { forca: 1, texto: 'Senha fraca', cor: '#EF4444' };
+            if (pontos <= 3) return { forca: 2, texto: 'Senha média', cor: '#F59E0B' };
+            return { forca: 3, texto: 'Senha forte!', cor: '#10B981' };
         }
         
         function atualizarRequisitos(senha) {
             const req = validarSenha(senha);
-            const requisitos = {
-                reqTamanho: req.tamanho,
-                reqMaiuscula: req.maiuscula,
-                reqMinuscula: req.minuscula,
-                reqNumero: req.numero,
-                reqEspecial: req.especial
-            };
+            const ids = ['reqTamanho', 'reqMaiuscula', 'reqMinuscula', 'reqNumero', 'reqEspecial'];
+            const chaves = ['tamanho', 'maiuscula', 'minuscula', 'numero', 'especial'];
             
-            Object.keys(requisitos).forEach(id => {
+            ids.forEach((id, index) => {
                 const el = document.getElementById(id);
                 if (el) {
                     const span = el.querySelector('span');
-                    if (requisitos[id]) {
+                    if (req[chaves[index]]) {
                         span.textContent = '✅';
                         span.className = 'text-green-500';
                         el.className = 'flex items-center gap-2 requisito-item text-green-600';
@@ -527,25 +389,10 @@
             });
         }
         
-        // ============================================
-        // MASCARAS NOS INPUTS
-        // ============================================
-        telefoneInput.addEventListener('input', function() {
-            mascaraTelefone(this);
-        });
-        
-        cpfInput.addEventListener('input', function() {
-            mascaraCPF(this);
-        });
-        
-        // ============================================
-        // VALIDAÇÃO DE SENHA EM TEMPO REAL
-        // ============================================
         passwordInput.addEventListener('input', function() {
             const senha = this.value;
             const resultado = getForcaSenha(senha);
             
-            // Atualizar barra de força
             if (senha.length === 0) {
                 passwordStrength.style.width = '0%';
                 passwordStrength.style.background = '#E5E7EB';
@@ -557,10 +404,58 @@
                 passwordHint.textContent = resultado.texto;
                 passwordHint.style.color = resultado.cor;
             }
-            
-            // Atualizar requisitos
             atualizarRequisitos(senha);
         });
+        
+        // ============================================
+        // FUNÇÃO: Criar Perfil (SIMPLIFICADA)
+        // ============================================
+        async function criarPerfilUsuario(userId, email, nome, telefone, cpf) {
+            console.log('📝 Criando perfil para:', userId);
+            
+            // Remover máscara do CPF se existir
+            const cpfLimpo = cpf ? cpf.replace(/\D/g, '') : '';
+            const cpfParaSalvar = cpfLimpo || null;
+            
+            try {
+                // Tentar RPC
+                const { data, error } = await supabase.rpc('criar_perfil_usuario', {
+                    p_user_id: userId,
+                    p_email: email,
+                    p_nome: nome,
+                    p_telefone: telefone || '',
+                    p_cpf: cpfParaSalvar,
+                    p_role: 'user'
+                });
+                
+                if (error) {
+                    console.warn('⚠️ RPC falhou:', error.message);
+                    // Fallback: inserção direta
+                    const { error: insertError } = await supabase
+                        .from('usuarios')
+                        .insert([{
+                            id: userId,
+                            nome: nome,
+                            telefone: telefone || '',
+                            cpf: cpfParaSalvar,
+                            email: email,
+                            role: 'user'
+                        }]);
+                    
+                    if (insertError) {
+                        console.error('❌ Erro ao criar perfil:', insertError);
+                        return false;
+                    }
+                }
+                
+                console.log('✅ Perfil criado com sucesso!');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Erro:', error);
+                return false;
+            }
+        }
         
         // ============================================
         // CADASTRO
@@ -575,39 +470,28 @@
             const password = passwordInput.value;
             const confirmPassword = confirmPasswordInput.value;
             
-            // Validações básicas
             if (!nome || !email || !password || !confirmPassword) {
                 showError('Preencha todos os campos obrigatórios');
                 return;
             }
             
-            // Validação de email
-            if (!email.includes('@') || !email.includes('.')) {
-                showError('Por favor, informe um email válido');
-                return;
-            }
-            
-            // Validação de senha
             if (password.length < 6) {
                 showError('A senha deve ter pelo menos 6 caracteres');
                 return;
             }
             
-            // Verificar se a senha tem pelo menos uma letra e um número
             if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-                showError('A senha deve conter pelo menos uma letra e um número');
+                showError('A senha deve conter letras e números');
                 return;
             }
             
-            // Confirmar senha
             if (password !== confirmPassword) {
                 showError('As senhas não coincidem');
                 return;
             }
             
-            // Termos
             if (!termosCheck.checked) {
-                showError('Você precisa aceitar os termos de serviço');
+                showError('Aceite os termos de serviço');
                 return;
             }
             
@@ -618,47 +502,22 @@
                     email,
                     password,
                     options: {
-                        data: {
-                            nome: nome,
-                            telefone: telefone || '',
-                            cpf: cpf || ''
-                        }
+                        data: { nome, telefone: telefone || '', cpf: cpf || '' }
                     }
                 });
                 
-                if (error) {
-                    console.error('Erro do Supabase:', error);
-                    
-                    if (error.message.includes('User already registered')) {
-                        throw new Error('Este email já está cadastrado. Faça login ou use "Esqueceu a senha".');
-                    } else if (error.message.includes('Password should be at least 6 characters')) {
-                        throw new Error('A senha deve ter pelo menos 6 caracteres');
-                    } else if (error.message.includes('password')) {
-                        throw new Error('A senha não atende aos requisitos de segurança. Use letras, números e caracteres especiais.');
-                    } else {
-                        throw new Error(error.message);
-                    }
-                }
+                if (error) throw error;
                 
                 if (data.user) {
-                    showSuccess('✅ Conta criada com sucesso! Verifique seu email para confirmar o cadastro.');
+                    // Criar perfil
+                    await criarPerfilUsuario(data.user.id, email, nome, telefone, cpf);
                     
+                    showSuccess('✅ Conta criada! Verifique seu email para confirmar.');
                     registerForm.reset();
                     passwordStrength.style.width = '0%';
                     passwordStrength.style.background = '#E5E7EB';
                     passwordHint.textContent = 'Digite uma senha forte';
                     passwordHint.style.color = '#9CA3AF';
-                    
-                    // Resetar requisitos
-                    ['reqTamanho', 'reqMaiuscula', 'reqMinuscula', 'reqNumero', 'reqEspecial'].forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) {
-                            const span = el.querySelector('span');
-                            span.textContent = '○';
-                            span.className = 'text-gray-300';
-                            el.className = 'flex items-center gap-2 requisito-item text-gray-400';
-                        }
-                    });
                     
                     setTimeout(() => {
                         window.location.href = '/login.html';
@@ -666,8 +525,7 @@
                 }
                 
             } catch (error) {
-                console.error('Erro no cadastro:', error);
-                showError(error.message || 'Erro ao criar conta. Tente novamente.');
+                showError(error.message || 'Erro ao criar conta.');
                 setLoading(false);
             } finally {
                 btnRegister.disabled = false;
@@ -676,24 +534,21 @@
         });
         
         // ============================================
-        // CADASTRO COM GOOGLE
+        // GOOGLE
         // ============================================
         btnGoogle.addEventListener('click', async () => {
             try {
                 btnGoogle.disabled = true;
                 btnGoogle.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Carregando...';
                 
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin + '/index.html'
-                    }
+                    options: { redirectTo: window.location.origin + '/index.html' }
                 });
                 
                 if (error) throw error;
                 
             } catch (error) {
-                console.error('Erro no cadastro com Google:', error);
                 showError('Erro ao fazer cadastro com Google');
                 btnGoogle.disabled = false;
                 btnGoogle.innerHTML = 'Cadastrar com Google';
@@ -701,7 +556,7 @@
         });
         
         // ============================================
-        // VERIFICAR SE JÁ ESTÁ LOGADO
+        // CHECK AUTH
         // ============================================
         async function checkAuth() {
             const { data: { user } } = await supabase.auth.getUser();
@@ -711,11 +566,7 @@
             }
         }
         
-        // ============================================
-        // INICIALIZAÇÃO
-        // ============================================
         document.addEventListener('DOMContentLoaded', checkAuth);
-        
         console.log('📝 Página de cadastro carregada');
     </script>
 </body>
