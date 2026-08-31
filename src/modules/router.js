@@ -109,7 +109,7 @@ export async function loadPage(page, params = null) {
     try {
         let content = '';
         
-        // ✅ SWITCH CORRIGIDO - SEM DUPLICAÇÕES
+        // ✅ SWITCH CORRIGIDO - SEM DUPLICAÇÕES E SEM BLOQUEIO
         switch(page) {
             case 'dashboard':
                 content = await loadDashboardContent();
@@ -127,23 +127,8 @@ export async function loadPage(page, params = null) {
                 content = await loadAlunosContent();
                 break;
             case 'configuracoes':
-                // Verificar se é admin
-                const { isAdmin } = await import('./shared.js');
-                const admin = await isAdmin();
-                if (!admin) {
-                    content = `
-                        <div class="text-center py-12">
-                            <i class="fas fa-lock text-6xl text-gray-300 mb-4 block"></i>
-                            <h2 class="text-2xl font-bold text-[#4B4B4D]">Acesso Restrito</h2>
-                            <p class="text-gray-500 mt-2">Você não tem permissão para acessar esta página.</p>
-                            <button onclick="window.loadPage('dashboard')" 
-                                    class="mt-4 px-6 py-2 bg-[#F4742B] text-white rounded-lg hover:bg-[#E0601A] transition">
-                                Voltar para Dashboard
-                            </button>
-                        </div>
-                    `;
-                    break;
-                }
+                // 🔥 REMOVER O BLOQUEIO - A PÁGINA DE CONFIGURAÇÕES DEVE SER ACESSÍVEL PARA TODOS
+                // A lógica de permissões está dentro do próprio loadConfiguracoesContent()
                 content = await loadConfiguracoesContent();
                 break;
             default:

@@ -73,6 +73,7 @@ async function atualizarInterfaceUsuario(nome) {
 // ============================================
 // FUNÇÃO: Carregar Conteúdo de Configurações
 // ============================================
+
 export async function loadConfiguracoesContent() {
     const user = await getCurrentUser();
     if (!user) {
@@ -87,11 +88,35 @@ export async function loadConfiguracoesContent() {
         .single();
     
     const isAdmin = profile?.role === 'admin';
-    const configs = isAdmin ? await buscarConfiguracoes() : {};
-    const { data: centros } = isAdmin ? await supabase
-        .from('centros')
-        .select('id, nome, horario_funcionamento, vagas_padrao')
-        .order('nome', { ascending: true }) : { data: [] };
+    
+    // 🔥 SÓ BUSCAR DADOS DE ADMIN SE FOR ADMIN
+    let configs = {};
+    let centros = [];
+    
+    if (isAdmin) {
+        configs = await buscarConfiguracoes();
+        const { data } = await supabase
+            .from('centros')
+            .select('id, nome, horario_funcionamento, vagas_padrao')
+            .order('nome', { ascending: true });
+        centros = data || [];
+    }
+    
+    // 🔥 VERIFICAR SE O USUÁRIO JÁ PREENCHEU O FORMULÁRIO
+    const formularioPreenchido = profile?.formulario_preenchido || false;
+    
+    // 🔥 BUSCAR DADOS DO FORMULÁRIO
+    let formularioData = null;
+    if (formularioPreenchido) {
+        const { data } = await supabase
+            .from('formulario_consentimento')
+            .select('*')
+            .eq('usuario_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+        formularioData = data;
+    }
     
     // 🔥 FORMATAR TELEFONE PARA EXIBIÇÃO
     let telefoneExibicao = profile?.telefone || '';
@@ -105,326 +130,443 @@ export async function loadConfiguracoesContent() {
         }
     }
     
+    const statusMap = {
+        'aprovado': { label: '✅ Aprovado', color: 'bg-green-100 text-green-700' },
+        'rejeitado': { label: '⚠️ Rejeitado', color: 'bg-red-100 text-red-700' },
+        'pendente': { label: '⏳ Pendente', color: 'bg-yellow-100 text-yellow-700' }
+    };
+    
+    const statusInfo = formularioData ? statusMap[formularioData.status] : null;
+    
+    // 🔥 CONSTRUIR HTML COM LAYOUT PROFISSIONAL
     let html = `
         <!-- Cabeçalho -->
-        <div class="mb-6">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
-                    <i class="fas fa-cog text-[#F4742B] text-lg"></i>
+        <div class="mb-8">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F4742B] to-[#E0601A] flex items-center justify-center shadow-lg shadow-[#F4742B]/20">
+                    <i class="fas fa-sliders-h text-white text-xl"></i>
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold text-[#4B4B4D]">Configurações</h2>
-                    <p class="text-xs text-gray-400">Gerencie suas preferências e dados</p>
+                    <h2 class="text-2xl font-bold text-[#4B4B4D]">Configurações</h2>
+                    <p class="text-sm text-gray-400">Gerencie suas preferências e dados do sistema</p>
                 </div>
             </div>
         </div>
         
-        <div class="grid grid-cols-1 ${isAdmin ? 'lg:grid-cols-2' : ''} gap-4 md:gap-6">
+        <!-- Grid Principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- PERFIL - VISÍVEL PARA TODOS -->
-            <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 card-hover ${!isAdmin ? 'max-w-md mx-auto' : ''}">
-                <div class="flex items-center gap-3 mb-5">
-                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
-                        <i class="fas fa-user-circle text-[#F4742B] text-lg"></i>
-                    </div>
-                    <h3 class="text-base font-semibold text-[#4B4B4D]">Meu Perfil</h3>
-                </div>
+            <!-- COLUNA 1: PERFIL + FORMULÁRIO -->
+            <div class="lg:col-span-2 space-y-6">
                 
-                <div class="flex items-center gap-4 mb-5">
-                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.nome || 'Usuário')}&background=F4742B&color=fff&size=80" 
-                         alt="Avatar" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-[#F4742B]">
-                    <div class="min-w-0">
-                        <p class="font-semibold text-gray-800 text-sm md:text-base truncate">${profile?.nome || 'Usuário'}</p>
-                        <p class="text-xs text-gray-400 truncate">${user.email}</p>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full ${isAdmin ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">
-                            ${isAdmin ? 'Administrador' : 'Usuário'}
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">
-                            <i class="fas fa-user text-[#F4742B] mr-1"></i> Nome
-                        </label>
-                        <input type="text" id="configNome" value="${profile?.nome || ''}"
-                               class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">
-                            <i class="fas fa-phone text-[#F4742B] mr-1"></i> Telefone
-                        </label>
-                        <input type="tel" id="configTelefone" 
-                               value="${telefoneExibicao}"
-                               placeholder="(11) 99999-9999"
-                               maxlength="15"
-                               class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
-                        <p class="text-[10px] text-gray-400 mt-1">Exemplo: (11) 99999-9999</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">
-                            <i class="fas fa-envelope text-[#F4742B] mr-1"></i> Email
-                        </label>
-                        <input type="email" value="${user.email}" disabled
-                               class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl bg-gray-100 text-gray-400 cursor-not-allowed">
-                    </div>
-                    
-                    <div class="flex flex-col gap-2 pt-1">
-                        <button onclick="window.salvarPerfil()" 
-                                class="w-full h-10 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2">
-                            <i class="fas fa-save text-xs"></i> Salvar Perfil
-                        </button>
-                        <button onclick="window.alterarSenha()" 
-                                class="w-full h-10 border-2 border-[#F4742B] text-[#F4742B] text-sm font-medium rounded-xl hover:bg-[#F4742B] hover:text-white transition active:scale-[0.98] flex items-center justify-center gap-2">
-                            <i class="fas fa-key text-xs"></i> Alterar Senha
-                        </button>
-                    </div>
-                </div>
-            </div>
-    `;
-    
-    if (isAdmin) {
-        html += `
-            <!-- Configurações do Sistema -->
-            <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 card-hover">
-                <div class="flex items-center gap-3 mb-5">
-                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
-                        <i class="fas fa-sliders-h text-[#F4742B] text-lg"></i>
-                    </div>
-                    <h3 class="text-base font-semibold text-[#4B4B4D]">Sistema</h3>
-                </div>
-                
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">
-                            <i class="fas fa-building text-[#F4742B] mr-1"></i> Nome da Academia
-                        </label>
-                        <input type="text" id="configNomeAcademia" 
-                               value="${configs?.nome_academia || 'WODBOOK'}"
-                               class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
-                        <p class="text-[10px] text-gray-400 mt-1">Nome que aparecerá no cabeçalho</p>
-                    </div>
-                    
-                    <button onclick="window.salvarConfiguracoes()" 
-                            class="w-full h-10 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2">
-                        <i class="fas fa-save text-xs"></i> Salvar Configurações
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Horários e Vagas -->
-            <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 card-hover lg:col-span-2">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
-                            <i class="fas fa-clock text-[#F4742B] text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-semibold text-[#4B4B4D]">Horários e Vagas</h3>
-                            <p class="text-xs text-gray-400">Configure cada unidade</p>
+                <!-- Card: Perfil -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                                <i class="fas fa-user-circle text-[#F4742B]"></i>
+                            </div>
+                            <h3 class="text-sm font-semibold text-[#4B4B4D]">Meu Perfil</h3>
                         </div>
                     </div>
-                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-600">
-                        ${centros?.length || 0} unidades
-                    </span>
-                </div>
-                
-                <div class="space-y-3">
-                    ${centros?.map(centro => {
-                        const horarioInicio = centro.horario_funcionamento?.split(' - ')[0] || '06:00';
-                        const horarioFim = centro.horario_funcionamento?.split(' - ')[1] || '22:00';
-                        const vagas = centro.vagas_padrao || 10;
+                    
+                    <div class="p-6">
+                        <div class="flex items-center gap-5 mb-6">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.nome || 'Usuário')}&background=F4742B&color=fff&size=80&bold=true" 
+                                 alt="Avatar" class="w-20 h-20 rounded-full border-3 border-[#F4742B] shadow-sm">
+                            <div>
+                                <p class="text-lg font-semibold text-gray-800">${profile?.nome || 'Usuário'}</p>
+                                <p class="text-sm text-gray-400">${user.email}</p>
+                                <span class="inline-block mt-1 text-xs font-medium px-2.5 py-0.5 rounded-full ${isAdmin ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">
+                                    ${isAdmin ? '👑 Administrador' : '👤 Usuário'}
+                                </span>
+                            </div>
+                        </div>
                         
-                        return `
-                            <div class="p-3 md:p-4 bg-gray-50/80 rounded-xl hover:bg-gray-100/80 transition border border-gray-100/50">
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                                    <div>
-                                        <p class="font-medium text-gray-800 text-sm">${centro.nome}</p>
-                                        <p class="text-[10px] text-gray-400">ID: ${centro.id.substring(0, 8)}</p>
-                                    </div>
-                                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#FEF3E8] text-[#F4742B] whitespace-nowrap">
-                                        <i class="fas fa-users mr-1"></i> ${vagas} vagas
-                                    </span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-user text-[#F4742B] mr-1"></i> Nome
+                                </label>
+                                <input type="text" id="configNome" value="${profile?.nome || ''}"
+                                       class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-phone text-[#F4742B] mr-1"></i> Telefone
+                                </label>
+                                <input type="tel" id="configTelefone" 
+                                       value="${telefoneExibicao}"
+                                       placeholder="(11) 99999-9999"
+                                       maxlength="15"
+                                       class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                                    <i class="fas fa-envelope text-[#F4742B] mr-1"></i> Email
+                                </label>
+                                <input type="email" value="${user.email}" disabled
+                                       class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl bg-gray-100 text-gray-400 cursor-not-allowed">
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-100">
+                            <button onclick="window.salvarPerfil()" 
+                                    class="px-6 h-10 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center gap-2 shadow-sm shadow-[#F4742B]/20">
+                                <i class="fas fa-save text-xs"></i> Salvar Perfil
+                            </button>
+                            <button onclick="window.alterarSenha()" 
+                                    class="px-6 h-10 border-2 border-[#F4742B] text-[#F4742B] text-sm font-medium rounded-xl hover:bg-[#F4742B] hover:text-white transition active:scale-[0.98] flex items-center gap-2">
+                                <i class="fas fa-key text-xs"></i> Alterar Senha
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card: Formulário de Prontidão (apenas para usuários normais) -->
+                ${!isAdmin ? `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                                <i class="fas fa-file-signature text-[#F4742B]"></i>
+                            </div>
+                            <h3 class="text-sm font-semibold text-[#4B4B4D]">Questionário de Prontidão</h3>
+                            ${formularioPreenchido ? `
+                                <span class="ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full ${statusInfo?.color || 'bg-gray-100 text-gray-600'}">
+                                    ${statusInfo?.label || 'Status desconhecido'}
+                                </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        ${formularioPreenchido && formularioData ? `
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                <div class="bg-gray-50 rounded-xl p-3 text-center">
+                                    <p class="text-xs text-gray-400">Nome</p>
+                                    <p class="text-sm font-semibold text-gray-800 truncate">${formularioData.nome_completo}</p>
                                 </div>
-                                
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <div class="flex items-center gap-1">
-                                        <span class="text-[10px] text-gray-400">Início:</span>
-                                        <input type="time" id="horario_${centro.id}_inicio" 
-                                               value="${horarioInicio}"
-                                               class="w-24 h-8 px-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white">
-                                    </div>
-                                    
-                                    <span class="text-xs text-gray-300">às</span>
-                                    
-                                    <div class="flex items-center gap-1">
-                                        <span class="text-[10px] text-gray-400">Fim:</span>
-                                        <input type="time" id="horario_${centro.id}_fim" 
-                                               value="${horarioFim}"
-                                               class="w-24 h-8 px-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white">
-                                    </div>
-                                    
-                                    <span class="text-gray-300">|</span>
-                                    
-                                    <div class="flex items-center gap-1">
-                                        <span class="text-[10px] text-gray-400">
-                                            <i class="fas fa-users"></i>
-                                        </span>
-                                        <input type="number" id="vagas_${centro.id}" 
-                                               value="${vagas}" 
-                                               min="1" max="50"
-                                               class="w-14 h-8 px-1 text-xs text-center border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white">
-                                    </div>
-                                    
-                                    <button onclick="window.salvarConfigUnidade('${centro.id}')" 
-                                            class="h-8 px-3 bg-[#F4742B] text-white text-xs font-medium rounded-lg hover:bg-[#E0601A] transition flex items-center gap-1 ml-auto">
-                                        <i class="fas fa-save text-[10px]"></i> Salvar
-                                    </button>
+                                <div class="bg-gray-50 rounded-xl p-3 text-center">
+                                    <p class="text-xs text-gray-400">Idade</p>
+                                    <p class="text-sm font-semibold text-gray-800">${formularioData.idade} anos</p>
+                                </div>
+                                <div class="bg-gray-50 rounded-xl p-3 text-center">
+                                    <p class="text-xs text-gray-400">Telefone</p>
+                                    <p class="text-sm font-semibold text-gray-800">${formularioData.telefone}</p>
+                                </div>
+                                <div class="bg-gray-50 rounded-xl p-3 text-center">
+                                    <p class="text-xs text-gray-400">Termo</p>
+                                    <p class="text-sm font-semibold ${formularioData.termo_aceito ? 'text-green-600' : 'text-red-600'}">
+                                        ${formularioData.termo_aceito ? '✅ Aceito' : '❌ Não aceito'}
+                                    </p>
                                 </div>
                             </div>
-                        `;
-                    }).join('') || `
-                        <div class="text-center text-gray-400 py-6 text-sm">
-                            <i class="fas fa-building text-2xl block mb-2 text-gray-300"></i>
-                            Nenhuma unidade cadastrada
+                            
+                            <div class="flex flex-wrap gap-3">
+                                <button onclick="window.visualizarFormularioPreenchido()" 
+                                        class="px-6 h-10 bg-[#FEF3E8] text-[#F4742B] text-sm font-medium rounded-xl hover:bg-[#FED7AA] transition active:scale-[0.98] flex items-center gap-2">
+                                    <i class="fas fa-eye text-xs"></i> Visualizar
+                                </button>
+                                <button onclick="window.reabrirFormularioConsentimento()" 
+                                        class="px-6 h-10 border-2 border-[#F4742B] text-[#F4742B] text-sm font-medium rounded-xl hover:bg-[#F4742B] hover:text-white transition active:scale-[0.98] flex items-center gap-2">
+                                    <i class="fas fa-edit text-xs"></i> Reabrir
+                                </button>
+                                <span class="text-xs text-gray-400 ml-auto self-center">
+                                    <i class="far fa-calendar-alt mr-1"></i> ${new Date(formularioData.created_at).toLocaleDateString('pt-BR')}
+                                </span>
+                            </div>
+                        ` : `
+                            <div class="bg-[#FEF3E8] rounded-xl p-4 border border-[#FED7AA] mb-6">
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-info-circle text-[#F4742B] text-lg mt-0.5"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-[#92400E]">Atenção!</p>
+                                        <p class="text-sm text-[#92400E]">
+                                            Para realizar agendamentos, você precisa preencher o Questionário de Prontidão.
+                                            <br><span class="text-xs text-[#B45309]">Isso garante sua segurança durante as atividades.</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="window.abrirFormularioConsentimento()" 
+                                    class="w-full h-11 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm shadow-[#F4742B]/20">
+                                <i class="fas fa-file-signature text-xs"></i> Preencher Questionário
+                            </button>
+                        `}
+                        
+                        ${formularioData?.status === 'rejeitado' ? `
+                            <div class="mt-4 bg-red-50 rounded-xl p-3 border border-red-200">
+                                <p class="text-xs text-red-700">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Seu formulário foi rejeitado. Entre em contato com um profissional para avaliação.
+                                </p>
+                            </div>
+                        ` : ''}
+                        
+                        ${formularioData?.status === 'pendente' ? `
+                            <div class="mt-4 bg-yellow-50 rounded-xl p-3 border border-yellow-200">
+                                <p class="text-xs text-yellow-700">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    Seu formulário está em análise. Aguarde a avaliação.
+                                </p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+            
+            <!-- COLUNA 2: ADMIN (apenas para admins) -->
+            ${isAdmin ? `
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Card: Sistema -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                                <i class="fas fa-sliders-h text-[#F4742B]"></i>
+                            </div>
+                            <h3 class="text-sm font-semibold text-[#4B4B4D]">Sistema</h3>
                         </div>
-                    `}
+                    </div>
+                    
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                                <i class="fas fa-building text-[#F4742B] mr-1"></i> Nome da Academia
+                            </label>
+                            <input type="text" id="configNomeAcademia" 
+                                   value="${configs?.nome_academia || 'WODBOOK'}"
+                                   class="w-full h-10 px-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
+                            <p class="text-[10px] text-gray-400 mt-1">Nome que aparecerá no cabeçalho</p>
+                        </div>
+                        
+                        <button onclick="window.salvarConfiguracoes()" 
+                                class="w-full h-10 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm shadow-[#F4742B]/20">
+                            <i class="fas fa-save text-xs"></i> Salvar Configurações
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Card: Notificações -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                                <i class="fas fa-bell text-[#F4742B]"></i>
+                            </div>
+                            <h3 class="text-sm font-semibold text-[#4B4B4D]">Notificações</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Email</p>
+                                <p class="text-xs text-gray-400">Alertas sobre agendamentos</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="configNotifEmail" ${configs?.notificacoes_email === 'true' ? 'checked' : ''} class="sr-only peer">
+                                <div class="w-10 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-[#F4742B] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#F4742B]"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">WhatsApp</p>
+                                <p class="text-xs text-gray-400">Alertas via WhatsApp</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="configNotifWhatsApp" ${configs?.notificacoes_whatsapp === 'true' ? 'checked' : ''} class="sr-only peer">
+                                <div class="w-10 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-[#F4742B] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#F4742B]"></div>
+                            </label>
+                        </div>
+                        
+                        <button onclick="window.salvarNotificacoes()" 
+                                class="w-full h-10 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm shadow-[#F4742B]/20">
+                            <i class="fas fa-save text-xs"></i> Salvar Preferências
+                        </button>
+                    </div>
                 </div>
             </div>
             
-            <!-- Notificações -->
-            <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 card-hover">
-                <div class="flex items-center gap-3 mb-5">
-                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
-                        <i class="fas fa-bell text-[#F4742B] text-lg"></i>
-                    </div>
-                    <h3 class="text-base font-semibold text-[#4B4B4D]">Notificações</h3>
-                </div>
-                
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between p-3 bg-gray-50/80 rounded-xl">
-                        <div>
-                            <p class="text-sm font-medium text-gray-700">Email</p>
-                            <p class="text-[10px] text-gray-400">Alertas sobre agendamentos</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="configNotifEmail" ${configs?.notificacoes_email === 'true' ? 'checked' : ''} class="sr-only peer">
-                            <div class="w-10 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-[#F4742B] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#F4742B]"></div>
-                        </label>
-                    </div>
-                    
-                    <div class="flex items-center justify-between p-3 bg-gray-50/80 rounded-xl">
-                        <div>
-                            <p class="text-sm font-medium text-gray-700">WhatsApp</p>
-                            <p class="text-[10px] text-gray-400">Alertas via WhatsApp</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="configNotifWhatsApp" ${configs?.notificacoes_whatsapp === 'true' ? 'checked' : ''} class="sr-only peer">
-                            <div class="w-10 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-[#F4742B] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#F4742B]"></div>
-                        </label>
-                    </div>
-                    
-                    <button onclick="window.salvarNotificacoes()" 
-                            class="w-full h-10 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2">
-                        <i class="fas fa-save text-xs"></i> Salvar Preferências
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Integrações -->
-            <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 card-hover">
-                <div class="flex items-center gap-3 mb-5">
-                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
-                        <i class="fas fa-plug text-[#F4742B] text-lg"></i>
-                    </div>
-                    <h3 class="text-base font-semibold text-[#4B4B4D]">Integrações</h3>
-                </div>
-                
-                <div class="space-y-3">
-                    <div class="p-3 border border-gray-200 rounded-xl">
+            <!-- LINHA COMPLETA: Horários e Vagas -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
                         <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                                    <i class="fas fa-clock text-[#F4742B]"></i>
+                                </div>
+                                <h3 class="text-sm font-semibold text-[#4B4B4D]">Horários e Vagas</h3>
+                            </div>
+                            <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-green-50 text-green-600">
+                                ${centros?.length || 0} unidades
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${centros?.map(centro => {
+                                const horarioInicio = centro.horario_funcionamento?.split(' - ')[0] || '06:00';
+                                const horarioFim = centro.horario_funcionamento?.split(' - ')[1] || '22:00';
+                                const vagas = centro.vagas_padrao || 10;
+                                
+                                return `
+                                    <div class="bg-gray-50/80 rounded-xl p-4 hover:bg-gray-100/80 transition border border-gray-100/50">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <p class="font-semibold text-gray-800 text-sm">${centro.nome}</p>
+                                            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#FEF3E8] text-[#F4742B]">
+                                                <i class="fas fa-users mr-1"></i> ${vagas} vagas
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-[10px] text-gray-400">Início:</span>
+                                                <input type="time" id="horario_${centro.id}_inicio" 
+                                                       value="${horarioInicio}"
+                                                       class="w-24 h-8 px-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white">
+                                            </div>
+                                            
+                                            <span class="text-xs text-gray-300">às</span>
+                                            
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-[10px] text-gray-400">Fim:</span>
+                                                <input type="time" id="horario_${centro.id}_fim" 
+                                                       value="${horarioFim}"
+                                                       class="w-24 h-8 px-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white">
+                                            </div>
+                                            
+                                            <span class="text-gray-300">|</span>
+                                            
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-[10px] text-gray-400">
+                                                    <i class="fas fa-users"></i>
+                                                </span>
+                                                <input type="number" id="vagas_${centro.id}" 
+                                                       value="${vagas}" 
+                                                       min="1" max="50"
+                                                       class="w-14 h-8 px-1 text-xs text-center border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white">
+                                            </div>
+                                            
+                                            <button onclick="window.salvarConfigUnidade('${centro.id}')" 
+                                                    class="h-8 px-3 bg-[#F4742B] text-white text-xs font-medium rounded-lg hover:bg-[#E0601A] transition flex items-center gap-1 ml-auto">
+                                                <i class="fas fa-save text-[10px]"></i> Salvar
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('') || `
+                                <div class="col-span-2 text-center text-gray-400 py-8">
+                                    <i class="fas fa-building text-3xl block mb-2 text-gray-300"></i>
+                                    <p class="text-sm">Nenhuma unidade cadastrada</p>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LINHA COMPLETA: Integrações e Ferramentas -->
+            <div class="lg:col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Card: Integrações -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                                <i class="fas fa-plug text-[#F4742B]"></i>
+                            </div>
+                            <h3 class="text-sm font-semibold text-[#4B4B4D]">Integrações</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-xl">
                             <div>
                                 <p class="text-sm font-medium text-gray-700 flex items-center gap-2">
                                     <i class="fab fa-whatsapp text-green-500"></i>
                                     WhatsApp
                                 </p>
-                                <p class="text-[10px] text-gray-400">Evolution API</p>
+                                <p class="text-xs text-gray-400">Evolution API</p>
                             </div>
-                            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">Desconectado</span>
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">Desconectado</span>
                         </div>
                         <button onclick="window.configurarWhatsApp()" 
-                                class="mt-2 w-full h-8 border-2 border-green-500 text-green-500 text-xs font-medium rounded-lg hover:bg-green-500 hover:text-white transition flex items-center justify-center gap-1">
-                            <i class="fas fa-plug text-[10px]"></i> Configurar
+                                class="w-full h-9 border-2 border-green-500 text-green-500 text-sm font-medium rounded-lg hover:bg-green-500 hover:text-white transition flex items-center justify-center gap-2">
+                            <i class="fas fa-plug text-xs"></i> Configurar
                         </button>
-                    </div>
-                    
-                    <div class="p-3 border border-gray-200 rounded-xl">
-                        <div class="flex items-center justify-between">
+                        
+                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-xl">
                             <div>
                                 <p class="text-sm font-medium text-gray-700 flex items-center gap-2">
                                     <i class="fas fa-robot text-[#F4742B]"></i>
                                     N8N Automation
                                 </p>
-                                <p class="text-[10px] text-gray-400">Automatize fluxos</p>
+                                <p class="text-xs text-gray-400">Automatize fluxos</p>
                             </div>
-                            <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">Desconectado</span>
+                            <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">Desconectado</span>
                         </div>
                         <button onclick="window.configurarN8N()" 
-                                class="mt-2 w-full h-8 border-2 border-[#F4742B] text-[#F4742B] text-xs font-medium rounded-lg hover:bg-[#F4742B] hover:text-white transition flex items-center justify-center gap-1">
-                            <i class="fas fa-plug text-[10px]"></i> Configurar
+                                class="w-full h-9 border-2 border-[#F4742B] text-[#F4742B] text-sm font-medium rounded-lg hover:bg-[#F4742B] hover:text-white transition flex items-center justify-center gap-2">
+                            <i class="fas fa-plug text-xs"></i> Configurar
                         </button>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Ações de Sistema -->
-            <div class="bg-white rounded-2xl shadow-sm p-5 md:p-6 card-hover lg:col-span-2">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-[#FEF3E8] flex items-center justify-center">
-                        <i class="fas fa-tools text-[#F4742B] text-lg"></i>
-                    </div>
-                    <h3 class="text-base font-semibold text-[#4B4B4D]">Ferramentas</h3>
-                </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <button onclick="window.limparCache()" 
-                            class="h-10 border-2 border-yellow-500 text-yellow-500 text-sm font-medium rounded-xl hover:bg-yellow-500 hover:text-white transition active:scale-[0.98] flex items-center justify-center gap-2">
-                        <i class="fas fa-broom text-xs"></i> Limpar Cache
-                    </button>
-                    <button onclick="window.exportarDados()" 
-                            class="h-10 border-2 border-blue-500 text-blue-500 text-sm font-medium rounded-xl hover:bg-blue-500 hover:text-white transition active:scale-[0.98] flex items-center justify-center gap-2">
-                        <i class="fas fa-download text-xs"></i> Exportar
-                    </button>
-                    <button onclick="window.sairSistema()" 
-                            class="h-10 border-2 border-red-500 text-red-500 text-sm font-medium rounded-xl hover:bg-red-500 hover:text-white transition active:scale-[0.98] flex items-center justify-center gap-2">
-                        <i class="fas fa-sign-out-alt text-xs"></i> Sair
-                    </button>
+                <!-- Card: Ferramentas -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                                <i class="fas fa-tools text-[#F4742B]"></i>
+                            </div>
+                            <h3 class="text-sm font-semibold text-[#4B4B4D]">Ferramentas</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 gap-3">
+                            <button onclick="window.limparCache()" 
+                                    class="h-10 border-2 border-yellow-500 text-yellow-500 text-sm font-medium rounded-xl hover:bg-yellow-500 hover:text-white transition active:scale-[0.98] flex items-center justify-center gap-2">
+                                <i class="fas fa-broom text-xs"></i> Limpar Cache
+                            </button>
+                            <button onclick="window.exportarDados()" 
+                                    class="h-10 border-2 border-blue-500 text-blue-500 text-sm font-medium rounded-xl hover:bg-blue-500 hover:text-white transition active:scale-[0.98] flex items-center justify-center gap-2">
+                                <i class="fas fa-download text-xs"></i> Exportar Dados
+                            </button>
+                            <button onclick="window.sairSistema()" 
+                                    class="h-10 border-2 border-red-500 text-red-500 text-sm font-medium rounded-xl hover:bg-red-500 hover:text-white transition active:scale-[0.98] flex items-center justify-center gap-2">
+                                <i class="fas fa-sign-out-alt text-xs"></i> Sair do Sistema
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        `;
-    }
-    
-    html += `</div>`;
+            ` : ''}
+        </div>
+    `;
     
     // 🔥 APLICAR MÁSCARA DE TELEFONE APÓS RENDERIZAR
     setTimeout(() => {
         const telefoneInput = document.getElementById('configTelefone');
         if (telefoneInput) {
-            // Aplicar máscara no valor carregado
             if (telefoneInput.value) {
                 mascaraTelefone(telefoneInput);
             }
             
-            // Evento de input
             telefoneInput.addEventListener('input', function() {
                 mascaraTelefone(this);
                 this.classList.remove('border-red-500');
                 this.classList.add('border-gray-300');
             });
             
-            // Validação ao perder foco
             telefoneInput.addEventListener('blur', function() {
                 if (this.value && !validarTelefone(this.value)) {
                     this.classList.add('border-red-500');
@@ -435,7 +577,6 @@ export async function loadConfiguracoesContent() {
                 }
             });
             
-            // Remover erro ao focar
             telefoneInput.addEventListener('focus', function() {
                 this.classList.remove('border-red-500');
                 this.classList.add('border-gray-300');
@@ -445,6 +586,130 @@ export async function loadConfiguracoesContent() {
     
     return html;
 }
+// ============================================
+// FUNÇÕES DO FORMULÁRIO DE CONSENTIMENTO (USUÁRIO)
+// ============================================
+
+// Função para abrir o formulário de consentimento
+window.abrirFormularioConsentimento = function() {
+    // Importar a função do componente de consentimento
+    import('../components/consentimento.js').then(module => {
+        module.renderizarFormularioConsentimento();
+    }).catch(error => {
+        console.error('Erro ao carregar formulário:', error);
+        errorModal({
+            title: 'Erro',
+            message: 'Não foi possível carregar o formulário.',
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+    });
+};
+
+// Função para visualizar o formulário preenchido
+window.visualizarFormularioPreenchido = async function() {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return;
+        
+        const { data: formulario } = await supabase
+            .from('formulario_consentimento')
+            .select('*')
+            .eq('usuario_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+        
+        if (!formulario) {
+            infoModal({
+                title: 'Formulário não encontrado',
+                message: 'Você ainda não preencheu o Questionário de Prontidão.',
+                confirmText: 'OK',
+                onConfirm: () => window.closeModal()
+            });
+            return;
+        }
+        
+        // Mostrar modal com os dados do formulário
+        const modalContent = `
+            <div style="max-width: 500px; width: 100%;">
+                <div class="text-center mb-4">
+                    <h3 class="text-lg font-bold text-[#4B4B4D]">📋 Questionário de Prontidão</h3>
+                    <p class="text-xs text-gray-400">Visualize seus dados</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-400">Status</p>
+                        <p class="font-medium">${formulario.status === 'aprovado' ? '✅ Aprovado' : formulario.status === 'rejeitado' ? '⚠️ Rejeitado' : '⏳ Pendente'}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-gray-50 rounded-xl p-3">
+                            <p class="text-xs text-gray-400">Nome</p>
+                            <p class="font-medium text-sm">${formulario.nome_completo}</p>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3">
+                            <p class="text-xs text-gray-400">Idade</p>
+                            <p class="font-medium text-sm">${formulario.idade} anos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-400">Telefone</p>
+                        <p class="font-medium text-sm">${formulario.telefone}</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-400">Termo de Responsabilidade</p>
+                        <p class="font-medium text-sm ${formulario.termo_aceito ? 'text-green-600' : 'text-red-600'}">
+                            ${formulario.termo_aceito ? '✅ Aceito' : '❌ Não aceito'}
+                        </p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-400">Preenchido em</p>
+                        <p class="font-medium text-sm">${new Date(formulario.created_at).toLocaleString('pt-BR')}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        infoModal({
+            title: 'Formulário de Prontidão',
+            message: modalContent,
+            confirmText: 'Fechar',
+            onConfirm: () => window.closeModal()
+        });
+        
+    } catch (error) {
+        console.error('Erro ao visualizar formulário:', error);
+        errorModal({
+            title: 'Erro',
+            message: 'Não foi possível carregar seus dados.',
+            confirmText: 'OK',
+            onConfirm: () => window.closeModal()
+        });
+    }
+};
+
+// Função para reabrir o formulário de consentimento
+window.reabrirFormularioConsentimento = function() {
+    confirmModal({
+        title: 'Reabrir Questionário',
+        message: 'Ao reabrir o formulário, você poderá atualizar suas informações. Seu histórico anterior será mantido.',
+        confirmText: 'Reabrir',
+        cancelText: 'Cancelar',
+        confirmColor: '#F4742B',
+        onConfirm: () => {
+            window.closeModal();
+            window.abrirFormularioConsentimento();
+        },
+        onCancel: () => {
+            window.closeModal();
+        }
+    });
+};
 
 // ============================================
 // FUNÇÃO: Salvar Configurações da Unidade (Admin)
