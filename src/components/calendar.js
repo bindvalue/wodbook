@@ -45,7 +45,7 @@ const CORES = {
 };
 
 // ============================================
-// FUNÇÃO: Renderizar Calendário
+// FUNÇÃO: Renderizar Calendário (CORRIGIDA PARA MOBILE)
 // ============================================
 export function renderCalendar(centroId, centroNome) {
     if (modalAtivo) {
@@ -142,18 +142,23 @@ export function renderCalendar(centroId, centroNome) {
                 </div>
             </div>
             
-            <!-- Horários Disponíveis -->
-            <div class="px-3 sm:px-4 py-2 flex-1 min-h-0" style="flex-shrink: 1; overflow: hidden; display: flex; flex-direction: column;">
-                <div class="flex items-center justify-between mb-1 flex-shrink-0">
+            <!-- Horários Disponíveis - COM SCROLL MELHORADO -->
+            <div class="px-3 sm:px-4 py-2 flex-1 min-h-0" style="flex-shrink: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 80px;">
+                <div class="flex items-center justify-between mb-1.5 flex-shrink-0">
                     <h4 class="font-semibold flex items-center gap-1 text-xs sm:text-sm" style="color: ${CORES.secondary};">
                         <i class="fas fa-clock" style="color: ${CORES.primary};"></i> 
-                        <span>Horários</span>
+                        <span>Horários Disponíveis</span>
                         <span id="contagemHorarios" class="text-[10px] font-normal text-gray-400 ml-1"></span>
                     </h4>
+                    <span class="text-[9px] sm:text-[10px] text-gray-400 flex-shrink-0">
+                        <i class="fas fa-chevron-down"></i> Role
+                    </span>
                 </div>
-                <div id="horariosList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 flex-1 overflow-y-auto" 
-                     style="max-height: 180px; min-height: 80px; align-content: start;">
-                    <div class="col-span-full text-center py-4 text-xs" style="color: ${CORES.gray[500]};">
+                <!-- Lista de horários com scroll visível e touch-friendly -->
+                <div id="horariosList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 flex-1 overflow-y-auto" 
+                     style="max-height: 200px; min-height: 100px; align-content: start; padding: 2px; -webkit-overflow-scrolling: touch;">
+                    <div class="col-span-full text-center py-6 text-xs" style="color: ${CORES.gray[500]};">
+                        <i class="fas fa-calendar-day mr-1" style="color: ${CORES.primary};"></i>
                         Selecione uma data
                     </div>
                 </div>
@@ -259,10 +264,7 @@ function renderizarDias() {
 }
 
 // ============================================
-// FUNÇÃO: Carregar Horários
-// ============================================
-// ============================================
-// FUNÇÃO: Carregar Horários (CORRIGIDA)
+// FUNÇÃO: Carregar Horários (CORRIGIDA - COM DESCRIÇÃO MAIS VISÍVEL)
 // ============================================
 async function carregarHorarios() {
     const container = document.getElementById('horariosList');
@@ -270,7 +272,7 @@ async function carregarHorarios() {
     
     if (!estado.dataSelecionada) {
         container.innerHTML = `
-            <div class="col-span-full text-center py-4 text-xs" style="color: ${CORES.gray[500]};">
+            <div class="col-span-full text-center py-6 text-xs" style="color: ${CORES.gray[500]};">
                 <i class="fas fa-calendar-day mr-1" style="color: ${CORES.primary};"></i>
                 Selecione uma data
             </div>
@@ -279,7 +281,7 @@ async function carregarHorarios() {
     }
     
     container.innerHTML = `
-        <div class="col-span-full text-center py-4 text-xs" style="color: ${CORES.primary};">
+        <div class="col-span-full text-center py-6 text-xs" style="color: ${CORES.primary};">
             <i class="fas fa-spinner fa-spin mr-1"></i> Carregando horários...
         </div>
     `;
@@ -315,7 +317,7 @@ async function carregarHorarios() {
         
         if (!data || data.length === 0) {
             container.innerHTML = `
-                <div class="col-span-full text-center py-4 text-xs" style="color: ${CORES.gray[500]};">
+                <div class="col-span-full text-center py-6 text-xs" style="color: ${CORES.gray[500]};">
                     <i class="fas fa-info-circle mr-1" style="color: ${CORES.primary};"></i> 
                     Nenhum horário disponível
                 </div>
@@ -357,7 +359,7 @@ async function carregarHorarios() {
             return 0;
         });
         
-        // 🔥 RENDERIZAR OS BOTÕES
+        // 🔥 RENDERIZAR OS BOTÕES COM DESCRIÇÃO MAIS VISÍVEL
         container.innerHTML = horariosComVagas.map(horario => {
             const isPassado = horario.horarioPassado;
             const descricao = horario.descricao || '';
@@ -370,6 +372,7 @@ async function carregarHorarios() {
             let statusText = '';
             let statusColor = '#6B7280';
             let descColor = '#F4742B';
+            let descFontWeight = '500';
             
             if (isPassado) {
                 bgColor = '#F9FAFB';
@@ -378,6 +381,7 @@ async function carregarHorarios() {
                 statusText = '🔒 Encerrado';
                 statusColor = '#9CA3AF';
                 descColor = '#9CA3AF';
+                descFontWeight = '400';
             } else if (temVaga) {
                 bgColor = '#FFFFFF';
                 textColor = '#4B4B4D';
@@ -385,6 +389,7 @@ async function carregarHorarios() {
                 statusText = `${horario.vagasDisponiveis} vaga${horario.vagasDisponiveis > 1 ? 's' : ''}`;
                 statusColor = '#6B7280';
                 descColor = '#F4742B';
+                descFontWeight = '600';
             } else {
                 bgColor = '#F9FAFB';
                 textColor = '#9CA3AF';
@@ -392,6 +397,7 @@ async function carregarHorarios() {
                 statusText = 'Esgotado';
                 statusColor = '#EF4444';
                 descColor = '#9CA3AF';
+                descFontWeight = '400';
             }
             
             return `
@@ -399,20 +405,20 @@ async function carregarHorarios() {
                     data-horario-id="${horario.id}"
                     onclick="${isClickable ? `window.selecionarHorario('${horario.id}', '${horario.hora_inicio}', '${horario.hora_fim}')` : ''}"
                     class="p-2 rounded-xl border-2 transition-all duration-200 text-center ${isClickable ? 'cursor-pointer hover:border-[#F4742B] hover:bg-[#FEF3E8] active:scale-95' : 'cursor-not-allowed'}"
-                    style="border-color: ${borderColor}; background: ${bgColor};"
+                    style="border-color: ${borderColor}; background: ${bgColor}; min-height: 60px; display: flex; flex-direction: column; justify-content: center;"
                     ${isClickable ? '' : 'disabled'}
                 >
                     <div class="text-xs sm:text-sm font-bold" style="color: ${textColor};">
                         ${horario.hora_inicio.substring(0, 5)}
                     </div>
-                    <div class="text-[8px] sm:text-[10px] font-medium" style="color: ${statusColor};">
+                    <div class="text-[9px] sm:text-[10px] font-medium" style="color: ${statusColor};">
                         ${statusText}
                     </div>
-                    ${descricao && !isPassado ? `
-                        <div class="text-[7px] sm:text-[9px] font-medium truncate max-w-[80px] sm:max-w-[100px] mx-auto mt-0.5" 
-                             style="color: ${descColor};"
+                    ${descricao ? `
+                        <div class="text-[8px] sm:text-[10px] font-semibold truncate max-w-[100px] sm:max-w-[120px] mx-auto mt-1" 
+                             style="color: ${descColor}; font-weight: ${descFontWeight};"
                              title="${descricao}">
-                            ${descricao.length > 10 ? descricao.substring(0, 10) + '...' : descricao}
+                            ${descricao.length > 15 ? descricao.substring(0, 15) + '...' : descricao}
                         </div>
                     ` : ''}
                 </button>
@@ -437,7 +443,7 @@ async function carregarHorarios() {
     } catch (error) {
         console.error('Erro ao carregar horários:', error);
         container.innerHTML = `
-            <div class="col-span-full text-center py-4 text-xs" style="color: ${CORES.danger};">
+            <div class="col-span-full text-center py-6 text-xs" style="color: ${CORES.danger};">
                 <i class="fas fa-exclamation-circle mr-1"></i> Erro ao carregar
             </div>
         `;
