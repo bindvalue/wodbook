@@ -45,7 +45,7 @@ const CORES = {
 };
 
 // ============================================
-// FUNÇÃO: Renderizar Calendário (CORRIGIDA PARA MOBILE)
+// FUNÇÃO: Renderizar Calendário
 // ============================================
 export function renderCalendar(centroId, centroNome) {
     if (modalAtivo) {
@@ -142,7 +142,7 @@ export function renderCalendar(centroId, centroNome) {
                 </div>
             </div>
             
-            <!-- Horários Disponíveis - COM SCROLL E VISÍVEL -->
+            <!-- Horários Disponíveis -->
             <div class="px-3 sm:px-4 py-2 flex-1 min-h-0" style="flex-shrink: 1; overflow: hidden; display: flex; flex-direction: column;">
                 <div class="flex items-center justify-between mb-1 flex-shrink-0">
                     <h4 class="font-semibold flex items-center gap-1 text-xs sm:text-sm" style="color: ${CORES.secondary};">
@@ -150,11 +150,7 @@ export function renderCalendar(centroId, centroNome) {
                         <span>Horários</span>
                         <span id="contagemHorarios" class="text-[10px] font-normal text-gray-400 ml-1"></span>
                     </h4>
-                    <span class="text-[9px] sm:text-[10px] text-gray-400 flex-shrink-0">
-                        <i class="fas fa-chevron-down"></i>
-                    </span>
                 </div>
-                <!-- Lista de horários com altura adequada e scroll -->
                 <div id="horariosList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5 flex-1 overflow-y-auto" 
                      style="max-height: 180px; min-height: 80px; align-content: start;">
                     <div class="col-span-full text-center py-4 text-xs" style="color: ${CORES.gray[500]};">
@@ -163,7 +159,7 @@ export function renderCalendar(centroId, centroNome) {
                 </div>
             </div>
             
-            <!-- Botões - FIXOS NA BASE -->
+            <!-- Botões -->
             <div class="flex gap-2 p-3 sm:p-4 pt-2 border-t border-gray-100" style="flex-shrink: 0; background: white;">
                 <button onclick="window.fecharModalAgendamento()" 
                         class="flex-1 px-3 py-2.5 rounded-xl font-semibold transition text-xs sm:text-sm"
@@ -263,6 +259,9 @@ function renderizarDias() {
 }
 
 // ============================================
+// FUNÇÃO: Carregar Horários
+// ============================================
+// ============================================
 // FUNÇÃO: Carregar Horários (CORRIGIDA)
 // ============================================
 async function carregarHorarios() {
@@ -358,83 +357,81 @@ async function carregarHorarios() {
             return 0;
         });
         
-        // Verificar se algum horário está selecionado
-        const horarioSelecionadoId = estado.horarioSelecionado?.id;
-        
+        // 🔥 RENDERIZAR OS BOTÕES
         container.innerHTML = horariosComVagas.map(horario => {
             const isPassado = horario.horarioPassado;
             const descricao = horario.descricao || '';
-            const isSelected = horarioSelecionadoId === horario.id;
             const temVaga = horario.temVaga;
+            const isClickable = !isPassado && temVaga;
             
-            let borderColor = CORES.gray[200];
-            let bgColor = 'transparent';
-            let textColor = CORES.secondary;
-            let shadowStyle = '';
+            let bgColor = '#FFFFFF';
+            let textColor = '#4B4B4D';
+            let borderColor = '#E5E7EB';
+            let statusText = '';
+            let statusColor = '#6B7280';
+            let descColor = '#F4742B';
             
             if (isPassado) {
-                borderColor = CORES.gray[300];
-                textColor = CORES.gray[400];
-                bgColor = CORES.gray[50];
-            } else if (isSelected) {
-                borderColor = CORES.primary;
-                bgColor = CORES.primaryBg;
-                textColor = CORES.secondary;
-                shadowStyle = 'box-shadow: 0 0 0 3px rgba(244, 116, 43, 0.2);';
+                bgColor = '#F9FAFB';
+                textColor = '#9CA3AF';
+                borderColor = '#D1D5DB';
+                statusText = '🔒 Encerrado';
+                statusColor = '#9CA3AF';
+                descColor = '#9CA3AF';
             } else if (temVaga) {
-                borderColor = CORES.gray[200];
-                textColor = CORES.secondary;
+                bgColor = '#FFFFFF';
+                textColor = '#4B4B4D';
+                borderColor = '#E5E7EB';
+                statusText = `${horario.vagasDisponiveis} vaga${horario.vagasDisponiveis > 1 ? 's' : ''}`;
+                statusColor = '#6B7280';
+                descColor = '#F4742B';
             } else {
-                borderColor = CORES.gray[200];
-                textColor = CORES.gray[400];
-                bgColor = CORES.gray[50];
+                bgColor = '#F9FAFB';
+                textColor = '#9CA3AF';
+                borderColor = '#E5E7EB';
+                statusText = 'Esgotado';
+                statusColor = '#EF4444';
+                descColor = '#9CA3AF';
             }
-            
-            const isClickable = !isPassado && temVaga;
             
             return `
                 <button 
                     data-horario-id="${horario.id}"
                     onclick="${isClickable ? `window.selecionarHorario('${horario.id}', '${horario.hora_inicio}', '${horario.hora_fim}')` : ''}"
-                    class="p-2 rounded-xl border-2 transition-all duration-200 text-center ${isClickable ? 'active:scale-95 cursor-pointer hover:border-[#F4742B] hover:bg-[#FEF3E8]' : 'cursor-not-allowed'}"
-                    style="border-color: ${borderColor}; background: ${bgColor}; ${shadowStyle}"
+                    class="p-2 rounded-xl border-2 transition-all duration-200 text-center ${isClickable ? 'cursor-pointer hover:border-[#F4742B] hover:bg-[#FEF3E8] active:scale-95' : 'cursor-not-allowed'}"
+                    style="border-color: ${borderColor}; background: ${bgColor};"
                     ${isClickable ? '' : 'disabled'}
                 >
                     <div class="text-xs sm:text-sm font-bold" style="color: ${textColor};">
                         ${horario.hora_inicio.substring(0, 5)}
                     </div>
-                    <div class="text-[8px] sm:text-[10px]" style="color: ${isPassado ? CORES.gray[400] : (temVaga ? CORES.gray[500] : CORES.danger)};">
-                        ${isPassado ? '🔒 Encerrado' : (temVaga ? `${horario.vagasDisponiveis} vaga${horario.vagasDisponiveis > 1 ? 's' : ''}` : 'Esgotado')}
+                    <div class="text-[8px] sm:text-[10px] font-medium" style="color: ${statusColor};">
+                        ${statusText}
                     </div>
                     ${descricao && !isPassado ? `
-                        <div class="text-[7px] sm:text-[9px] text-[#F4742B] font-medium truncate max-w-[80px] sm:max-w-[100px] mx-auto mt-0.5" title="${descricao}">
+                        <div class="text-[7px] sm:text-[9px] font-medium truncate max-w-[80px] sm:max-w-[100px] mx-auto mt-0.5" 
+                             style="color: ${descColor};"
+                             title="${descricao}">
                             ${descricao.length > 10 ? descricao.substring(0, 10) + '...' : descricao}
-                        </div>
-                    ` : ''}
-                    ${isSelected ? `
-                        <div class="mt-0.5 text-[8px] text-[#F4742B] font-bold">
-                            <i class="fas fa-check-circle"></i> Selecionado
                         </div>
                     ` : ''}
                 </button>
             `;
         }).join('');
         
-        // Aplicar filtro se houver
+        // 🔥 APÓS RENDERIZAR, APLICAR AS CORES DE SELEÇÃO
+        setTimeout(() => {
+            atualizarCoresDosBotoes();
+        }, 50);
+        
         if (estado.filtroDescricao) {
             window.aplicarFiltroAula();
         }
         
-        // Atualizar contagem
         const contagem = document.getElementById('contagemHorarios');
         if (contagem) {
-            const visiveis = document.querySelectorAll('#horariosList button[style*="display: none"]').length;
             const total = horariosComVagas.length;
-            if (estado.filtroDescricao) {
-                contagem.textContent = `(${total - visiveis}/${total})`;
-            } else {
-                contagem.textContent = `(${total})`;
-            }
+            contagem.textContent = `(${total})`;
         }
         
     } catch (error) {
@@ -510,14 +507,17 @@ window.mudarMes = function(delta) {
     carregarHorarios();
 };
 
+
 // ============================================
 // FUNÇÃO: Selecionar Horário (GLOBAL - CORRIGIDA)
 // ============================================
 window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
-    console.log('🕐 Horário selecionado:', horarioId, horaInicio, horaFim);
+    console.log('🕐 Clique no horário:', horarioId);
+    console.log('📌 Estado atual:', estado.horarioSelecionado);
     
     // Se clicou no mesmo horário, desmarcar
     if (estado.horarioSelecionado && estado.horarioSelecionado.id === horarioId) {
+        console.log('🔄 Desmarcando horário');
         estado.horarioSelecionado = null;
         estado.agendamentoPendente = null;
         
@@ -527,15 +527,15 @@ window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
             btn.style.opacity = '0.5';
         }
         
-        // Recarregar horários para atualizar visual
-        carregarHorarios();
+        // 🔥 ATUALIZAR VISUAL
+        atualizarCoresDosBotoes();
         return;
     }
     
     // Selecionar novo horário
+    console.log('✅ Selecionando horário:', horarioId);
     estado.horarioSelecionado = { id: horarioId, inicio: horaInicio, fim: horaFim };
     
-    // Guardar dados do agendamento pendente
     estado.agendamentoPendente = {
         centroId: estado.centroId,
         centroNome: estado.centroNome,
@@ -552,9 +552,60 @@ window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
         btn.style.background = CORES.primary;
     }
     
-    // Recarregar horários para atualizar visual
-    carregarHorarios();
+    // 🔥 ATUALIZAR VISUAL
+    atualizarCoresDosBotoes();
 };
+
+// ============================================
+// FUNÇÃO: Atualizar Cores dos Botões (NOVA - DIRETA)
+// ============================================
+// ============================================
+// FUNÇÃO: Atualizar Cores dos Botões (CORRIGIDA)
+// ============================================
+function atualizarCoresDosBotoes() {
+    const botoes = document.querySelectorAll('#horariosList button[data-horario-id]');
+    const horarioSelecionadoId = estado.horarioSelecionado?.id;
+    
+    console.log('🎨 Atualizando cores. Selecionado ID:', horarioSelecionadoId);
+    console.log('📊 Total de botões:', botoes.length);
+    
+    botoes.forEach(btn => {
+        const id = btn.dataset.horarioId;
+        const isSelected = id === horarioSelecionadoId;
+        const isDisabled = btn.disabled;
+        
+        if (isSelected) {
+            console.log('🟧 Aplicando estilo LARANJA para:', id);
+            
+            // 🔥 FORÇAR O ESTILO DIRETAMENTE NO ELEMENTO
+            btn.style.setProperty('background', '#F4742B', 'important');
+            btn.style.setProperty('background-color', '#F4742B', 'important');
+            btn.style.setProperty('border-color', '#F4742B', 'important');
+            btn.style.setProperty('color', '#FFFFFF', 'important');
+            
+            // Mudar todos os textos dentro do botão para branco
+            const allTexts = btn.querySelectorAll('div, span');
+            allTexts.forEach(el => {
+                el.style.setProperty('color', '#FFFFFF', 'important');
+            });
+            
+        } else if (!isDisabled) {
+            console.log('⬜ Resetando estilo para:', id);
+            
+            // Resetar para o padrão
+            btn.style.setProperty('background', '#FFFFFF', 'important');
+            btn.style.setProperty('background-color', '#FFFFFF', 'important');
+            btn.style.setProperty('border-color', '#E5E7EB', 'important');
+            btn.style.setProperty('color', '#4B4B4D', 'important');
+            
+            // Restaurar cores dos textos
+            const allTexts = btn.querySelectorAll('div, span');
+            allTexts.forEach(el => {
+                el.style.removeProperty('color');
+            });
+        }
+    });
+}
 
 // ============================================
 // FUNÇÃO: Fechar Modal Agendamento (GLOBAL)
@@ -794,7 +845,10 @@ window.aplicarFiltroAula = function() {
             return;
         }
         
-        const descricao = btn.querySelector('.text-[#F4742B]')?.textContent || '';
+        // Pegar a descrição do botão (elemento com a classe descricao)
+        const descricaoEl = btn.querySelector('.text-[7px]');
+        const descricao = descricaoEl?.textContent || '';
+        
         if (descricao.toLowerCase().includes(filtro.toLowerCase())) {
             btn.style.display = '';
             visiveis++;
