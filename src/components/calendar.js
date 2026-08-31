@@ -44,8 +44,59 @@ const CORES = {
     }
 };
 
+// Adicione esta função no início do arquivo, após as importações
+function adicionarEstilosScroll() {
+    // Verificar se o estilo já foi adicionado
+    if (document.getElementById('calendarScrollStyles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'calendarScrollStyles';
+    style.textContent = `
+        /* 🔥 GARANTIR QUE O SCROLL FUNCIONE APENAS NA LISTA DE HORÁRIOS */
+        #modalAgendamento .modal-content,
+        #modalAgendamento > div {
+            overflow: hidden !important;
+        }
+        
+        #horariosList {
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            overscroll-behavior: contain !important;
+        }
+        
+        #horariosList::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        #horariosList::-webkit-scrollbar-track {
+            background: #F3F4F6;
+            border-radius: 4px;
+        }
+        
+        #horariosList::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 4px;
+        }
+        
+        #horariosList::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+        
+        /* Mobile - scrollbar mais grossa para touch */
+        @media (max-width: 640px) {
+            #horariosList::-webkit-scrollbar {
+                width: 6px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Chame esta função dentro de renderCalendar, antes de criar o modal
+adicionarEstilosScroll();
+
 // ============================================
-// FUNÇÃO: Renderizar Calendário (CORRIGIDA PARA MOBILE)
+// FUNÇÃO: Renderizar Calendário (CORRIGIDA - SCROLL APENAS NOS HORÁRIOS)
 // ============================================
 export function renderCalendar(centroId, centroNome) {
     if (modalAtivo) {
@@ -66,10 +117,11 @@ export function renderCalendar(centroId, centroNome) {
     const modal = document.createElement('div');
     modal.id = 'modalAgendamento';
     modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 fade-in';
+    modal.style.overflow = 'hidden'; // 🔥 IMPEDIR SCROLL DO MODAL
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[98vh] sm:max-h-[95vh] overflow-hidden" 
-             style="border-top: 4px solid ${CORES.primary}; display: flex; flex-direction: column;">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[98vh] sm:max-h-[95vh]" 
+             style="border-top: 4px solid ${CORES.primary}; display: flex; flex-direction: column; overflow: hidden;">
             
             <!-- Header -->
             <div class="flex justify-between items-center p-3 sm:p-4 pb-2" style="flex-shrink: 0;">
@@ -142,8 +194,9 @@ export function renderCalendar(centroId, centroNome) {
                 </div>
             </div>
             
-            <!-- Horários Disponíveis - COM SCROLL MELHORADO -->
-            <div class="px-3 sm:px-4 py-2 flex-1 min-h-0" style="flex-shrink: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 80px;">
+            <!-- 🔥 Horários Disponíveis - COM SCROLL APENAS AQUI -->
+            <div class="px-3 sm:px-4 py-2 flex-1 min-h-0" 
+                 style="flex-shrink: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 80px; position: relative;">
                 <div class="flex items-center justify-between mb-1.5 flex-shrink-0">
                     <h4 class="font-semibold flex items-center gap-1 text-xs sm:text-sm" style="color: ${CORES.secondary};">
                         <i class="fas fa-clock" style="color: ${CORES.primary};"></i> 
@@ -154,9 +207,10 @@ export function renderCalendar(centroId, centroNome) {
                         <i class="fas fa-chevron-down"></i> Role
                     </span>
                 </div>
-                <!-- Lista de horários com scroll visível e touch-friendly -->
-                <div id="horariosList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 flex-1 overflow-y-auto" 
-                     style="max-height: 200px; min-height: 100px; align-content: start; padding: 2px; -webkit-overflow-scrolling: touch;">
+                <!-- 🔥 LISTA DE HORÁRIOS COM SCROLL APENAS AQUI -->
+                <div id="horariosList" 
+                     class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 flex-1 overflow-y-auto" 
+                     style="max-height: 200px; min-height: 100px; align-content: start; padding: 4px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
                     <div class="col-span-full text-center py-6 text-xs" style="color: ${CORES.gray[500]};">
                         <i class="fas fa-calendar-day mr-1" style="color: ${CORES.primary};"></i>
                         Selecione uma data
@@ -190,6 +244,28 @@ export function renderCalendar(centroId, centroNome) {
     
     renderizarDias();
     modal.style.display = 'flex';
+    
+    // 🔥 IMPEDIR QUE O SCROLL DO MODAL AFETE A PÁGINA
+    modal.addEventListener('touchmove', function(e) {
+        // Se o alvo do toque não for a lista de horários, permite o scroll
+        const target = e.target;
+        const horariosList = document.getElementById('horariosList');
+        
+        // Se o toque não for dentro da lista de horários, não faz nada
+        if (!horariosList || !horariosList.contains(target)) {
+            // Permite o scroll normal do modal
+            return;
+        }
+        
+        // Se for dentro da lista, verifica se chegou ao fim
+        const isAtTop = horariosList.scrollTop === 0;
+        const isAtBottom = horariosList.scrollTop + horariosList.clientHeight >= horariosList.scrollHeight;
+        
+        // Se chegou ao topo ou fim, impede o scroll da página
+        if (isAtTop || isAtBottom) {
+            e.preventDefault();
+        }
+    }, { passive: false });
     
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
