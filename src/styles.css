@@ -3,19 +3,14 @@
    ============================================ */
 
 :root {
-    /* Cores Principais */
     --color-primary: #F4742B;
     --color-primary-dark: #E0601A;
     --color-primary-light: #FF8F4A;
     --color-primary-bg: #FEF3E8;
-    
-    /* Cores Secundárias */
     --color-secondary: #4B4B4D;
     --color-secondary-dark: #333333;
     --color-secondary-light: #6B6B6D;
     --color-secondary-bg: #F5F5F5;
-    
-    /* Cores Neutras */
     --color-white: #FFFFFF;
     --color-gray-50: #F9FAFB;
     --color-gray-100: #F3F4F6;
@@ -27,13 +22,9 @@
     --color-gray-700: #374151;
     --color-gray-800: #1F2937;
     --color-gray-900: #111827;
-    
-    /* Gradientes */
     --gradient-primary: linear-gradient(135deg, #F4742B 0%, #E0601A 100%);
     --gradient-secondary: linear-gradient(135deg, #4B4B4D 0%, #333333 100%);
     --gradient-hero: linear-gradient(135deg, #F4742B 0%, #E0601A 50%, #4B4B4D 100%);
-    
-    /* Sombras */
     --shadow-sm: 0 1px 2px rgba(244, 116, 43, 0.05);
     --shadow-md: 0 4px 6px rgba(244, 116, 43, 0.07);
     --shadow-lg: 0 10px 15px rgba(244, 116, 43, 0.1);
@@ -630,7 +621,6 @@
     background: #E5E7EB;
 }
 
-/* Responsivo */
 @media (max-width: 640px) {
     .modal-content {
         padding: 24px;
@@ -655,9 +645,25 @@
 }
 
 /* ============================================
-   ESTILOS DO CALENDÁRIO
+   CALENDÁRIO - APPLE DESIGN SEM SCROLL
    ============================================ */
 
+/* Container do modal - fundo escuro */
+#modalAgendamento {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+    overflow: hidden !important;
+}
+
+/* Fade-in */
 .fade-in {
     animation: fadeIn 0.3s ease;
 }
@@ -673,67 +679,547 @@
     }
 }
 
-#modalAgendamento .overflow-y-auto {
-    scrollbar-width: thin;
-    scrollbar-color: #c4b5fd #f3f4f6;
+/* Card do modal - TAMANHO AJUSTADO */
+#modalAgendamento > div {
+    max-width: 560px !important;
+    width: 100% !important;
+    max-height: 90vh !important;
+    overflow: hidden !important; /* SEM SCROLL */
+    padding: 1.25rem !important;
+    margin: 0 auto !important;
+    border-radius: 20px !important;
+    background: #FFFFFF !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
+    border-top: 4px solid #F4742B !important;
 }
 
-#modalAgendamento .overflow-y-auto::-webkit-scrollbar {
-    width: 6px;
+/* HEADER - fixo */
+#modalAgendamento .flex.justify-between.items-center.mb-4 {
+    flex-shrink: 0 !important;
 }
 
-#modalAgendamento .overflow-y-auto::-webkit-scrollbar-track {
-    background: #f3f4f6;
-    border-radius: 10px;
+/* Navegação do mês - fixa */
+#modalAgendamento .flex.justify-between.items-center.mb-3 {
+    flex-shrink: 0 !important;
 }
 
-#modalAgendamento .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #c4b5fd;
-    border-radius: 10px;
+/* Dias da semana - fixos */
+#modalAgendamento .grid.grid-cols-7.gap-1.mb-1 {
+    flex-shrink: 0 !important;
 }
 
-#modalAgendamento .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #8b5cf6;
+/* Grid de dias - sem overflow */
+#diasGrid {
+    overflow: hidden !important;
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 3px !important;
+    flex-shrink: 0 !important;
 }
 
-#modalAgendamento button[onclick^="selecionarData"] {
-    transition: all 0.2s ease;
+#diasGrid button {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 11px !important;
+    height: 32px !important;
+    padding: 0 2px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    background: #F3F4F6 !important;
+    color: #4B4B4D !important;
+    border: none !important;
+    cursor: pointer !important;
 }
 
-#modalAgendamento button[onclick^="selecionarData"]:hover:not(:disabled) {
-    transform: scale(1.05);
+#diasGrid button:hover:not(:disabled) {
+    transform: scale(1.05) !important;
+    background: #FEF3E8 !important;
 }
 
-#modalAgendamento button[onclick^="selecionarData"]:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+#diasGrid button:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    background: #E5E7EB !important;
+}
+
+#diasGrid button.bg-\[\#F4742B\] {
+    background: #F4742B !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 8px rgba(244, 116, 43, 0.3) !important;
+}
+
+#diasGrid button.border-2 {
+    border: 2px solid #F4742B !important;
+    color: #F4742B !important;
+    background: #FFFFFF !important;
+}
+
+/* FILTRO - compacto */
+#modalAgendamento .mb-4.p-3 {
+    padding: 0.4rem 0.6rem !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+}
+
+#modalAgendamento .flex.flex-wrap {
+    gap: 0.25rem !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+}
+
+#modalAgendamento .flex.flex-wrap label {
+    font-size: 10px !important;
+    white-space: nowrap !important;
+}
+
+#modalAgendamento select {
+    font-size: 10px !important;
+    padding: 0.15rem 0.4rem !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+    border: 1px solid #E5E7EB !important;
+    background: #FFFFFF !important;
+    max-width: 120px !important;
+}
+
+#modalAgendamento .flex.flex-wrap button {
+    font-size: 10px !important;
+    padding: 0.15rem 0.5rem !important;
+    height: 28px !important;
+}
+
+/* HORÁRIOS - GRID FIXO SEM SCROLL */
+#horariosList {
+    overflow: hidden !important;
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 0.5rem !important;
 }
 
 #horariosList button {
-    transition: all 0.2s ease;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    padding: 0.3rem 0.15rem !important;
+    font-size: 10px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    border: 2px solid #E5E7EB !important;
+    background: #F9FAFB !important;
+    cursor: pointer !important;
+    min-height: 40px !important;
 }
 
 #horariosList button:hover:not(:disabled) {
-    transform: translateY(-2px);
+    transform: translateY(-2px) !important;
+    border-color: #F4742B !important;
+    background: #FEF3E8 !important;
 }
 
 #horariosList button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
 }
 
+/* Estilo para horário selecionado */
+#horariosList button.selecionado {
+    border-color: #F4742B !important;
+    background: #FEF3E8 !important;
+    box-shadow: 0 0 0 3px rgba(244, 116, 43, 0.15) !important;
+    transform: scale(1.02) !important;
+}
+
+#horariosList button.selecionado .text-xs {
+    color: #F4742B !important;
+    font-weight: 600 !important;
+}
+
+/* Descrição dos horários */
+.descricao-horario {
+    font-size: 7px !important;
+    max-width: 50px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+/* Tooltip dos horários */
+#horariosList button .absolute.bottom-full {
+    max-width: 180px !important;
+    min-width: 120px !important;
+    padding: 0.3rem 0.5rem !important;
+    border-radius: 6px !important;
+    background: #4B4B4D !important;
+    color: #FFFFFF !important;
+    font-size: 9px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+    z-index: 50 !important;
+}
+
+/* BOTÕES DE AÇÃO - fixos */
+#modalAgendamento .flex.gap-3.mt-4 {
+    gap: 0.5rem !important;
+    flex-shrink: 0 !important;
+    padding-top: 0.5rem !important;
+}
+
+#modalAgendamento .flex.gap-3.mt-4 button {
+    padding: 0.5rem 1rem !important;
+    font-size: 12px !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    flex: 1 !important;
+}
+
+#modalAgendamento .flex.gap-3.mt-4 button:first-child {
+    border: 2px solid #E5E7EB !important;
+    background: transparent !important;
+    color: #4B4B4D !important;
+}
+
+#modalAgendamento .flex.gap-3.mt-4 button:first-child:hover {
+    background: #F3F4F6 !important;
+}
+
+/* BOTÃO FECHAR */
+#modalAgendamento button.text-2xl {
+    font-size: 1.25rem !important;
+    padding: 0.25rem !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+#modalAgendamento button.text-2xl:hover {
+    color: #F4742B !important;
+}
+
+/* MENSAGEM DE STATUS */
+#mensagemAgendamento {
+    flex-shrink: 0 !important;
+    margin-top: 0.5rem !important;
+    font-size: 12px !important;
+    padding: 0.4rem !important;
+}
+
+/* Prevenir overflow em tudo */
+#modalAgendamento * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* ============================================
+   FORMULÁRIO DE CONSENTIMENTO - APPLE DESIGN
+   ============================================ */
+
+/* Container do modal */
+#modalConsentimento {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    z-index: 10001 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+    overflow: hidden !important;
+}
+
+/* Card do modal */
+#modalConsentimento .modal-content {
+    max-width: 600px !important;
+    width: 100% !important;
+    max-height: 90vh !important;
+    overflow: hidden !important; /* Remove scroll externo */
+    background: #FFFFFF !important;
+    border-radius: 24px !important;
+    padding: 32px !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Título fixo */
+#modalConsentimento .text-center.mb-6 {
+    flex-shrink: 0 !important;
+}
+
+/* Formulário - área com scroll interna */
+#modalConsentimento #formConsentimento {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    flex: 1 !important;
+    padding-right: 4px !important;
+}
+
+/* Scrollbar personalizada */
+#modalConsentimento #formConsentimento::-webkit-scrollbar {
+    width: 4px !important;
+}
+
+#modalConsentimento #formConsentimento::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+#modalConsentimento #formConsentimento::-webkit-scrollbar-thumb {
+    background: rgba(244, 116, 43, 0.25) !important;
+    border-radius: 10px !important;
+}
+
+#modalConsentimento #formConsentimento::-webkit-scrollbar-thumb:hover {
+    background: rgba(244, 116, 43, 0.5) !important;
+}
+
+/* Termo de Responsabilidade - ÁREA DE LEITURA MAIOR */
+#modalConsentimento .bg-gray-50.rounded-xl.p-4.border {
+    flex-shrink: 0 !important;
+}
+
+#modalConsentimento .bg-gray-50 .max-h-32 {
+    max-height: 180px !important; /* Aumentado para melhor leitura */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 12px !important;
+    background: #FFFFFF !important;
+    border-radius: 10px !important;
+    border: 1px solid #E5E7EB !important;
+    font-size: 13px !important;
+    line-height: 1.7 !important;
+    color: #374151 !important;
+}
+
+/* Scrollbar do termo */
+#modalConsentimento .bg-gray-50 .max-h-32::-webkit-scrollbar {
+    width: 3px !important;
+}
+
+#modalConsentimento .bg-gray-50 .max-h-32::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+#modalConsentimento .bg-gray-50 .max-h-32::-webkit-scrollbar-thumb {
+    background: rgba(244, 116, 43, 0.2) !important;
+    border-radius: 10px !important;
+}
+
+/* Campos do formulário */
+#modalConsentimento .input-apple {
+    width: 100% !important;
+    padding: 12px 14px !important;
+    border: 1.5px solid #E5E7EB !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    outline: none !important;
+    background: #F9FAFB !important;
+    color: #1F2937 !important;
+}
+
+#modalConsentimento .input-apple:focus {
+    border-color: #F4742B !important;
+    background: #FFFFFF !important;
+    box-shadow: 0 0 0 4px rgba(244, 116, 43, 0.1) !important;
+}
+
+/* Perguntas */
+#modalConsentimento .bg-gray-50\/80.rounded-xl.p-3 {
+    flex-shrink: 0 !important;
+}
+
+/* Botões fixos */
+#modalConsentimento .flex.gap-3.pt-2 {
+    flex-shrink: 0 !important;
+    padding-top: 16px !important;
+    border-top: 1px solid #F3F4F6 !important;
+}
+
+/* Botão fechar */
+#modalConsentimento button[onclick="window.fecharModalConsentimento()"] {
+    position: sticky !important;
+    top: 0 !important;
+    float: right !important;
+    background: none !important;
+    border: none !important;
+    font-size: 24px !important;
+    color: #9CA3AF !important;
+    cursor: pointer !important;
+    padding: 8px !important;
+    z-index: 10 !important;
+}
+
+#modalConsentimento button[onclick="window.fecharModalConsentimento()"]:hover {
+    color: #4B4B4D !important;
+}
+
+/* Responsivo - Mobile */
 @media (max-width: 640px) {
-    #modalAgendamento .max-w-2xl {
-        margin: 1rem;
-        padding: 1rem;
-        max-height: 95vh;
+    #modalConsentimento {
+        padding: 12px !important;
+    }
+    
+    #modalConsentimento .modal-content {
+        max-height: 95vh !important;
+        padding: 20px !important;
+        border-radius: 20px !important;
+    }
+    
+    #modalConsentimento .bg-gray-50 .max-h-32 {
+        max-height: 140px !important;
+        font-size: 12px !important;
+        padding: 10px !important;
+    }
+    
+    #modalConsentimento .input-apple {
+        font-size: 13px !important;
+        padding: 10px 12px !important;
+    }
+    
+    #modalConsentimento .grid.grid-cols-1.sm\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    #modalConsentimento .flex.gap-3.pt-2 {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    
+    #modalConsentimento .flex.gap-3.pt-2 button {
+        width: 100% !important;
+        padding: 12px !important;
+    }
+    
+    #modalConsentimento h2.text-2xl {
+        font-size: 1.25rem !important;
+    }
+}
+
+/* ============================================
+   CALENDÁRIO - RESPONSIVO
+   ============================================ */
+
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+    #modalAgendamento > div {
+        max-width: 90% !important;
+        padding: 1rem !important;
     }
     
     #horariosList {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 }
 
+/* Mobile */
+@media (max-width: 640px) {
+    #modalAgendamento {
+        padding: 8px !important;
+    }
+    
+    #modalAgendamento > div {
+        max-width: 100% !important;
+        margin: 0.5rem !important;
+        padding: 0.6rem !important;
+        max-height: 95vh !important;
+        border-radius: 16px !important;
+    }
+    
+    #diasGrid {
+        gap: 2px !important;
+    }
+    
+    #diasGrid button {
+        font-size: 9px !important;
+        height: 28px !important;
+        padding: 0 1px !important;
+        border-radius: 6px !important;
+    }
+    
+    /* TÍTULO NO MOBILE */
+    #modalAgendamento h2.text-xl {
+        font-size: 0.85rem !important;
+    }
+    
+    #modalAgendamento .text-xs {
+        font-size: 8px !important;
+    }
+    
+    /* FILTRO NO MOBILE */
+    #modalAgendamento .flex.flex-wrap {
+        flex-wrap: wrap !important;
+        gap: 0.15rem !important;
+    }
+    
+    #modalAgendamento select {
+        font-size: 9px !important;
+        height: 24px !important;
+        max-width: 100px !important;
+    }
+    
+    #modalAgendamento .flex.flex-wrap button {
+        font-size: 9px !important;
+        height: 24px !important;
+        padding: 0.1rem 0.4rem !important;
+    }
+    
+    #modalAgendamento .flex.flex-wrap label {
+        font-size: 9px !important;
+    }
+    
+    /* HORÁRIOS MOBILE */
+    #horariosList {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 3px !important;
+    }
+    
+    #horariosList button {
+        padding: 0.3rem 0.15rem !important;
+        font-size: 9px !important;
+        border-radius: 6px !important;
+        min-height: 36px !important;
+    }
+    
+    #horariosList button .text-xs {
+        font-size: 8px !important;
+    }
+    
+    .descricao-horario {
+        font-size: 6px !important;
+        max-width: 40px !important;
+    }
+    
+    #horariosList button .absolute.bottom-full {
+        max-width: 120px !important;
+        min-width: 80px !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 8px !important;
+    }
+    
+    /* BOTÕES MOBILE */
+    #modalAgendamento .flex.gap-3.mt-4 {
+        flex-direction: column !important;
+        gap: 0.3rem !important;
+    }
+    
+    #modalAgendamento .flex.gap-3.mt-4 button {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 11px !important;
+        width: 100% !important;
+    }
+}
 /* ============================================
    NOTIFICAÇÕES DROPDOWN
    ============================================ */

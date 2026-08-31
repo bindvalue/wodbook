@@ -1,4 +1,6 @@
 import { mascaraTelefone, removerMascaraTelefone, validarTelefone } from './mascara.js';
+import { usuarioPreencheuFormulario, renderizarFormularioConsentimento } from './consentimento.js';
+
 // ============================================
 // COMPONENTE: Calendário para Agendamento
 // ============================================
@@ -11,7 +13,9 @@ let estado = {
     anoAtual: 0,
     dataSelecionada: null,
     horarioSelecionado: null,
-    filtroDescricao: ''
+    filtroDescricao: '',
+    // 🔥 NOVO: Guardar dados do agendamento pendente
+    agendamentoPendente: null
 };
 
 // Cores da marca
@@ -58,17 +62,18 @@ export function renderCalendar(centroId, centroNome) {
     estado.dataSelecionada = null;
     estado.horarioSelecionado = null;
     estado.filtroDescricao = '';
+    estado.agendamentoPendente = null; // 🔥 Resetar agendamento pendente
 
     const modal = document.createElement('div');
     modal.id = 'modalAgendamento';
     modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in';
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6" 
-             style="border-top: 4px solid ${CORES.primary};">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-hidden p-6"
+             style="border-top: 4px solid ${CORES.primary}; display: flex; flex-direction: column;">
             
             <!-- Header -->
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-4" style="flex-shrink: 0;">
                 <div>
                     <h2 class="text-xl font-bold" style="color: ${CORES.secondary};">
                         <i class="fas fa-calendar-plus" style="color: ${CORES.primary};"></i> 
@@ -83,7 +88,7 @@ export function renderCalendar(centroId, centroNome) {
             </div>
             
             <!-- Navegação do Mês -->
-            <div class="flex justify-between items-center mb-3">
+            <div class="flex justify-between items-center mb-3" style="flex-shrink: 0;">
                 <button onclick="window.mudarMes(-1)" 
                         class="px-3 py-1.5 rounded-lg transition hover:scale-105 text-sm"
                         style="background: ${CORES.gray[100]}; color: ${CORES.secondary};">
@@ -100,7 +105,7 @@ export function renderCalendar(centroId, centroNome) {
             </div>
             
             <!-- Dias da Semana -->
-            <div class="grid grid-cols-7 gap-1 mb-1">
+            <div class="grid grid-cols-7 gap-1 mb-1" style="flex-shrink: 0;">
                 ${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(dia => `
                     <div class="text-center text-[10px] font-semibold py-1 uppercase tracking-wider" 
                          style="color: ${CORES.secondaryLight};">
@@ -110,10 +115,10 @@ export function renderCalendar(centroId, centroNome) {
             </div>
             
             <!-- Grid de Dias -->
-            <div id="diasGrid" class="grid grid-cols-7 gap-1 mb-4"></div>
+            <div id="diasGrid" class="grid grid-cols-7 gap-1 mb-4" style="flex-shrink: 0;"></div>
             
             <!-- Filtro por tipo de aula -->
-            <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+            <div class="mb-4 p-3 bg-gray-50 rounded-lg" style="flex-shrink: 0;">
                 <div class="flex flex-wrap items-center gap-2">
                     <label class="text-xs font-medium text-gray-700 flex items-center gap-1">
                         <i class="fas fa-filter text-[#F4742B]"></i> Filtrar por tipo:
@@ -137,7 +142,7 @@ export function renderCalendar(centroId, centroNome) {
             </div>
             
             <!-- Horários Disponíveis -->
-            <div class="mb-4">
+            <div class="mb-4" style="flex-shrink: 0;">
                 <h4 class="font-semibold mb-2 flex items-center gap-2 text-sm" style="color: ${CORES.secondary};">
                     <i class="fas fa-clock" style="color: ${CORES.primary};"></i> 
                     Horários Disponíveis
@@ -151,7 +156,7 @@ export function renderCalendar(centroId, centroNome) {
             </div>
             
             <!-- Botões -->
-            <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+            <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100" style="flex-shrink: 0;">
                 <button onclick="window.fecharModalAgendamento()" 
                         class="flex-1 px-4 py-2 rounded-lg font-semibold transition hover:scale-[1.02] text-sm"
                         style="border: 2px solid ${CORES.gray[200]}; color: ${CORES.secondary}; background: transparent;">
@@ -258,6 +263,7 @@ window.selecionarData = function(dataStr) {
     if (estado.dataSelecionada === dataStr) {
         estado.dataSelecionada = null;
         estado.horarioSelecionado = null;
+        estado.agendamentoPendente = null;
         
         const btn = document.getElementById('btnConfirmarAgendamento');
         if (btn) {
@@ -280,6 +286,7 @@ window.selecionarData = function(dataStr) {
     
     estado.dataSelecionada = dataStr;
     estado.horarioSelecionado = null;
+    estado.agendamentoPendente = null;
     
     const btn = document.getElementById('btnConfirmarAgendamento');
     if (btn) {
@@ -306,6 +313,7 @@ window.mudarMes = function(delta) {
     
     estado.dataSelecionada = null;
     estado.horarioSelecionado = null;
+    estado.agendamentoPendente = null;
     
     const btn = document.getElementById('btnConfirmarAgendamento');
     if (btn) {
@@ -459,6 +467,19 @@ async function carregarHorarios() {
             `;
         }).join('');
         
+        // Se já havia um horário selecionado, reaplicar a seleção
+        if (estado.horarioSelecionado) {
+            document.querySelectorAll('#horariosList button[data-horario-id]').forEach(btn => {
+                if (btn.dataset.horarioId === estado.horarioSelecionado.id) {
+                    btn.classList.add('selecionado');
+                    btn.style.borderColor = CORES.primary;
+                    btn.style.background = CORES.primaryBg;
+                    btn.style.transform = 'scale(1.05)';
+                    btn.style.boxShadow = '0 0 0 3px rgba(244, 116, 43, 0.15)';
+                }
+            });
+        }
+        
         if (estado.filtroDescricao) {
             window.aplicarFiltroAula();
         }
@@ -479,8 +500,10 @@ async function carregarHorarios() {
 window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
     console.log('🕐 Horário selecionado:', horarioId, horaInicio, horaFim);
     
+    // Se clicou no mesmo horário, desmarcar
     if (estado.horarioSelecionado && estado.horarioSelecionado.id === horarioId) {
         estado.horarioSelecionado = null;
+        estado.agendamentoPendente = null;
         
         const btn = document.getElementById('btnConfirmarAgendamento');
         if (btn) {
@@ -488,15 +511,27 @@ window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
             btn.style.opacity = '0.5';
         }
         
+        // Remover classe de seleção de todos os botões
         document.querySelectorAll('#horariosList button[data-horario-id]').forEach(btn => {
+            btn.classList.remove('selecionado');
             btn.style.borderColor = CORES.gray[200];
             btn.style.background = 'transparent';
             btn.style.transform = 'scale(1)';
+            btn.style.boxShadow = 'none';
         });
         return;
     }
     
+    // Selecionar novo horário
     estado.horarioSelecionado = { id: horarioId, inicio: horaInicio, fim: horaFim };
+    
+    // 🔥 Guardar dados do agendamento pendente
+    estado.agendamentoPendente = {
+        centroId: estado.centroId,
+        centroNome: estado.centroNome,
+        horarioId: horarioId,
+        dataAgendamento: estado.dataSelecionada
+    };
     
     const btn = document.getElementById('btnConfirmarAgendamento');
     if (btn) {
@@ -505,15 +540,22 @@ window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
         btn.style.background = CORES.primary;
     }
     
+    // Aplicar classe de seleção
     document.querySelectorAll('#horariosList button[data-horario-id]').forEach(btn => {
+        // Resetar todos
+        btn.classList.remove('selecionado');
         btn.style.borderColor = CORES.gray[200];
         btn.style.background = 'transparent';
         btn.style.transform = 'scale(1)';
+        btn.style.boxShadow = 'none';
         
+        // Destacar o selecionado
         if (btn.dataset.horarioId === horarioId) {
+            btn.classList.add('selecionado');
             btn.style.borderColor = CORES.primary;
             btn.style.background = CORES.primaryBg;
             btn.style.transform = 'scale(1.05)';
+            btn.style.boxShadow = '0 0 0 3px rgba(244, 116, 43, 0.15)';
         }
     });
 };
@@ -526,6 +568,8 @@ window.fecharModalAgendamento = function() {
         modalAtivo.remove();
         modalAtivo = null;
     }
+    // 🔥 Limpar agendamento pendente ao fechar modal
+    estado.agendamentoPendente = null;
 };
 
 // ============================================
@@ -564,42 +608,192 @@ window.confirmarAgendamento = async function() {
             throw new Error('Usuário não autenticado');
         }
         
-        console.log('👤 Usuário:', user.email);
+        // 🔥 VERIFICAR FORMULÁRIO DE CONSENTIMENTO
+        const preencheu = await usuarioPreencheuFormulario(user.id);
         
-        // Buscar perfil do usuário
-        const { data: profile, error: profileError } = await supabase
-            .from('usuarios')
-            .select('id, nome, telefone')
-            .eq('id', user.id)
-            .maybeSingle();
-        
-        console.log('📞 Telefone do perfil:', profile?.telefone);
-        
-        // Verificar se o telefone existe E não está vazio
-        const telefoneExiste = profile?.telefone && profile.telefone.trim() !== '' && profile.telefone !== 'null';
-        
-        console.log('📞 Telefone existe?', telefoneExiste);
-        
-        // Se NÃO tiver telefone, pedir para cadastrar
-        if (!telefoneExiste) {
-            console.log('📱 Usuário SEM telefone, mostrando modal...');
-            await mostrarModalTelefone(profile, user);
-            return;
+        if (!preencheu) {
+            console.log('📋 Usuário precisa preencher o formulário de consentimento');
+            
+            // Verificar se já tem agendamentos (para não bloquear usuários antigos)
+            const { data: agendamentos, error: agendamentosError } = await supabase
+                .from('agendamentos')
+                .select('id')
+                .eq('usuario_id', user.id)
+                .eq('status', 'confirmado')
+                .limit(1);
+            
+            if (agendamentosError) throw agendamentosError;
+            
+            // Se tem agendamentos, marcar como preenchido e continuar
+            if (agendamentos && agendamentos.length > 0) {
+                console.log('✅ Usuário tem agendamentos antigos, marcando como preenchido');
+                await supabase
+                    .from('usuarios')
+                    .update({ formulario_preenchido: true })
+                    .eq('id', user.id);
+                
+                // 🔥 CONTINUAR COM O AGENDAMENTO
+                await processarAgendamento(user.id, btn, mensagem);
+                return;
+            } else {
+                // 🔥 GUARDAR DADOS DO AGENDAMENTO PENDENTE
+                estado.agendamentoPendente = {
+                    centroId: estado.centroId,
+                    centroNome: estado.centroNome,
+                    horarioId: estado.horarioSelecionado.id,
+                    dataAgendamento: estado.dataSelecionada,
+                    horarioInicio: estado.horarioSelecionado.inicio,
+                    horarioFim: estado.horarioSelecionado.fim
+                };
+                
+                console.log('📦 Agendamento pendente salvo:', estado.agendamentoPendente);
+                
+                // Mostrar mensagem antes do formulário
+                mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
+                mensagem.style.background = '#FEF3E8';
+                mensagem.style.color = '#F4742B';
+                mensagem.innerHTML = `
+                    <i class="fas fa-info-circle mr-1"></i> 
+                    ⚠️ Antes de agendar, preencha o <strong>Questionário de Prontidão</strong> que apareceu acima.
+                    <br><span style="font-size: 11px; color: #6B7280;">Seus dados de agendamento serão mantidos.</span>
+                `;
+                mensagem.classList.remove('hidden');
+                
+                // Renderizar formulário
+                renderizarFormularioConsentimento();
+                return;
+            }
         }
         
-        console.log('✅ Usuário já tem telefone cadastrado:', profile.telefone);
+        console.log('✅ Usuário já preencheu o formulário');
         
-        // Se já tem telefone, continuar com o agendamento
+        // 🔥 CONTINUAR COM O AGENDAMENTO
         await processarAgendamento(user.id, btn, mensagem);
         
     } catch (error) {
-        console.error('❌ Erro ao verificar telefone:', error);
+        console.error('❌ Erro ao verificar formulário:', error);
         alert('Erro ao verificar seus dados. Tente novamente.');
     }
 };
 
 // ============================================
-// FUNÇÃO: Mostrar Modal de Telefone (Separada - CORRIGIDA)
+// FUNÇÃO: Processar Agendamento (Separada - CORRIGIDA)
+// ============================================
+async function processarAgendamento(userId, btn, mensagem) {
+    console.log('🔄 Processando agendamento...');
+    console.log('📦 Agendamento pendente:', estado.agendamentoPendente);
+    
+    // 🔥 Verificar se temos dados pendentes
+    const pendente = estado.agendamentoPendente;
+    const horarioId = pendente?.horarioId || estado.horarioSelecionado?.id;
+    const dataAgendamento = pendente?.dataAgendamento || estado.dataSelecionada;
+    const centroId = pendente?.centroId || estado.centroId;
+    
+    if (!horarioId || !dataAgendamento) {
+        alert('Dados do agendamento não encontrados. Tente novamente.');
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Confirmando...';
+    btn.style.opacity = '0.7';
+    
+    mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
+    mensagem.style.background = CORES.primaryBg;
+    mensagem.style.color = CORES.primary;
+    mensagem.textContent = '⏳ Processando seu agendamento...';
+    mensagem.classList.remove('hidden');
+    
+    try {
+        const { supabase } = await import('../config/supabase.js');
+        
+        // Verificar se já tem agendamento
+        const { data: existing, error: checkError } = await supabase
+            .from('agendamentos')
+            .select('*')
+            .eq('usuario_id', userId)
+            .eq('horario_id', horarioId)
+            .eq('data_agendamento', dataAgendamento)
+            .eq('status', 'confirmado');
+        
+        if (checkError) throw checkError;
+        
+        if (existing && existing.length > 0) {
+            throw new Error('Você já tem um agendamento para este horário');
+        }
+        
+        // Verificar vagas
+        const { data: horario, error: horarioError } = await supabase
+            .from('horarios')
+            .select('vagas')
+            .eq('id', horarioId)
+            .single();
+        
+        if (horarioError) throw horarioError;
+        
+        if (horario.vagas <= 0) {
+            throw new Error('Não há vagas disponíveis para este horário');
+        }
+        
+        // Criar agendamento
+        const { error } = await supabase
+            .from('agendamentos')
+            .insert({
+                usuario_id: userId,
+                horario_id: horarioId,
+                data_agendamento: dataAgendamento,
+                status: 'confirmado'
+            });
+        
+        if (error) throw error;
+        
+        // Atualizar vagas
+        await supabase
+            .from('horarios')
+            .update({ vagas: horario.vagas - 1 })
+            .eq('id', horarioId);
+        
+        console.log('✅ Agendamento confirmado!');
+        
+        // 🔥 Limpar agendamento pendente
+        estado.agendamentoPendente = null;
+        
+        mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
+        mensagem.style.background = '#D1FAE5';
+        mensagem.style.color = '#065F46';
+        mensagem.innerHTML = `
+            <i class="fas fa-check-circle mr-1"></i> 
+            ✅ Agendamento confirmado para dia ${new Date(dataAgendamento).toLocaleDateString('pt-BR')} 
+            das ${estado.horarioSelecionado?.inicio?.substring(0, 5) || pendente?.horarioInicio?.substring(0, 5) || '--'} 
+            às ${estado.horarioSelecionado?.fim?.substring(0, 5) || pendente?.horarioFim?.substring(0, 5) || '--'}!
+        `;
+        
+        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmado!';
+        btn.style.background = CORES.success;
+        
+        setTimeout(() => {
+            window.fecharModalAgendamento();
+            window.location.reload();
+        }, 3000);
+        
+    } catch (error) {
+        console.error('Erro ao agendar:', error);
+        mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
+        mensagem.style.background = '#FEE2E2';
+        mensagem.style.color = '#991B1B';
+        mensagem.innerHTML = `
+            <i class="fas fa-exclamation-circle mr-1"></i> 
+            ${error.message || 'Erro ao fazer agendamento. Tente novamente.'}
+        `;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmar Agendamento';
+        btn.style.opacity = '1';
+        btn.style.background = CORES.primary;
+    }
+}
+
+// ============================================
+// FUNÇÃO: Mostrar Modal de Telefone (Separada)
 // ============================================
 async function mostrarModalTelefone(profile, user) {
     const { supabase } = await import('../config/supabase.js');
@@ -660,7 +854,6 @@ async function mostrarModalTelefone(profile, user) {
     
     document.body.appendChild(telefoneModal);
     
-    // Adicionar máscara de telefone
     const inputTelefone = document.getElementById('inputTelefone');
     if (inputTelefone) {
         inputTelefone.addEventListener('input', function() {
@@ -668,14 +861,12 @@ async function mostrarModalTelefone(profile, user) {
         });
     }
     
-    // Fechar ao clicar fora
     telefoneModal.addEventListener('click', function(e) {
         if (e.target === this) {
             window.fecharModalTelefone();
         }
     });
     
-    // Submeter formulário
     document.getElementById('formTelefone').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -693,7 +884,6 @@ async function mostrarModalTelefone(profile, user) {
             btnConfirmar.disabled = true;
             btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
             
-            // 🔥 USAR UPSERT EM VEZ DE UPDATE (mais seguro)
             const { error } = await supabase
                 .from('usuarios')
                 .upsert({
@@ -708,10 +898,8 @@ async function mostrarModalTelefone(profile, user) {
             
             console.log('✅ Telefone salvo com sucesso!');
             
-            // Fechar modal
             window.fecharModalTelefone();
             
-            // 🔥 Recarregar a página para atualizar os dados
             setTimeout(() => {
                 window.location.reload();
             }, 500);
@@ -725,106 +913,6 @@ async function mostrarModalTelefone(profile, user) {
             btnConfirmar.innerHTML = '<i class="fas fa-check mr-2"></i> Confirmar';
         }
     });
-}
-
-// ============================================
-// FUNÇÃO: Processar Agendamento (Separada)
-// ============================================
-async function processarAgendamento(userId, btn, mensagem) {
-    console.log('🔄 Processando agendamento...');
-    
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Confirmando...';
-    btn.style.opacity = '0.7';
-    
-    mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
-    mensagem.style.background = CORES.primaryBg;
-    mensagem.style.color = CORES.primary;
-    mensagem.textContent = '⏳ Processando seu agendamento...';
-    mensagem.classList.remove('hidden');
-    
-    try {
-        const { supabase } = await import('../config/supabase.js');
-        
-        // Verificar se já tem agendamento
-        const { data: existing, error: checkError } = await supabase
-            .from('agendamentos')
-            .select('*')
-            .eq('usuario_id', userId)
-            .eq('horario_id', estado.horarioSelecionado.id)
-            .eq('data_agendamento', estado.dataSelecionada)
-            .eq('status', 'confirmado');
-        
-        if (checkError) throw checkError;
-        
-        if (existing && existing.length > 0) {
-            throw new Error('Você já tem um agendamento para este horário');
-        }
-        
-        // 🔥 VERIFICAR VAGAS ANTES DE AGENDAR
-        const { data: horario, error: horarioError } = await supabase
-            .from('horarios')
-            .select('vagas')
-            .eq('id', estado.horarioSelecionado.id)
-            .single();
-        
-        if (horarioError) throw horarioError;
-        
-        if (horario.vagas <= 0) {
-            throw new Error('Não há vagas disponíveis para este horário');
-        }
-        
-        // Criar agendamento
-        const { error } = await supabase
-            .from('agendamentos')
-            .insert({
-                usuario_id: userId,
-                horario_id: estado.horarioSelecionado.id,
-                data_agendamento: estado.dataSelecionada,
-                status: 'confirmado'
-            });
-        
-        if (error) throw error;
-        
-        // 🔥 ATUALIZAR VAGAS
-        await supabase
-            .from('horarios')
-            .update({ vagas: horario.vagas - 1 })
-            .eq('id', estado.horarioSelecionado.id);
-        
-        console.log('✅ Agendamento confirmado!');
-        
-        mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
-        mensagem.style.background = '#D1FAE5';
-        mensagem.style.color = '#065F46';
-        mensagem.innerHTML = `
-            <i class="fas fa-check-circle mr-1"></i> 
-            ✅ Agendamento confirmado para dia ${new Date(estado.dataSelecionada).toLocaleDateString('pt-BR')} 
-            das ${estado.horarioSelecionado.inicio.substring(0, 5)} às ${estado.horarioSelecionado.fim.substring(0, 5)}!
-        `;
-        
-        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmado!';
-        btn.style.background = CORES.success;
-        
-        setTimeout(() => {
-            window.fecharModalAgendamento();
-            window.location.reload();
-        }, 3000);
-        
-    } catch (error) {
-        console.error('Erro ao agendar:', error);
-        mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
-        mensagem.style.background = '#FEE2E2';
-        mensagem.style.color = '#991B1B';
-        mensagem.innerHTML = `
-            <i class="fas fa-exclamation-circle mr-1"></i> 
-            ${error.message || 'Erro ao fazer agendamento. Tente novamente.'}
-        `;
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmar Agendamento';
-        btn.style.opacity = '1';
-        btn.style.background = CORES.primary;
-    }
 }
 
 // ============================================
@@ -879,3 +967,41 @@ window.limparFiltroAula = function() {
     estado.filtroDescricao = '';
     window.aplicarFiltroAula();
 };
+
+// ============================================
+// FUNÇÃO: Processar Agendamento Pendente (Exportada)
+// ============================================
+export async function processarAgendamentoPendente() {
+    console.log('🔄 Processando agendamento pendente...');
+    console.log('📦 Dados pendentes:', estado.agendamentoPendente);
+    
+    // Verificar se há agendamento pendente
+    if (!estado.agendamentoPendente) {
+        console.log('ℹ️ Nenhum agendamento pendente encontrado.');
+        return;
+    }
+    
+    const pendente = estado.agendamentoPendente;
+    const btn = document.getElementById('btnConfirmarAgendamento');
+    const mensagem = document.getElementById('mensagemAgendamento');
+    
+    // Se o modal do calendário não estiver aberto, não faz nada
+    if (!modalAtivo) {
+        console.log('ℹ️ Modal do calendário não está aberto.');
+        return;
+    }
+    
+    try {
+        const user = await getCurrentUser();
+        if (!user) {
+            console.error('❌ Usuário não autenticado.');
+            return;
+        }
+        
+        // Processar agendamento com os dados pendentes
+        await processarAgendamento(user.id, btn, mensagem);
+        
+    } catch (error) {
+        console.error('❌ Erro ao processar agendamento pendente:', error);
+    }
+}
