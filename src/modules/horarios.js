@@ -9,6 +9,39 @@ const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta',
 const diasSemanaAbreviados = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 // ============================================
+// FUNÇÃO AUXILIAR: Fechar Modal Forçado
+// ============================================
+function fecharModalForcado() {
+    // Tenta fechar pelo window.closeModal
+    if (typeof window.closeModal === 'function') {
+        window.closeModal();
+    }
+    
+    // Remove manualmente qualquer modal
+    const modal = document.getElementById('customModal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.remove();
+            }
+        }, 100);
+    }
+    
+    // Remove qualquer overlay de modal
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        if (el.id === 'customModal' || el.classList.contains('modal-overlay')) {
+            el.classList.remove('active');
+            setTimeout(() => {
+                if (el.parentNode) {
+                    el.remove();
+                }
+            }, 100);
+        }
+    });
+}
+
+// ============================================
 // FUNÇÃO: Carregar Conteúdo de Horários
 // ============================================
 export async function loadHorariosContent(params) {
@@ -19,6 +52,7 @@ export async function loadHorariosContent(params) {
     }
     
     const { centroId, centroNome } = params || {};
+    
     if (!centroId) {
         return `
             <div class="flex flex-col items-center justify-center py-16 px-4">
@@ -35,7 +69,6 @@ export async function loadHorariosContent(params) {
         `;
     }
     
-    // Buscar horários do centro
     const { data: horarios, error } = await supabase
         .from('horarios')
         .select('*')
@@ -60,15 +93,20 @@ export async function loadHorariosContent(params) {
         `;
     }
     
-    // Agrupar horários por dia
     const horariosPorDia = {};
     diasSemana.forEach((_, index) => {
         horariosPorDia[index] = horarios?.filter(h => h.dia_semana === index) || [];
     });
     
-    // Estatísticas
     const totalHorarios = horarios?.length || 0;
     const totalAtivos = horarios?.filter(h => h.ativo !== false).length || 0;
+    
+    if (centroNome) {
+        localStorage.setItem('horarios_centroNome', centroNome);
+        localStorage.setItem('horarios_centroId', centroId);
+    }
+    
+    const nomeExibicao = centroNome || localStorage.getItem('horarios_centroNome') || 'Centro';
     
     return `
         <!-- Modal de Horário -->
@@ -166,7 +204,7 @@ export async function loadHorariosContent(params) {
                     </button>
                     <h2 class="text-2xl font-bold text-[#4B4B4D]">
                         <i class="fas fa-clock text-[#F4742B]"></i>
-                        ${centroNome}
+                        ${nomeExibicao}
                     </h2>
                 </div>
                 <p class="text-gray-500 text-sm mt-0.5">Configure os horários de atendimento da unidade</p>
@@ -217,7 +255,7 @@ export async function loadHorariosContent(params) {
             </div>
         </div>
         
-        <!-- Grid de Dias - Apple Style -->
+        <!-- Grid de Dias -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             ${diasSemana.map((dia, index) => {
                 const horariosDia = horariosPorDia[index] || [];
@@ -308,6 +346,9 @@ export async function loadHorariosContent(params) {
 
 // Voltar para centros
 window.voltarParaCentros = function() {
+    localStorage.removeItem('horarios_centroNome');
+    localStorage.removeItem('horarios_centroId');
+    
     if (window.loadPage) {
         window.loadPage('centros');
     }
@@ -315,9 +356,11 @@ window.voltarParaCentros = function() {
 
 // Recarregar horários
 window.recarregarHorarios = function() {
-    const centroId = document.getElementById('horarioCentroId')?.value;
+    const centroId = document.getElementById('horarioCentroId')?.value || localStorage.getItem('horarios_centroId');
+    const centroNome = localStorage.getItem('horarios_centroNome') || 'Centro';
+    
     if (centroId && window.loadPage) {
-        window.loadPage('horarios', { centroId });
+        window.loadPage('horarios', { centroId, centroNome });
     }
 };
 
@@ -388,12 +431,16 @@ window.editarHorario = async function(id) {
             title: 'Erro ao Carregar',
             message: 'Não foi possível carregar os dados do horário.',
             confirmText: 'OK',
-            onConfirm: () => window.closeModal()
+            onConfirm: () => {
+                fecharModalForcado();
+            }
         });
     }
 };
 
-// Toggle status do horário
+// ============================================
+// Toggle status do horário - VERSÃO SIMPLIFICADA
+// ============================================
 window.toggleHorarioStatus = async function(id, ativo) {
     const acao = ativo ? 'desativar' : 'ativar';
     const acaoTexto = ativo ? 'Desativar' : 'Ativar';
@@ -406,8 +453,6 @@ window.toggleHorarioStatus = async function(id, ativo) {
         confirmColor: ativo ? '#EF4444' : '#10B981',
         onConfirm: async () => {
             try {
-                window.closeModal();
-                
                 const { error } = await supabase
                     .from('horarios')
                     .update({ ativo: !ativo })
@@ -415,32 +460,24 @@ window.toggleHorarioStatus = async function(id, ativo) {
                 
                 if (error) throw error;
                 
-                const centroId = document.getElementById('horarioCentroId')?.value;
+                // 🔥 Recarrega diretamente
+                window.recarregarHorarios();
                 
-                successModal({
-                    title: 'Status Alterado!',
-                    message: `Horário ${ativo ? 'desativado' : 'ativado'} com sucesso.`,
-                    confirmText: 'OK',
-                    onConfirm: () => {
-                        window.closeModal();
-                        window.recarregarHorarios();
-                    }
-                });
             } catch (error) {
                 console.error('Erro ao alterar status:', error);
-                window.closeModal();
                 errorModal({
                     title: 'Erro ao Alterar Status',
                     message: error.message || 'Ocorreu um erro ao alterar o status do horário.',
-                    confirmText: 'OK',
-                    onConfirm: () => window.closeModal()
+                    confirmText: 'OK'
                 });
             }
         }
     });
 };
 
-// Excluir horário
+// ============================================
+// Excluir horário - VERSÃO SIMPLIFICADA
+// ============================================
 window.excluirHorario = function(id) {
     confirmModal({
         title: 'Excluir Horário',
@@ -450,8 +487,6 @@ window.excluirHorario = function(id) {
         confirmColor: '#EF4444',
         onConfirm: async () => {
             try {
-                window.closeModal();
-                
                 const { error } = await supabase
                     .from('horarios')
                     .delete()
@@ -459,23 +494,15 @@ window.excluirHorario = function(id) {
                 
                 if (error) throw error;
                 
-                successModal({
-                    title: 'Horário Excluído!',
-                    message: 'O horário foi excluído com sucesso.',
-                    confirmText: 'OK',
-                    onConfirm: () => {
-                        window.closeModal();
-                        window.recarregarHorarios();
-                    }
-                });
+                // 🔥 Recarrega diretamente
+                window.recarregarHorarios();
+                
             } catch (error) {
                 console.error('Erro ao excluir horário:', error);
-                window.closeModal();
                 errorModal({
                     title: 'Erro ao Excluir',
                     message: error.message || 'Ocorreu um erro ao excluir o horário.',
-                    confirmText: 'OK',
-                    onConfirm: () => window.closeModal()
+                    confirmText: 'OK'
                 });
             }
         }
@@ -483,7 +510,7 @@ window.excluirHorario = function(id) {
 };
 
 // ============================================
-// FUNÇÃO: Salvar Horário
+// Salvar Horário - VERSÃO SIMPLIFICADA
 // ============================================
 window.salvarHorario = async function() {
     const id = document.getElementById('horarioId').value;
@@ -499,8 +526,7 @@ window.salvarHorario = async function() {
         warningModal({
             title: 'Campos Obrigatórios',
             message: 'Preencha os horários de início e fim.',
-            confirmText: 'OK',
-            onConfirm: () => window.closeModal()
+            confirmText: 'OK'
         });
         return;
     }
@@ -536,23 +562,15 @@ window.salvarHorario = async function() {
         
         window.fecharModalHorario();
         
-        successModal({
-            title: id ? 'Horário Atualizado!' : 'Horário Cadastrado!',
-            message: id ? 'O horário foi atualizado com sucesso.' : 'O horário foi cadastrado com sucesso.',
-            confirmText: 'OK',
-            onConfirm: () => {
-                window.closeModal();
-                window.recarregarHorarios();
-            }
-        });
+        // 🔥 Recarrega diretamente
+        window.recarregarHorarios();
         
     } catch (error) {
         console.error('Erro ao salvar horário:', error);
         errorModal({
             title: 'Erro ao Salvar',
             message: error.message || 'Ocorreu um erro ao salvar o horário.',
-            confirmText: 'OK',
-            onConfirm: () => window.closeModal()
+            confirmText: 'OK'
         });
     } finally {
         btn.disabled = false;

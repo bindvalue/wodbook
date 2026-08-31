@@ -2,6 +2,21 @@
 // COMPONENTE: Modal Reutilizável
 // ============================================
 
+// Garantir que closeModal seja definido apenas uma vez
+if (typeof window.closeModal === 'undefined') {
+    window.closeModal = function() {
+        const modal = document.getElementById('customModal');
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                if (modal.parentNode) {
+                    modal.remove();
+                }
+            }, 300);
+        }
+    };
+}
+
 export function showModal({
     type = 'confirm',
     title = 'Atenção',
@@ -38,9 +53,16 @@ export function showModal({
     const iconClass = icon || icons[type] || icons.confirm;
     const iconColor = iconColors[type] || iconColors.confirm;
     
+    // Remover modal existente
+    const modalExistente = document.getElementById('customModal');
+    if (modalExistente) {
+        modalExistente.remove();
+    }
+    
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.id = 'customModal';
+    overlay.style.display = 'flex';
     
     overlay.innerHTML = `
         <div class="modal-content">
@@ -79,12 +101,18 @@ export function showModal({
         overlay.classList.add('active');
     });
     
+    // 🔥 CORREÇÃO: Botão de confirmação
     const confirmBtn = document.getElementById('modalConfirmBtn');
     if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => {
+        confirmBtn.addEventListener('click', function() {
+            // Fecha o modal
             window.closeModal();
+            
+            // Executa o callback após o modal fechar
             if (onConfirm && typeof onConfirm === 'function') {
-                onConfirm();
+                setTimeout(() => {
+                    onConfirm();
+                }, 100);
             }
         });
     }
@@ -93,7 +121,9 @@ export function showModal({
         if (e.target === overlay) {
             window.closeModal();
             if (onCancel && typeof onCancel === 'function') {
-                onCancel();
+                setTimeout(() => {
+                    onCancel();
+                }, 100);
             }
         }
     });
@@ -102,26 +132,22 @@ export function showModal({
         if (e.key === 'Escape') {
             window.closeModal();
             if (onCancel && typeof onCancel === 'function') {
-                onCancel();
+                setTimeout(() => {
+                    onCancel();
+                }, 100);
             }
             document.removeEventListener('keydown', handleEsc);
         }
     };
     document.addEventListener('keydown', handleEsc);
+    
+    return {
+        close: () => {
+            window.closeModal();
+        },
+        element: overlay
+    };
 }
-
-// ============================================
-// FUNÇÃO: Fechar Modal (Global)
-// ============================================
-window.closeModal = function() {
-    const modal = document.getElementById('customModal');
-    if (modal) {
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.remove();
-        }, 300);
-    }
-};
 
 // ============================================
 // MODAIS DE ATALHO

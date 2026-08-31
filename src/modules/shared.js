@@ -18,19 +18,6 @@ export function showLoader(container) {
 }
 
 // ============================================
-// FUNÇÃO: Fechar Modal (GLOBAL)
-// ============================================
-window.closeModal = function() {
-    const modal = document.getElementById('customModal');
-    if (modal) {
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.remove();
-        }, 300);
-    }
-};
-
-// ============================================
 // FUNÇÃO: Verificar se usuário é admin
 // ============================================
 export async function isAdmin() {
