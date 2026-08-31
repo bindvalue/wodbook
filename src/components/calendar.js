@@ -14,7 +14,6 @@ let estado = {
     dataSelecionada: null,
     horarioSelecionado: null,
     filtroDescricao: '',
-    // 🔥 NOVO: Guardar dados do agendamento pendente
     agendamentoPendente: null
 };
 
@@ -46,7 +45,7 @@ const CORES = {
 };
 
 // ============================================
-// FUNÇÃO: Renderizar Calendário
+// FUNÇÃO: Renderizar Calendário (CORRIGIDA PARA MOBILE)
 // ============================================
 export function renderCalendar(centroId, centroNome) {
     if (modalAtivo) {
@@ -62,117 +61,122 @@ export function renderCalendar(centroId, centroNome) {
     estado.dataSelecionada = null;
     estado.horarioSelecionado = null;
     estado.filtroDescricao = '';
-    estado.agendamentoPendente = null; // 🔥 Resetar agendamento pendente
+    estado.agendamentoPendente = null;
 
     const modal = document.createElement('div');
     modal.id = 'modalAgendamento';
-    modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in';
+    modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-4 fade-in';
     
     modal.innerHTML = `
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-hidden p-6"
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-hidden" 
              style="border-top: 4px solid ${CORES.primary}; display: flex; flex-direction: column;">
             
-            <!-- Header -->
-            <div class="flex justify-between items-center mb-4" style="flex-shrink: 0;">
-                <div>
-                    <h2 class="text-xl font-bold" style="color: ${CORES.secondary};">
+            <!-- Header - Compacto -->
+            <div class="flex justify-between items-center p-3 sm:p-4 pb-2" style="flex-shrink: 0;">
+                <div class="min-w-0 flex-1">
+                    <h2 class="text-base sm:text-xl font-bold truncate" style="color: ${CORES.secondary};">
                         <i class="fas fa-calendar-plus" style="color: ${CORES.primary};"></i> 
-                        Agendar - <span id="centroNomeModal">${centroNome}</span>
+                        <span class="hidden sm:inline">Agendar - </span>
+                        <span id="centroNomeModal" class="text-sm sm:text-base">${centroNome}</span>
                     </h2>
-                    <p class="text-xs" style="color: ${CORES.secondaryLight};">Selecione uma data e horário</p>
+                    <p class="text-[10px] sm:text-xs" style="color: ${CORES.secondaryLight};">Selecione uma data e horário</p>
                 </div>
-                <button onclick="window.fecharModalAgendamento()" class="text-2xl transition hover:scale-110" 
+                <button onclick="window.fecharModalAgendamento()" class="text-xl sm:text-2xl transition hover:scale-110 flex-shrink-0 ml-2" 
                         style="color: ${CORES.gray[400]};">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <!-- Navegação do Mês -->
-            <div class="flex justify-between items-center mb-3" style="flex-shrink: 0;">
+            <!-- Navegação do Mês - Compacta -->
+            <div class="flex justify-between items-center px-3 sm:px-4 py-1" style="flex-shrink: 0;">
                 <button onclick="window.mudarMes(-1)" 
-                        class="px-3 py-1.5 rounded-lg transition hover:scale-105 text-sm"
+                        class="px-2 sm:px-3 py-1 rounded-lg transition hover:scale-105 text-xs sm:text-sm"
                         style="background: ${CORES.gray[100]}; color: ${CORES.secondary};">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <h3 id="tituloMes" class="text-base font-semibold" style="color: ${CORES.secondary};">
+                <h3 id="tituloMes" class="text-sm sm:text-base font-semibold" style="color: ${CORES.secondary};">
                     ${getNomeMes(estado.mesAtual)} ${estado.anoAtual}
                 </h3>
                 <button onclick="window.mudarMes(1)" 
-                        class="px-3 py-1.5 rounded-lg transition hover:scale-105 text-sm"
+                        class="px-2 sm:px-3 py-1 rounded-lg transition hover:scale-105 text-xs sm:text-sm"
                         style="background: ${CORES.gray[100]}; color: ${CORES.secondary};">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
             
-            <!-- Dias da Semana -->
-            <div class="grid grid-cols-7 gap-1 mb-1" style="flex-shrink: 0;">
-                ${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(dia => `
-                    <div class="text-center text-[10px] font-semibold py-1 uppercase tracking-wider" 
+            <!-- Dias da Semana - Compacta -->
+            <div class="grid grid-cols-7 gap-0.5 px-2 sm:px-4 py-0.5" style="flex-shrink: 0;">
+                ${['D','S','T','Q','Q','S','S'].map(dia => `
+                    <div class="text-center text-[9px] sm:text-[10px] font-semibold py-0.5 uppercase tracking-wider" 
                          style="color: ${CORES.secondaryLight};">
                         ${dia}
                     </div>
                 `).join('')}
             </div>
             
-            <!-- Grid de Dias -->
-            <div id="diasGrid" class="grid grid-cols-7 gap-1 mb-4" style="flex-shrink: 0;"></div>
+            <!-- Grid de Dias - MAIORES NO MOBILE -->
+            <div id="diasGrid" class="grid grid-cols-7 gap-0.5 px-2 sm:px-4 py-1" style="flex-shrink: 0;"></div>
             
-            <!-- Filtro por tipo de aula -->
-            <div class="mb-4 p-3 bg-gray-50 rounded-lg" style="flex-shrink: 0;">
-                <div class="flex flex-wrap items-center gap-2">
-                    <label class="text-xs font-medium text-gray-700 flex items-center gap-1">
-                        <i class="fas fa-filter text-[#F4742B]"></i> Filtrar por tipo:
+            <!-- Filtro por tipo de aula - Compacto -->
+            <div class="px-3 sm:px-4 py-2 bg-gray-50 border-t border-b border-gray-100" style="flex-shrink: 0;">
+                <div class="flex flex-wrap items-center gap-1 sm:gap-2">
+                    <label class="text-[10px] sm:text-xs font-medium text-gray-700 flex items-center gap-0.5">
+                        <i class="fas fa-filter text-[#F4742B] text-[10px] sm:text-xs"></i>
+                        <span class="hidden xs:inline">Filtrar:</span>
                     </label>
                     <select id="filtroTipoAula" 
-                            class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white"
+                            class="flex-1 min-w-[100px] px-2 py-1 text-[10px] sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-white"
                             onchange="window.aplicarFiltroAula()">
                         <option value="">Todos</option>
                         <option value="Team WOD">Team WOD</option>
                         <option value="Open Box">Open Box</option>
-                        <option value="Aula da manhã">Aula da manhã</option>
-                        <option value="Aula da tarde">Aula da tarde</option>
-                        <option value="Aula da noite">Aula da noite</option>
-                        <option value="Aula regular">Aula regular</option>
+                        <option value="Aula da manhã">Manhã</option>
+                        <option value="Aula da tarde">Tarde</option>
+                        <option value="Aula da noite">Noite</option>
+                        <option value="Aula regular">Regular</option>
                     </select>
                     <button onclick="window.limparFiltroAula()" 
-                            class="px-3 py-1.5 text-sm text-gray-500 hover:text-[#F4742B] transition">
-                        <i class="fas fa-times"></i> Limpar
+                            class="px-2 py-1 text-[10px] sm:text-sm text-gray-500 hover:text-[#F4742B] transition">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
             
-            <!-- Horários Disponíveis -->
-            <div class="mb-4" style="flex-shrink: 0;">
-                <h4 class="font-semibold mb-2 flex items-center gap-2 text-sm" style="color: ${CORES.secondary};">
-                    <i class="fas fa-clock" style="color: ${CORES.primary};"></i> 
-                    Horários Disponíveis
-                    <span id="contagemHorarios" class="text-xs font-normal text-gray-400 ml-auto"></span>
-                </h4>
-                <div id="horariosList" class="grid grid-cols-3 md:grid-cols-4 gap-1.5">
-                    <div class="col-span-full text-center py-3 text-sm" style="color: ${CORES.gray[500]};">
-                        Selecione uma data para ver os horários
+            <!-- Horários Disponíveis - SCROLLÁVEL -->
+            <div class="px-3 sm:px-4 py-2 flex-1 min-h-0" style="flex-shrink: 1; overflow: hidden;">
+                <div class="flex items-center justify-between mb-1">
+                    <h4 class="font-semibold flex items-center gap-1 text-xs sm:text-sm" style="color: ${CORES.secondary};">
+                        <i class="fas fa-clock" style="color: ${CORES.primary};"></i> 
+                        <span class="hidden xs:inline">Horários</span>
+                        <span class="inline xs:hidden">Horas</span>
+                        <span id="contagemHorarios" class="text-[10px] font-normal text-gray-400"></span>
+                    </h4>
+                </div>
+                <div id="horariosList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1 max-h-[120px] sm:max-h-[160px] overflow-y-auto">
+                    <div class="col-span-full text-center py-3 text-xs" style="color: ${CORES.gray[500]};">
+                        Selecione uma data
                     </div>
                 </div>
             </div>
             
-            <!-- Botões -->
-            <div class="flex gap-3 mt-4 pt-4 border-t border-gray-100" style="flex-shrink: 0;">
+            <!-- Botões - FIXOS NA BASE -->
+            <div class="flex gap-2 p-3 sm:p-4 pt-2 border-t border-gray-100" style="flex-shrink: 0; background: white;">
                 <button onclick="window.fecharModalAgendamento()" 
-                        class="flex-1 px-4 py-2 rounded-lg font-semibold transition hover:scale-[1.02] text-sm"
+                        class="flex-1 px-3 py-2 rounded-lg font-semibold transition text-xs sm:text-sm"
                         style="border: 2px solid ${CORES.gray[200]}; color: ${CORES.secondary}; background: transparent;">
                     Cancelar
                 </button>
                 <button id="btnConfirmarAgendamento" 
                         onclick="window.confirmarAgendamento()" 
-                        class="flex-1 px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        class="flex-1 px-3 py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
                         style="background: ${CORES.primary}; color: white;"
                         disabled>
-                    <i class="fas fa-check mr-1"></i>Confirmar Agendamento
+                    <i class="fas fa-check mr-1"></i>Confirmar
                 </button>
             </div>
             
             <!-- Mensagem de Status -->
-            <div id="mensagemAgendamento" class="mt-3 hidden"></div>
+            <div id="mensagemAgendamento" class="mx-3 sm:mx-4 mb-3 hidden"></div>
         </div>
     `;
     
@@ -192,7 +196,7 @@ export function renderCalendar(centroId, centroNome) {
 }
 
 // ============================================
-// FUNÇÃO: Renderizar Dias do Calendário
+// FUNÇÃO: Renderizar Dias (TAMANHO AJUSTADO)
 // ============================================
 function renderizarDias() {
     const grid = document.getElementById('diasGrid');
@@ -208,7 +212,7 @@ function renderizarDias() {
     let html = '';
     
     for (let i = 0; i < diaSemanaInicio; i++) {
-        html += `<div class="h-9"></div>`;
+        html += `<div class="h-7 sm:h-9"></div>`;
     }
     
     for (let dia = 1; dia <= diasNoMes; dia++) {
@@ -219,25 +223,25 @@ function renderizarDias() {
         const isToday = dataStr === hojeStr;
         
         let estilo = '';
-        let classes = '';
+        let classes = 'h-7 sm:h-9 text-xs sm:text-sm rounded-lg transition-all duration-200';
         
         if (isPast) {
-            classes = 'bg-gray-100 text-gray-400 cursor-not-allowed';
+            classes += ' bg-gray-100 text-gray-400 cursor-not-allowed';
         } else if (isSelected) {
-            classes = 'text-white scale-105 shadow-md';
+            classes += ' text-white scale-105 shadow-md font-bold';
             estilo = `background: ${CORES.primary};`;
         } else if (isToday) {
-            classes = 'border-2 font-bold';
+            classes += ' border-2 font-bold';
             estilo = `border-color: ${CORES.primary}; color: ${CORES.primary};`;
         } else {
-            classes = 'hover:scale-105 cursor-pointer';
+            classes += ' hover:scale-105 cursor-pointer';
             estilo = `background: ${CORES.gray[50]}; color: ${CORES.secondary};`;
         }
         
         html += `
             <button 
                 onclick="window.selecionarData('${dataStr}')"
-                class="h-9 text-sm rounded-lg transition-all duration-200 ${classes}"
+                class="${classes}"
                 style="${estilo}"
                 ${isPast ? 'disabled' : ''}
             >
@@ -251,6 +255,162 @@ function renderizarDias() {
     const titulo = document.getElementById('tituloMes');
     if (titulo) {
         titulo.textContent = `${getNomeMes(estado.mesAtual)} ${estado.anoAtual}`;
+    }
+}
+
+// ============================================
+// FUNÇÃO: Carregar Horários (COM SCROLL)
+// ============================================
+async function carregarHorarios() {
+    const container = document.getElementById('horariosList');
+    if (!container) return;
+    
+    if (!estado.dataSelecionada) {
+        container.innerHTML = `
+            <div class="col-span-full text-center py-3 text-xs" style="color: ${CORES.gray[500]};">
+                Selecione uma data
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="col-span-full text-center py-3 text-xs" style="color: ${CORES.primary};">
+            <i class="fas fa-spinner fa-spin mr-1"></i> Carregando...
+        </div>
+    `;
+    
+    try {
+        const { supabase } = await import('../config/supabase.js');
+        
+        const partes = estado.dataSelecionada.split('-');
+        const ano = parseInt(partes[0]);
+        const mes = parseInt(partes[1]) - 1;
+        const dia = parseInt(partes[2]);
+        const dataObj = new Date(ano, mes, dia);
+        const diaSemana = dataObj.getDay();
+        
+        const hoje = new Date();
+        const hojeStr = hoje.toISOString().split('T')[0];
+        const isHoje = estado.dataSelecionada === hojeStr;
+        const horaAtual = hoje.getHours();
+        const minutoAtual = hoje.getMinutes();
+        
+        const { data, error } = await supabase
+            .from('horarios')
+            .select(`
+                *,
+                centros (nome)
+            `)
+            .eq('centro_id', estado.centroId)
+            .eq('dia_semana', diaSemana)
+            .eq('ativo', true)
+            .order('hora_inicio', { ascending: true });
+        
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-3 text-xs" style="color: ${CORES.gray[500]};">
+                    <i class="fas fa-info-circle mr-1" style="color: ${CORES.primary};"></i> 
+                    Nenhum horário disponível
+                </div>
+            `;
+            return;
+        }
+        
+        const horariosComVagas = await Promise.all(data.map(async (horario) => {
+            const { count, error: countError } = await supabase
+                .from('agendamentos')
+                .select('*', { count: 'exact', head: true })
+                .eq('horario_id', horario.id)
+                .eq('data_agendamento', estado.dataSelecionada)
+                .eq('status', 'confirmado');
+            
+            if (countError) throw countError;
+            
+            const vagasDisponiveis = horario.vagas - (count || 0);
+            
+            let horarioPassado = false;
+            if (isHoje) {
+                const [horaInicio, minutoInicio] = horario.hora_inicio.split(':').map(Number);
+                if (horaInicio < horaAtual || (horaInicio === horaAtual && minutoInicio <= minutoAtual)) {
+                    horarioPassado = true;
+                }
+            }
+            
+            return {
+                ...horario,
+                vagasDisponiveis: vagasDisponiveis,
+                temVaga: vagasDisponiveis > 0 && !horarioPassado,
+                horarioPassado: horarioPassado
+            };
+        }));
+        
+        horariosComVagas.sort((a, b) => {
+            if (a.hora_inicio < b.hora_inicio) return -1;
+            if (a.hora_inicio > b.hora_inicio) return 1;
+            return 0;
+        });
+        
+        container.innerHTML = horariosComVagas.map(horario => {
+            const isPassado = horario.horarioPassado;
+            const descricao = horario.descricao || '';
+            const isSelected = estado.horarioSelecionado && estado.horarioSelecionado.id === horario.id;
+            
+            let borderColor = CORES.gray[200];
+            let bgColor = 'transparent';
+            let textColor = CORES.secondary;
+            
+            if (isPassado) {
+                borderColor = CORES.gray[300];
+                textColor = CORES.gray[400];
+            } else if (isSelected) {
+                borderColor = CORES.primary;
+                bgColor = CORES.primaryBg;
+                textColor = CORES.secondary;
+            } else if (horario.temVaga) {
+                borderColor = CORES.gray[200];
+                textColor = CORES.secondary;
+            } else {
+                borderColor = CORES.gray[200];
+                textColor = CORES.gray[400];
+            }
+            
+            return `
+                <button 
+                    data-horario-id="${horario.id}"
+                    onclick="${!isPassado && horario.temVaga ? `window.selecionarHorario('${horario.id}', '${horario.hora_inicio}', '${horario.hora_fim}')` : ''}"
+                    class="p-1.5 sm:p-2 rounded-lg border-2 transition-all duration-200 text-center ${!isPassado && horario.temVaga ? 'hover:border-[#F4742B] hover:bg-[#FEF3E8] cursor-pointer hover:scale-105' : 'cursor-not-allowed'}"
+                    style="border-color: ${borderColor}; background: ${bgColor};"
+                    ${!isPassado && horario.temVaga ? '' : 'disabled'}
+                >
+                    <div class="text-[10px] sm:text-xs font-semibold" style="color: ${textColor};">
+                        ${horario.hora_inicio.substring(0, 5)} - ${horario.hora_fim.substring(0, 5)}
+                    </div>
+                    ${descricao ? `
+                        <div class="text-[8px] sm:text-[10px] text-[#F4742B] font-medium truncate max-w-[80px] sm:max-w-[120px] mx-auto" title="${descricao}">
+                            ${descricao.length > 12 ? descricao.substring(0, 12) + '...' : descricao}
+                        </div>
+                    ` : ''}
+                    <div class="text-[8px] sm:text-[10px]" style="color: ${isPassado ? CORES.gray[400] : (horario.temVaga ? CORES.success : CORES.danger)};">
+                        ${isPassado ? '🔒' : (horario.temVaga ? `${horario.vagasDisponiveis}v` : 'Esgotado')}
+                    </div>
+                </button>
+            `;
+        }).join('');
+        
+        if (estado.filtroDescricao) {
+            window.aplicarFiltroAula();
+        }
+        
+    } catch (error) {
+        console.error('Erro ao carregar horários:', error);
+        container.innerHTML = `
+            <div class="col-span-full text-center py-3 text-xs" style="color: ${CORES.danger};">
+                <i class="fas fa-exclamation-circle mr-1"></i> Erro ao carregar
+            </div>
+        `;
     }
 }
 
@@ -274,8 +434,8 @@ window.selecionarData = function(dataStr) {
         const horariosList = document.getElementById('horariosList');
         if (horariosList) {
             horariosList.innerHTML = `
-                <div class="col-span-full text-center py-3 text-sm" style="color: ${CORES.gray[500]};">
-                    Selecione uma data para ver os horários
+                <div class="col-span-full text-center py-3 text-xs" style="color: ${CORES.gray[500]};">
+                    Selecione uma data
                 </div>
             `;
         }
@@ -324,8 +484,8 @@ window.mudarMes = function(delta) {
     const horariosList = document.getElementById('horariosList');
     if (horariosList) {
         horariosList.innerHTML = `
-            <div class="col-span-full text-center py-3 text-sm" style="color: ${CORES.gray[500]};">
-                Selecione uma data para ver os horários
+            <div class="col-span-full text-center py-3 text-xs" style="color: ${CORES.gray[500]};">
+                Selecione uma data
             </div>
         `;
     }
@@ -334,173 +494,11 @@ window.mudarMes = function(delta) {
 };
 
 // ============================================
-// FUNÇÃO: Carregar Horários
-// ============================================
-async function carregarHorarios() {
-    const container = document.getElementById('horariosList');
-    if (!container) return;
-    
-    if (!estado.dataSelecionada) {
-        container.innerHTML = `
-            <div class="col-span-full text-center py-3 text-sm" style="color: ${CORES.gray[500]};">
-                Selecione uma data para ver os horários
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = `
-        <div class="col-span-full text-center py-3" style="color: ${CORES.primary};">
-            <i class="fas fa-spinner fa-spin mr-2"></i> Carregando horários...
-        </div>
-    `;
-    
-    try {
-        const { supabase } = await import('../config/supabase.js');
-        
-        const partes = estado.dataSelecionada.split('-');
-        const ano = parseInt(partes[0]);
-        const mes = parseInt(partes[1]) - 1;
-        const dia = parseInt(partes[2]);
-        const dataObj = new Date(ano, mes, dia);
-        const diaSemana = dataObj.getDay();
-        
-        const hoje = new Date();
-        const hojeStr = hoje.toISOString().split('T')[0];
-        const isHoje = estado.dataSelecionada === hojeStr;
-        const horaAtual = hoje.getHours();
-        const minutoAtual = hoje.getMinutes();
-        
-        const { data, error } = await supabase
-            .from('horarios')
-            .select(`
-                *,
-                centros (nome)
-            `)
-            .eq('centro_id', estado.centroId)
-            .eq('dia_semana', diaSemana)
-            .eq('ativo', true)
-            .order('hora_inicio', { ascending: true });
-        
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-            container.innerHTML = `
-                <div class="col-span-full text-center py-3 text-sm" style="color: ${CORES.gray[500]};">
-                    <i class="fas fa-info-circle mr-1" style="color: ${CORES.primary};"></i> 
-                    Nenhum horário disponível para esta data
-                </div>
-            `;
-            return;
-        }
-        
-        const horariosComVagas = await Promise.all(data.map(async (horario) => {
-            const { count, error: countError } = await supabase
-                .from('agendamentos')
-                .select('*', { count: 'exact', head: true })
-                .eq('horario_id', horario.id)
-                .eq('data_agendamento', estado.dataSelecionada)
-                .eq('status', 'confirmado');
-            
-            if (countError) throw countError;
-            
-            const vagasDisponiveis = horario.vagas - (count || 0);
-            
-            let horarioPassado = false;
-            if (isHoje) {
-                const [horaInicio, minutoInicio] = horario.hora_inicio.split(':').map(Number);
-                if (horaInicio < horaAtual || (horaInicio === horaAtual && minutoInicio <= minutoAtual)) {
-                    horarioPassado = true;
-                }
-            }
-            
-            return {
-                ...horario,
-                vagasDisponiveis: vagasDisponiveis,
-                temVaga: vagasDisponiveis > 0 && !horarioPassado,
-                horarioPassado: horarioPassado
-            };
-        }));
-        
-        horariosComVagas.sort((a, b) => {
-            if (a.hora_inicio < b.hora_inicio) return -1;
-            if (a.hora_inicio > b.hora_inicio) return 1;
-            return 0;
-        });
-        
-        container.innerHTML = horariosComVagas.map(horario => {
-            const isPassado = horario.horarioPassado;
-            const descricao = horario.descricao || '';
-            
-            return `
-                <button 
-                    data-horario-id="${horario.id}"
-                    onclick="${!isPassado && horario.temVaga ? `window.selecionarHorario('${horario.id}', '${horario.hora_inicio}', '${horario.hora_fim}')` : ''}"
-                    class="p-2 rounded-lg border-2 transition-all duration-200 text-sm relative group ${!isPassado && horario.temVaga ? 'hover:border-[#F4742B] hover:bg-[#FEF3E8] cursor-pointer hover:scale-105' : 'opacity-50 cursor-not-allowed'}"
-                    style="border-color: ${isPassado ? CORES.gray[300] : (horario.temVaga ? CORES.gray[200] : CORES.gray[200])};"
-                    ${!isPassado && horario.temVaga ? '' : 'disabled'}
-                >
-                    <div class="text-xs font-semibold" style="color: ${isPassado ? CORES.gray[400] : (horario.temVaga ? CORES.secondary : CORES.gray[400])};">
-                        ${horario.hora_inicio.substring(0, 5)} - ${horario.hora_fim.substring(0, 5)}
-                        ${isPassado ? ' 🔒' : ''}
-                    </div>
-                    ${descricao ? `
-                        <div class="descricao-horario text-[10px] text-[#F4742B] mt-0.5 font-medium truncate max-w-[120px] mx-auto" title="${descricao}">
-                            <i class="fas fa-info-circle mr-0.5"></i> ${descricao.length > 20 ? descricao.substring(0, 20) + '...' : descricao}
-                        </div>
-                    ` : ''}
-                    <div class="text-[10px]" style="color: ${isPassado ? CORES.gray[400] : (horario.temVaga ? CORES.success : CORES.danger)}; margin-top: ${descricao ? '2px' : '0'};">
-                        ${isPassado ? '⏰ Horário encerrado' : (horario.temVaga ? `${horario.vagasDisponiveis} vagas` : 'Esgotado')}
-                    </div>
-                    
-                    ${descricao && !isPassado ? `
-                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-[#4B4B4D] text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 min-w-[200px] max-w-[280px]">
-                            <div class="text-center">
-                                <div class="font-semibold text-[#F4742B] text-[11px]">${horario.hora_inicio.substring(0, 5)} - ${horario.hora_fim.substring(0, 5)}</div>
-                                <div class="text-white text-[11px] mt-0.5 break-words">${descricao}</div>
-                                <div class="text-gray-300 text-[10px] mt-1">${horario.vagasDisponiveis} vagas disponíveis</div>
-                            </div>
-                            <div class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-[#4B4B4D] rotate-45"></div>
-                        </div>
-                    ` : ''}
-                </button>
-            `;
-        }).join('');
-        
-        // Se já havia um horário selecionado, reaplicar a seleção
-        if (estado.horarioSelecionado) {
-            document.querySelectorAll('#horariosList button[data-horario-id]').forEach(btn => {
-                if (btn.dataset.horarioId === estado.horarioSelecionado.id) {
-                    btn.classList.add('selecionado');
-                    btn.style.borderColor = CORES.primary;
-                    btn.style.background = CORES.primaryBg;
-                    btn.style.transform = 'scale(1.05)';
-                    btn.style.boxShadow = '0 0 0 3px rgba(244, 116, 43, 0.15)';
-                }
-            });
-        }
-        
-        if (estado.filtroDescricao) {
-            window.aplicarFiltroAula();
-        }
-        
-    } catch (error) {
-        console.error('Erro ao carregar horários:', error);
-        container.innerHTML = `
-            <div class="col-span-full text-center py-3 text-sm" style="color: ${CORES.danger};">
-                <i class="fas fa-exclamation-circle mr-1"></i> Erro ao carregar horários
-            </div>
-        `;
-    }
-}
-
-// ============================================
 // FUNÇÃO: Selecionar Horário (GLOBAL)
 // ============================================
 window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
     console.log('🕐 Horário selecionado:', horarioId, horaInicio, horaFim);
     
-    // Se clicou no mesmo horário, desmarcar
     if (estado.horarioSelecionado && estado.horarioSelecionado.id === horarioId) {
         estado.horarioSelecionado = null;
         estado.agendamentoPendente = null;
@@ -511,21 +509,12 @@ window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
             btn.style.opacity = '0.5';
         }
         
-        // Remover classe de seleção de todos os botões
-        document.querySelectorAll('#horariosList button[data-horario-id]').forEach(btn => {
-            btn.classList.remove('selecionado');
-            btn.style.borderColor = CORES.gray[200];
-            btn.style.background = 'transparent';
-            btn.style.transform = 'scale(1)';
-            btn.style.boxShadow = 'none';
-        });
+        carregarHorarios();
         return;
     }
     
-    // Selecionar novo horário
     estado.horarioSelecionado = { id: horarioId, inicio: horaInicio, fim: horaFim };
     
-    // 🔥 Guardar dados do agendamento pendente
     estado.agendamentoPendente = {
         centroId: estado.centroId,
         centroNome: estado.centroNome,
@@ -540,24 +529,7 @@ window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
         btn.style.background = CORES.primary;
     }
     
-    // Aplicar classe de seleção
-    document.querySelectorAll('#horariosList button[data-horario-id]').forEach(btn => {
-        // Resetar todos
-        btn.classList.remove('selecionado');
-        btn.style.borderColor = CORES.gray[200];
-        btn.style.background = 'transparent';
-        btn.style.transform = 'scale(1)';
-        btn.style.boxShadow = 'none';
-        
-        // Destacar o selecionado
-        if (btn.dataset.horarioId === horarioId) {
-            btn.classList.add('selecionado');
-            btn.style.borderColor = CORES.primary;
-            btn.style.background = CORES.primaryBg;
-            btn.style.transform = 'scale(1.05)';
-            btn.style.boxShadow = '0 0 0 3px rgba(244, 116, 43, 0.15)';
-        }
-    });
+    carregarHorarios();
 };
 
 // ============================================
@@ -568,7 +540,6 @@ window.fecharModalAgendamento = function() {
         modalAtivo.remove();
         modalAtivo = null;
     }
-    // 🔥 Limpar agendamento pendente ao fechar modal
     estado.agendamentoPendente = null;
 };
 
@@ -586,7 +557,7 @@ window.fecharModalTelefone = function() {
 };
 
 // ============================================
-// FUNÇÃO: Confirmar Agendamento (GLOBAL - CORRIGIDA)
+// FUNÇÃO: Confirmar Agendamento (GLOBAL)
 // ============================================
 window.confirmarAgendamento = async function() {
     console.log('🔍 Confirmar agendamento chamado!');
@@ -608,13 +579,11 @@ window.confirmarAgendamento = async function() {
             throw new Error('Usuário não autenticado');
         }
         
-        // 🔥 VERIFICAR FORMULÁRIO DE CONSENTIMENTO
         const preencheu = await usuarioPreencheuFormulario(user.id);
         
         if (!preencheu) {
             console.log('📋 Usuário precisa preencher o formulário de consentimento');
             
-            // Verificar se já tem agendamentos (para não bloquear usuários antigos)
             const { data: agendamentos, error: agendamentosError } = await supabase
                 .from('agendamentos')
                 .select('id')
@@ -624,7 +593,6 @@ window.confirmarAgendamento = async function() {
             
             if (agendamentosError) throw agendamentosError;
             
-            // Se tem agendamentos, marcar como preenchido e continuar
             if (agendamentos && agendamentos.length > 0) {
                 console.log('✅ Usuário tem agendamentos antigos, marcando como preenchido');
                 await supabase
@@ -632,11 +600,9 @@ window.confirmarAgendamento = async function() {
                     .update({ formulario_preenchido: true })
                     .eq('id', user.id);
                 
-                // 🔥 CONTINUAR COM O AGENDAMENTO
                 await processarAgendamento(user.id, btn, mensagem);
                 return;
             } else {
-                // 🔥 GUARDAR DADOS DO AGENDAMENTO PENDENTE
                 estado.agendamentoPendente = {
                     centroId: estado.centroId,
                     centroNome: estado.centroNome,
@@ -648,26 +614,21 @@ window.confirmarAgendamento = async function() {
                 
                 console.log('📦 Agendamento pendente salvo:', estado.agendamentoPendente);
                 
-                // Mostrar mensagem antes do formulário
-                mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
+                mensagem.className = 'mt-3 p-2 rounded-lg text-xs sm:text-sm';
                 mensagem.style.background = '#FEF3E8';
                 mensagem.style.color = '#F4742B';
                 mensagem.innerHTML = `
                     <i class="fas fa-info-circle mr-1"></i> 
-                    ⚠️ Antes de agendar, preencha o <strong>Questionário de Prontidão</strong> que apareceu acima.
-                    <br><span style="font-size: 11px; color: #6B7280;">Seus dados de agendamento serão mantidos.</span>
+                    ⚠️ Preencha o <strong>Questionário de Prontidão</strong> acima.
                 `;
                 mensagem.classList.remove('hidden');
                 
-                // Renderizar formulário
                 renderizarFormularioConsentimento();
                 return;
             }
         }
         
         console.log('✅ Usuário já preencheu o formulário');
-        
-        // 🔥 CONTINUAR COM O AGENDAMENTO
         await processarAgendamento(user.id, btn, mensagem);
         
     } catch (error) {
@@ -677,13 +638,12 @@ window.confirmarAgendamento = async function() {
 };
 
 // ============================================
-// FUNÇÃO: Processar Agendamento (Separada - CORRIGIDA)
+// FUNÇÃO: Processar Agendamento
 // ============================================
 async function processarAgendamento(userId, btn, mensagem) {
     console.log('🔄 Processando agendamento...');
     console.log('📦 Agendamento pendente:', estado.agendamentoPendente);
     
-    // 🔥 Verificar se temos dados pendentes
     const pendente = estado.agendamentoPendente;
     const horarioId = pendente?.horarioId || estado.horarioSelecionado?.id;
     const dataAgendamento = pendente?.dataAgendamento || estado.dataSelecionada;
@@ -698,16 +658,15 @@ async function processarAgendamento(userId, btn, mensagem) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Confirmando...';
     btn.style.opacity = '0.7';
     
-    mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
+    mensagem.className = 'mt-3 p-2 rounded-lg text-xs sm:text-sm';
     mensagem.style.background = CORES.primaryBg;
     mensagem.style.color = CORES.primary;
-    mensagem.textContent = '⏳ Processando seu agendamento...';
+    mensagem.textContent = '⏳ Processando...';
     mensagem.classList.remove('hidden');
     
     try {
         const { supabase } = await import('../config/supabase.js');
         
-        // Verificar se já tem agendamento
         const { data: existing, error: checkError } = await supabase
             .from('agendamentos')
             .select('*')
@@ -722,7 +681,6 @@ async function processarAgendamento(userId, btn, mensagem) {
             throw new Error('Você já tem um agendamento para este horário');
         }
         
-        // Verificar vagas
         const { data: horario, error: horarioError } = await supabase
             .from('horarios')
             .select('vagas')
@@ -735,7 +693,6 @@ async function processarAgendamento(userId, btn, mensagem) {
             throw new Error('Não há vagas disponíveis para este horário');
         }
         
-        // Criar agendamento
         const { error } = await supabase
             .from('agendamentos')
             .insert({
@@ -747,7 +704,6 @@ async function processarAgendamento(userId, btn, mensagem) {
         
         if (error) throw error;
         
-        // Atualizar vagas
         await supabase
             .from('horarios')
             .update({ vagas: horario.vagas - 1 })
@@ -755,17 +711,15 @@ async function processarAgendamento(userId, btn, mensagem) {
         
         console.log('✅ Agendamento confirmado!');
         
-        // 🔥 Limpar agendamento pendente
         estado.agendamentoPendente = null;
         
-        mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
+        mensagem.className = 'mt-3 p-2 rounded-lg text-xs sm:text-sm';
         mensagem.style.background = '#D1FAE5';
         mensagem.style.color = '#065F46';
         mensagem.innerHTML = `
             <i class="fas fa-check-circle mr-1"></i> 
-            ✅ Agendamento confirmado para dia ${new Date(dataAgendamento).toLocaleDateString('pt-BR')} 
-            das ${estado.horarioSelecionado?.inicio?.substring(0, 5) || pendente?.horarioInicio?.substring(0, 5) || '--'} 
-            às ${estado.horarioSelecionado?.fim?.substring(0, 5) || pendente?.horarioFim?.substring(0, 5) || '--'}!
+            ✅ Agendado para ${new Date(dataAgendamento).toLocaleDateString('pt-BR')} 
+            ${estado.horarioSelecionado?.inicio?.substring(0, 5) || pendente?.horarioInicio?.substring(0, 5) || '--'}h
         `;
         
         btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmado!';
@@ -778,22 +732,22 @@ async function processarAgendamento(userId, btn, mensagem) {
         
     } catch (error) {
         console.error('Erro ao agendar:', error);
-        mensagem.className = 'mt-3 p-2 rounded-lg text-sm';
+        mensagem.className = 'mt-3 p-2 rounded-lg text-xs sm:text-sm';
         mensagem.style.background = '#FEE2E2';
         mensagem.style.color = '#991B1B';
         mensagem.innerHTML = `
             <i class="fas fa-exclamation-circle mr-1"></i> 
-            ${error.message || 'Erro ao fazer agendamento. Tente novamente.'}
+            ${error.message || 'Erro ao fazer agendamento.'}
         `;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmar Agendamento';
+        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmar';
         btn.style.opacity = '1';
         btn.style.background = CORES.primary;
     }
 }
 
 // ============================================
-// FUNÇÃO: Mostrar Modal de Telefone (Separada)
+// FUNÇÃO: Mostrar Modal de Telefone
 // ============================================
 async function mostrarModalTelefone(profile, user) {
     const { supabase } = await import('../config/supabase.js');
@@ -804,48 +758,48 @@ async function mostrarModalTelefone(profile, user) {
     telefoneModal.style.display = 'flex';
     telefoneModal.style.alignItems = 'center';
     telefoneModal.style.justifyContent = 'center';
-    telefoneModal.style.padding = '20px';
+    telefoneModal.style.padding = '16px';
     telefoneModal.style.zIndex = '10001';
     
     telefoneModal.innerHTML = `
-        <div class="modal-content" style="max-width: 450px; width: 100%; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-[#FEF3E8] rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fas fa-phone text-[#F4742B] text-2xl"></i>
+        <div class="modal-content" style="max-width: 420px; width: 100%; background: white; border-radius: 20px; padding: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
+            <div class="text-center mb-5">
+                <div class="w-14 h-14 bg-[#FEF3E8] rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-phone text-[#F4742B] text-xl"></i>
                 </div>
-                <h3 class="text-xl font-bold text-[#4B4B4D]">Confirme seu contato</h3>
-                <p class="text-sm text-gray-500 mt-1">Informe seu número de telefone para confirmar o agendamento</p>
+                <h3 class="text-lg font-bold text-[#4B4B4D]">Confirme seu contato</h3>
+                <p class="text-xs text-gray-500 mt-1">Informe seu telefone para confirmar</p>
             </div>
             
-            <form id="formTelefone" class="space-y-4">
+            <form id="formTelefone" class="space-y-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-user mr-2 text-[#F4742B]"></i> Nome
+                    <label class="block text-xs font-medium text-gray-700 mb-1">
+                        <i class="fas fa-user mr-1 text-[#F4742B]"></i> Nome
                     </label>
                     <input type="text" id="inputNome" 
                            value="${profile?.nome || ''}"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-phone mr-2 text-[#F4742B]"></i> Telefone *
+                    <label class="block text-xs font-medium text-gray-700 mb-1">
+                        <i class="fas fa-phone mr-1 text-[#F4742B]"></i> Telefone *
                     </label>
                     <input type="tel" id="inputTelefone" 
                            placeholder="(11) 99999-9999"
                            maxlength="15"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition"
                            required>
-                    <p class="text-xs text-gray-400 mt-1">Exemplo: (11) 99999-9999</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">Exemplo: (11) 99999-9999</p>
                 </div>
                 
-                <div class="flex gap-3 pt-2">
+                <div class="flex gap-2 pt-2">
                     <button type="button" onclick="window.fecharModalTelefone()"
-                            class="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg font-semibold hover:bg-gray-50 transition">
+                            class="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg font-semibold hover:bg-gray-50 transition text-sm">
                         Cancelar
                     </button>
                     <button type="submit" id="btnConfirmarTelefone"
-                            class="flex-1 px-4 py-2 bg-[#F4742B] text-white rounded-lg font-semibold hover:bg-[#E0601A] transition">
-                        <i class="fas fa-check mr-2"></i> Confirmar
+                            class="flex-1 px-3 py-2 bg-[#F4742B] text-white rounded-lg font-semibold hover:bg-[#E0601A] transition text-sm">
+                        <i class="fas fa-check mr-1"></i> Confirmar
                     </button>
                 </div>
             </form>
@@ -874,7 +828,7 @@ async function mostrarModalTelefone(profile, user) {
         const nome = document.getElementById('inputNome').value.trim();
         
         if (!telefone || !validarTelefone(telefone)) {
-            alert('Por favor, informe um número de telefone válido (DDD + 8 ou 9 dígitos).');
+            alert('Por favor, informe um número de telefone válido.');
             document.getElementById('inputTelefone').focus();
             return;
         }
@@ -882,7 +836,7 @@ async function mostrarModalTelefone(profile, user) {
         try {
             const btnConfirmar = document.getElementById('btnConfirmarTelefone');
             btnConfirmar.disabled = true;
-            btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvando...';
+            btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Salvando...';
             
             const { error } = await supabase
                 .from('usuarios')
@@ -910,7 +864,7 @@ async function mostrarModalTelefone(profile, user) {
             
             const btnConfirmar = document.getElementById('btnConfirmarTelefone');
             btnConfirmar.disabled = false;
-            btnConfirmar.innerHTML = '<i class="fas fa-check mr-2"></i> Confirmar';
+            btnConfirmar.innerHTML = '<i class="fas fa-check mr-1"></i> Confirmar';
         }
     });
 }
@@ -941,7 +895,7 @@ window.aplicarFiltroAula = function() {
             return;
         }
         
-        const descricao = btn.querySelector('.descricao-horario')?.textContent || '';
+        const descricao = btn.querySelector('.text-[#F4742B]')?.textContent || '';
         if (descricao.toLowerCase().includes(filtro.toLowerCase())) {
             btn.style.display = '';
             visiveis++;
@@ -952,7 +906,7 @@ window.aplicarFiltroAula = function() {
     
     const contagem = document.getElementById('contagemHorarios');
     if (contagem) {
-        contagem.textContent = filtro ? `(${visiveis} filtrados)` : '';
+        contagem.textContent = filtro ? `(${visiveis})` : '';
     }
 };
 
@@ -975,7 +929,6 @@ export async function processarAgendamentoPendente() {
     console.log('🔄 Processando agendamento pendente...');
     console.log('📦 Dados pendentes:', estado.agendamentoPendente);
     
-    // Verificar se há agendamento pendente
     if (!estado.agendamentoPendente) {
         console.log('ℹ️ Nenhum agendamento pendente encontrado.');
         return;
@@ -985,20 +938,19 @@ export async function processarAgendamentoPendente() {
     const btn = document.getElementById('btnConfirmarAgendamento');
     const mensagem = document.getElementById('mensagemAgendamento');
     
-    // Se o modal do calendário não estiver aberto, não faz nada
     if (!modalAtivo) {
         console.log('ℹ️ Modal do calendário não está aberto.');
         return;
     }
     
     try {
+        const { getCurrentUser } = await import('../config/supabase.js');
         const user = await getCurrentUser();
         if (!user) {
             console.error('❌ Usuário não autenticado.');
             return;
         }
         
-        // Processar agendamento com os dados pendentes
         await processarAgendamento(user.id, btn, mensagem);
         
     } catch (error) {
