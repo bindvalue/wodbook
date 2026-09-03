@@ -916,7 +916,9 @@ window.aplicarFiltrosAlunos = async function() {
             temAgendamentos: (contagemAgendamentos[u.id] || 0) > 0,
             formulario: formulariosMap[u.id] || null,
             temFormulario: !!formulariosMap[u.id],
-            formularioStatus: formulariosMap[u.id]?.status || 'nao_preenchido'
+            formularioStatus: formulariosMap[u.id]?.status || 'nao_preenchido',
+            usaPlataforma: u.usa_plataforma === true,
+            nomePlataforma: u.nome_plataforma || ''
         })) || [];
         
         let filtered = usuariosComDados;
@@ -1018,12 +1020,26 @@ window.aplicarFiltrosAlunos = async function() {
                                 </div>
                                 <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-400'} border-2 border-white"></div>
                             </div>
-                            <div class="min-w-0 flex-1">
+                                <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <p class="font-semibold text-gray-800 truncate">${aluno.nome || 'Sem nome'}</p>
                                     <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
                                         ${isActive ? 'Ativo' : 'Inativo'}
                                     </span>
+                                    
+                                    <!-- 🔥 NOVO: Badge da Plataforma Pass -->
+                                    ${aluno.usaPlataforma ? `
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FEF3E8] text-[#F4742B] border border-[#FED7AA]" title="Utiliza plataforma ${aluno.nomePlataforma || 'Pass'}">
+                                            <i class="fas fa-id-card text-[9px]"></i>
+                                            ${aluno.nomePlataforma || 'Pass'}
+                                        </span>
+                                    ` : `
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400" title="Não utiliza plataforma Pass">
+                                            <i class="fas fa-user text-[9px]"></i>
+                                            Sem Pass
+                                        </span>
+                                    `}
+                                    
                                     ${temAgendamentos ? `
                                         <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">
                                             ${aluno.totalAgendamentos} agendamentos

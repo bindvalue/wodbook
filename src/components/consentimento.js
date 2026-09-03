@@ -5,7 +5,6 @@
 import { supabase, getCurrentUser } from '../config/supabase.js';
 import { mascaraTelefone, validarTelefone } from './mascara.js';
 import { warningModal, successModal } from './modal.js';
-import { processarAgendamentoPendente } from './calendar.js';
 
 /**
  * Verifica se o usuário já preencheu o formulário de consentimento
@@ -40,6 +39,16 @@ export async function buscarFormularioUsuario(userId) {
         return null;
     }
 }
+
+/**
+ * Função global para mostrar/esconder o campo de plataforma
+ */
+window.togglePlataformaInput = function(valor) {
+    const container = document.getElementById('containerPlataforma');
+    if (container) {
+        container.style.display = valor === 'sim' ? 'block' : 'none';
+    }
+};
 
 /**
  * Renderiza o modal do formulário de consentimento
@@ -113,6 +122,37 @@ export function renderizarFormularioConsentimento() {
                            placeholder="(XX) XXXXX-XXXX" maxlength="15" required>
                     <p class="text-[10px] text-gray-400 mt-1">Exemplo: (11) 99999-9999</p>
                 </div>
+                
+                <!-- ========================================== -->
+                <!-- 🔥 NOVO: Pergunta sobre Plataforma Pass -->
+                <!-- ========================================== -->
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Você utiliza alguma plataforma de acesso (Gympass, TotalPass, etc.)? *</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-gray-200 flex-1 hover:border-[#F4742B] transition">
+                            <input type="radio" name="usa_plataforma" value="sim" class="w-4 h-4 text-[#F4742B] focus:ring-[#F4742B]" onchange="togglePlataformaInput(this.value)">
+                            <span class="text-sm text-gray-700">Sim, utilizo</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-gray-200 flex-1 hover:border-[#F4742B] transition">
+                            <input type="radio" name="usa_plataforma" value="nao" class="w-4 h-4 text-[#F4742B] focus:ring-[#F4742B]" onchange="togglePlataformaInput(this.value)" checked>
+                            <span class="text-sm text-gray-700">Não utilizo</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Input que aparece se o aluno usar plataforma -->
+                    <div id="containerPlataforma" style="display: none; margin-top: 12px;">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Qual plataforma você utiliza? *</label>
+                        <select id="formPlataforma" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
+                            <option value="">Selecione a plataforma</option>
+                            <option value="Gympass">Gympass</option>
+                            <option value="TotalPass">TotalPass</option>
+                            <option value="Wellhub">Wellhub</option>
+                            <option value="Sesc">Sesc</option>
+                            <option value="Outra">Outra</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- ========================================== -->
                 
                 <!-- Perguntas -->
                 <div class="space-y-2">
@@ -201,6 +241,10 @@ window.salvarFormularioConsentimento = async function() {
         const telefone = document.getElementById('formTelefone').value.trim();
         const termoAceito = document.getElementById('termoAceito').checked;
         
+        // 🔥 COLETAR DADOS DA PLATAFORMA
+        const usaPlataforma = document.querySelector('input[name="usa_plataforma"]:checked')?.value;
+        const nomePlataforma = document.getElementById('formPlataforma').value;
+        
         // Validações
         if (!nome || !idade || !telefone) {
             alert('Preencha todos os campos obrigatórios.');
@@ -219,6 +263,12 @@ window.salvarFormularioConsentimento = async function() {
         
         if (!termoAceito) {
             alert('Você precisa aceitar o Termo de Responsabilidade para continuar.');
+            return;
+        }
+
+        // 🔥 VALIDAR PLATAFORMA
+        if (usaPlataforma === 'sim' && !nomePlataforma) {
+            alert('Por favor, selecione qual plataforma de acesso você utiliza.');
             return;
         }
         
@@ -243,7 +293,7 @@ window.salvarFormularioConsentimento = async function() {
         const temRisco = perguntas.some(id => respostas[id] === true);
         const status = temRisco ? 'rejeitado' : 'aprovado';
         
-        // Salvar no banco
+        // Salvar no banco (🔥 PERSISTINDO DADOS NA TABELA FORMULÁRIO)
         const { data, error } = await supabase
             .from('formulario_consentimento')
             .insert({
@@ -252,6 +302,12 @@ window.salvarFormularioConsentimento = async function() {
                 idade: idade,
                 telefone: telefone,
                 termo_aceito: termoAceito,
+                
+                // 🔥 NOVOS CAMPOS PERSISTENTES
+                usa_plataforma: usaPlataforma === 'sim' ? true : false,
+                nome_plataforma: usaPlataforma === 'sim' ? nomePlataforma : null,
+
+                // Perguntas de saúde
                 problema_cardiaco: respostas.problema_cardiaco,
                 dor_torax_atividade: respostas.dor_torax_atividade,
                 dor_torax_repouso: respostas.dor_torax_repouso,
@@ -267,10 +323,14 @@ window.salvarFormularioConsentimento = async function() {
         // Fechar modal
         window.fecharModalConsentimento();
         
-        // Atualizar flag na tabela usuarios
+        // 🔥 Atualizar flag na tabela usuarios (PERSISTINDO DADOS NO PERFIL PARA CONSULTAS RÁPIDAS)
         await supabase
             .from('usuarios')
-            .update({ formulario_preenchido: true })
+            .update({ 
+                formulario_preenchido: true,
+                usa_plataforma: usaPlataforma === 'sim' ? true : false,
+                nome_plataforma: usaPlataforma === 'sim' ? nomePlataforma : null
+            })
             .eq('id', user.id);
         
         // 🔥 CORREÇÃO: Mostrar modal personalizado com base no risco
@@ -315,10 +375,14 @@ window.salvarFormularioConsentimento = async function() {
                 confirmText: 'Entendi, aguardarei contato',
                 onConfirm: () => {
                     window.closeModal();
-                    // 🔥 CHAMAR A FUNÇÃO PARA PROCESSAR AGENDAMENTO PENDENTE
-                    processarAgendamentoPendente();
-                    // Recarregar a página para atualizar o estado
-                    window.location.reload();
+                    
+                    // 🔥 NÃO LIMPAR A VARIÁVEL AQUI!
+                    if (window.agendamentoAposFormulario) {
+                        const { centroId, centroNome } = window.agendamentoAposFormulario;
+                        import('./calendar.js').then(({ renderCalendar }) => {
+                            renderCalendar(centroId, centroNome);
+                        });
+                    }
                 }
             });
         } else {
@@ -342,10 +406,17 @@ window.salvarFormularioConsentimento = async function() {
                 confirmText: 'Começar Agora',
                 onConfirm: () => {
                     window.closeModal();
-                    // 🔥 CHAMAR A FUNÇÃO PARA PROCESSAR AGENDAMENTO PENDENTE
-                    processarAgendamentoPendente();
-                    // Recarregar a página para atualizar o estado
-                    window.location.reload();
+                    
+                    // 🔥 CORREÇÃO: Passa os dados para o calendário ANTES de abrir
+                    if (window.agendamentoAposFormulario) {
+                        const { centroId, centroNome } = window.agendamentoAposFormulario;
+                        
+                        // Importa o calendário e abre imediatamente
+                        import('./calendar.js').then(({ renderCalendar }) => {
+                            // 🔥 NÃO LIMPAR A VARIÁVEL AQUI! O calendário vai ler e limpar sozinho.
+                            renderCalendar(centroId, centroNome);
+                        });
+                    }
                 }
             });
         }
@@ -378,36 +449,19 @@ export async function verificarFormularioPendente() {
         const user = await getCurrentUser();
         if (!user) return false;
         
-        // Verificar se já preencheu
-        const preenchido = await usuarioPreencheuFormulario(user.id);
+        // 🔥 VERIFICAÇÃO CORRETA: Conta os registros na tabela de consentimento
+        const { count, error } = await supabase
+            .from('formulario_consentimento')
+            .select('*', { count: 'exact', head: true })
+            .eq('usuario_id', user.id);
         
-        if (!preenchido) {
-            // Verificar se já tem agendamentos
-            const { data: agendamentos, error } = await supabase
-                .from('agendamentos')
-                .select('id')
-                .eq('usuario_id', user.id)
-                .eq('status', 'confirmado')
-                .limit(1);
-            
-            if (error) throw error;
-            
-            // Se tem agendamentos, o formulário deve estar preenchido (caso de migração)
-            if (agendamentos && agendamentos.length > 0) {
-                // Marcar como preenchido automaticamente (migração)
-                await supabase
-                    .from('usuarios')
-                    .update({ formulario_preenchido: true })
-                    .eq('id', user.id);
-                return false;
-            }
-            
-            return true; // Precisa preencher
-        }
+        if (error) throw error;
         
-        return false;
+        // Se count for 0, precisa preencher
+        return count === 0;
+        
     } catch (error) {
         console.error('❌ Erro ao verificar formulário pendente:', error);
-        return false;
+        return true; // Em caso de erro, bloqueia e obriga a preencher
     }
 }

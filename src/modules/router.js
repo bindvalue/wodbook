@@ -36,6 +36,14 @@ export function initRouter(elements) {
     setupHorariosEvents();
     setupAlunosEvents();
     setupConfiguracoesEvents();
+    
+    // 🔥🔥🔥 GARANTINDO QUE A FUNÇÃO DE AGENDAMENTO ESTEJA NO WINDOW 🔥🔥🔥
+    // Importa dinamicamente o dashboard para expor a função no window
+    import('./dashboard.js').then(module => {
+        // A função já se auto-registra no window quando o módulo é carregado
+        // Este import serve apenas para "forçar" a execução do arquivo na inicialização
+        console.log('📦 Módulo dashboard carregado para expor funções globais.');
+    }).catch(err => console.error('❌ Erro ao carregar dashboard no router:', err));
 }
 
 // ============================================

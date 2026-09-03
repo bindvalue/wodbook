@@ -1,5 +1,4 @@
 import { mascaraTelefone, removerMascaraTelefone, validarTelefone } from './mascara.js';
-import { usuarioPreencheuFormulario, renderizarFormularioConsentimento } from './consentimento.js';
 
 // ============================================
 // COMPONENTE: Calendário para Agendamento
@@ -96,9 +95,15 @@ function adicionarEstilosScroll() {
 adicionarEstilosScroll();
 
 // ============================================
-// FUNÇÃO: Renderizar Calendário (CORRIGIDA - SCROLL APENAS NOS HORÁRIOS)
+// FUNÇÃO: Renderizar Calendário (LIBERADO PARA ABRIR)
 // ============================================
 export function renderCalendar(centroId, centroNome) {
+
+    // 🔥 TRAVA DE SEGURANÇA REMOVIDA - O Dashboard já verifica se o usuário preencheu.
+    // 🔥 LIMPA A VARIÁVEL APÓS ABRIR (Para que não fique presa na memória)
+    window.agendamentoAposFormulario = null;
+
+    // Limpar modal existente
     if (modalAtivo) {
         modalAtivo.remove();
         modalAtivo = null;
@@ -303,27 +308,26 @@ function renderizarDias() {
         const isSelected = estado.dataSelecionada === dataStr;
         const isToday = dataStr === hojeStr;
         
-        let estilo = '';
         let classes = 'h-8 sm:h-9 text-xs sm:text-sm rounded-lg transition-all duration-200 font-medium';
         
+        // Remover completamente o "style" inline e usar apenas classes CSS
         if (isPast) {
             classes += ' bg-gray-100 text-gray-400 cursor-not-allowed';
         } else if (isSelected) {
-            classes += ' text-white scale-105 shadow-md font-bold';
-            estilo = `background: ${CORES.primary};`;
+            // 🔥 ESTILO DE SELEÇÃO CORRETO (com !important para forçar)
+            classes += ' text-white bg-[#F4742B] border-2 border-[#F4742B] scale-105 shadow-md font-bold';
+            // Adiciona uma classe customizada para garantir que o estilo aplique
+            classes += ' dia-selecionado';
         } else if (isToday) {
-            classes += ' border-2 font-bold';
-            estilo = `border-color: ${CORES.primary}; color: ${CORES.primary};`;
+            classes += ' border-2 border-[#F4742B] text-[#F4742B] font-bold';
         } else {
-            classes += ' hover:scale-105 cursor-pointer';
-            estilo = `background: ${CORES.gray[50]}; color: ${CORES.secondary};`;
+            classes += ' bg-gray-50 text-gray-700 hover:bg-gray-100 hover:scale-105 cursor-pointer';
         }
         
         html += `
             <button 
                 onclick="window.selecionarData('${dataStr}')"
                 class="${classes}"
-                style="${estilo}"
                 ${isPast ? 'disabled' : ''}
             >
                 ${dia}
@@ -714,7 +718,7 @@ window.fecharModalTelefone = function() {
 };
 
 // ============================================
-// FUNÇÃO: Confirmar Agendamento (GLOBAL)
+// FUNÇÃO: Confirmar Agendamento (GLOBAL - CORRIGIDA PARA NÃO CHAMAR FORMULÁRIO)
 // ============================================
 window.confirmarAgendamento = async function() {
     console.log('🔍 Confirmar agendamento chamado!');
@@ -736,60 +740,12 @@ window.confirmarAgendamento = async function() {
             throw new Error('Usuário não autenticado');
         }
         
-        const preencheu = await usuarioPreencheuFormulario(user.id);
+        // 🔥 FORMULÁRIO JÁ FOI VERIFICADO NA DASHBOARD, AGORA SÓ PROCESSA O AGENDAMENTO
         
-        if (!preencheu) {
-            console.log('📋 Usuário precisa preencher o formulário de consentimento');
-            
-            const { data: agendamentos, error: agendamentosError } = await supabase
-                .from('agendamentos')
-                .select('id')
-                .eq('usuario_id', user.id)
-                .eq('status', 'confirmado')
-                .limit(1);
-            
-            if (agendamentosError) throw agendamentosError;
-            
-            if (agendamentos && agendamentos.length > 0) {
-                console.log('✅ Usuário tem agendamentos antigos, marcando como preenchido');
-                await supabase
-                    .from('usuarios')
-                    .update({ formulario_preenchido: true })
-                    .eq('id', user.id);
-                
-                await processarAgendamento(user.id, btn, mensagem);
-                return;
-            } else {
-                estado.agendamentoPendente = {
-                    centroId: estado.centroId,
-                    centroNome: estado.centroNome,
-                    horarioId: estado.horarioSelecionado.id,
-                    dataAgendamento: estado.dataSelecionada,
-                    horarioInicio: estado.horarioSelecionado.inicio,
-                    horarioFim: estado.horarioSelecionado.fim
-                };
-                
-                console.log('📦 Agendamento pendente salvo:', estado.agendamentoPendente);
-                
-                mensagem.className = 'mt-2 p-2 rounded-lg text-xs sm:text-sm';
-                mensagem.style.background = '#FEF3E8';
-                mensagem.style.color = '#F4742B';
-                mensagem.innerHTML = `
-                    <i class="fas fa-info-circle mr-1"></i> 
-                    ⚠️ Preencha o <strong>Questionário de Prontidão</strong> acima.
-                `;
-                mensagem.classList.remove('hidden');
-                
-                renderizarFormularioConsentimento();
-                return;
-            }
-        }
-        
-        console.log('✅ Usuário já preencheu o formulário');
         await processarAgendamento(user.id, btn, mensagem);
         
     } catch (error) {
-        console.error('❌ Erro ao verificar formulário:', error);
+        console.error('❌ Erro ao processar agendamento:', error);
         alert('Erro ao verificar seus dados. Tente novamente.');
     }
 };
@@ -822,20 +778,62 @@ async function processarAgendamento(userId, btn, mensagem) {
     try {
         const { supabase } = await import('../config/supabase.js');
         
+        // 🔥 VERIFICAÇÃO CORRETA: Buscar TODOS os registros, não apenas confirmados
         const { data: existing, error: checkError } = await supabase
             .from('agendamentos')
-            .select('*')
+            .select('id, status')
             .eq('usuario_id', userId)
             .eq('horario_id', horarioId)
-            .eq('data_agendamento', dataAgendamento)
-            .eq('status', 'confirmado');
+            .eq('data_agendamento', dataAgendamento);
         
         if (checkError) throw checkError;
         
+        // 🔥 TRATAMENTO DE DUPLICIDADE:
+        // Se já existe um registro CONFIRMADO, avisa.
+        // Se existe um registro CANCELADO, atualiza o status para CONFIRMADO (evita o erro de constraint).
         if (existing && existing.length > 0) {
-            throw new Error('Você já tem um agendamento para este horário');
+            const agendamentoExistente = existing.find(a => a.status === 'confirmado');
+            
+            if (agendamentoExistente) {
+                throw new Error('Você já está agendado neste horário. Para trocar, cancele o agendamento atual primeiro.');
+            }
+            
+            // Se não tem confirmado, mas tem cancelado, vamos "reativar" esse registro
+            const agendamentoCancelado = existing.find(a => a.status === 'cancelado');
+            if (agendamentoCancelado) {
+                const { error: updateError } = await supabase
+                    .from('agendamentos')
+                    .update({ status: 'confirmado' })
+                    .eq('id', agendamentoCancelado.id);
+                
+                if (updateError) throw updateError;
+                
+                // Não precisamos atualizar vagas, pois o registro já existia
+                console.log('✅ Agendamento reativado com sucesso!');
+                estado.agendamentoPendente = null;
+                
+                mensagem.className = 'mt-2 p-2 rounded-lg text-xs sm:text-sm';
+                mensagem.style.background = '#D1FAE5';
+                mensagem.style.color = '#065F46';
+                mensagem.innerHTML = `
+                    <i class="fas fa-check-circle mr-1"></i> 
+                    ✅ Agendamento confirmado para ${new Date(dataAgendamento).toLocaleDateString('pt-BR')} 
+                    ${estado.horarioSelecionado?.inicio?.substring(0, 5) || pendente?.horarioInicio?.substring(0, 5) || '--'}h
+                `;
+                
+                btn.innerHTML = '<i class="fas fa-check mr-1"></i>Confirmado!';
+                btn.style.background = CORES.success;
+                
+                setTimeout(() => {
+                    window.fecharModalAgendamento();
+                    window.location.reload();
+                }, 3000);
+                
+                return;
+            }
         }
         
+        // Se não encontrou nada (nem confirmado, nem cancelado), insere um novo
         const { data: horario, error: horarioError } = await supabase
             .from('horarios')
             .select('vagas')
@@ -900,7 +898,6 @@ async function processarAgendamento(userId, btn, mensagem) {
         btn.style.background = CORES.primary;
     }
 }
-
 // ============================================
 // FUNÇÃO AUXILIAR: Nome do Mês
 // ============================================

@@ -9,9 +9,7 @@ function abrirMapa(endereco) {
         return;
     }
     
-    // Codificar o endereço para URL
     const enderecoCodificado = encodeURIComponent(endereco);
-    // Abrir no Google Maps (funciona em mobile e desktop)
     const url = `https://www.google.com/maps/search/?api=1&query=${enderecoCodificado}`;
     window.open(url, '_blank');
 }
@@ -30,7 +28,6 @@ export async function loadDashboardContent() {
     const nome = profile?.nome || user.email?.split('@')[0] || 'Usuário';
     const isAdmin = profile?.role === 'admin';
     
-    // Atualizar avatar no menu
     const userAvatarMenu = document.getElementById('userAvatarMenu');
     const userAvatarHeader = document.getElementById('userAvatarHeader');
     const userName = document.getElementById('userNameMenu');
@@ -43,14 +40,12 @@ export async function loadDashboardContent() {
     }
     if (userName) userName.textContent = nome;
     
-    // Buscar centros com endereço completo
     const { data: centros } = await supabase
         .from('centros')
         .select('*')
         .eq('ativo', true)
         .limit(6);
     
-    // Buscar agendamentos do usuário
     const { data: agendamentos } = await supabase
         .from('agendamentos')
         .select(`
@@ -72,7 +67,6 @@ export async function loadDashboardContent() {
     
     const total = agendamentos?.length || 0;
     
-    // Filtrar agendamentos futuros
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     
@@ -89,7 +83,6 @@ export async function loadDashboardContent() {
     const totalFuturos = agendamentosFuturos.length;
     const totalPassados = agendamentosPassados.length;
     
-    // Formatar data
     function formatarData(dataStr) {
         const data = new Date(dataStr + 'T00:00:00');
         const dias = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
@@ -97,7 +90,6 @@ export async function loadDashboardContent() {
         return `${dias[data.getDay()]}, ${String(data.getDate()).padStart(2, '0')} ${meses[data.getMonth()]}`;
     }
     
-    // Função para verificar se é hoje
     function isHoje(dataStr) {
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
@@ -106,18 +98,15 @@ export async function loadDashboardContent() {
     }
     
     return `
-        <!-- Hero Section - Apple Style -->
+        <!-- Hero Section -->
         <div class="relative rounded-2xl overflow-hidden mb-6">
             <div class="bg-gradient-to-br from-[#F4742B] via-[#E0601A] to-[#4B4B4D] p-6 md:p-8 text-white">
                 <div class="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
                 <div class="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/4"></div>
-                
                 <div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <p class="text-white/70 text-xs font-medium uppercase tracking-wider">Bem-vindo de volta</p>
-                        <h2 class="text-2xl md:text-3xl font-bold mt-1">
-                            Olá, ${nome} <span class="text-[#FEF3E8]">👋</span>
-                        </h2>
+                        <h2 class="text-2xl md:text-3xl font-bold mt-1">Olá, ${nome} <span class="text-[#FEF3E8]">👋</span></h2>
                         <p class="text-white/70 text-sm mt-1">Pronto para mais um treino?</p>
                     </div>
                     <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/10">
@@ -128,7 +117,7 @@ export async function loadDashboardContent() {
             </div>
         </div>
         
-        <!-- Stats - Apple Style -->
+        <!-- Stats -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
             <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
@@ -141,7 +130,6 @@ export async function loadDashboardContent() {
                     </div>
                 </div>
             </div>
-            
             <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
                     <div>
@@ -153,7 +141,6 @@ export async function loadDashboardContent() {
                     </div>
                 </div>
             </div>
-            
             <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
                     <div>
@@ -165,7 +152,6 @@ export async function loadDashboardContent() {
                     </div>
                 </div>
             </div>
-            
             <div class="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                 <div class="flex items-center justify-between">
                     <div>
@@ -179,33 +165,25 @@ export async function loadDashboardContent() {
             </div>
         </div>
         
-        <!-- Centros - Apple Style com Endereço e Mapa -->
+        <!-- Centros -->
         <div class="mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-base font-semibold text-[#4B4B4D] flex items-center gap-2">
-                    <i class="fas fa-dumbbell text-[#F4742B]"></i>
-                    Centros de Treinamento
+                    <i class="fas fa-dumbbell text-[#F4742B]"></i> Centros de Treinamento
                 </h3>
-                <a href="#" onclick="window.loadPage('centros'); return false;" 
-                   class="text-xs text-[#F4742B] hover:text-[#E0601A] font-medium transition flex items-center gap-1">
+                <a href="#" onclick="window.loadPage('centros'); return false;" class="text-xs text-[#F4742B] hover:text-[#E0601A] font-medium transition flex items-center gap-1">
                     Ver todos <i class="fas fa-arrow-right text-[10px]"></i>
                 </a>
             </div>
-            
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 ${centros?.map(centro => {
                     const imagemUrl = centro.imagem || `https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=200&font-size=0.35`;
                     const enderecoCompleto = centro.endereco || '';
                     const bairro = centro.bairro || '';
-                    
                     return `
                         <div class="bg-white rounded-2xl shadow-sm overflow-hidden card-hover border border-gray-100/50 group transition-all duration-300 hover:shadow-md">
                             <div class="relative h-40 overflow-hidden bg-[#FEF3E8]">
-                                <img src="${imagemUrl}" 
-                                     alt="${centro.nome}" 
-                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                     loading="lazy"
-                                     onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=200&font-size=0.35'">
+                                <img src="${imagemUrl}" alt="${centro.nome}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(centro.nome)}&background=F4742B&color=fff&size=200&font-size=0.35'">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
                                 <div class="absolute bottom-3 left-3">
                                     <h4 class="text-white font-semibold text-sm drop-shadow-lg">${centro.nome}</h4>
@@ -213,38 +191,24 @@ export async function loadDashboardContent() {
                                 </div>
                             </div>
                             <div class="p-4">
-                                <!-- Endereço com ícone -->
                                 ${enderecoCompleto ? `
                                     <div class="flex items-start gap-2 text-xs text-gray-500 mb-2">
                                         <i class="fas fa-location-dot text-[#F4742B] mt-0.5 text-[10px]"></i>
                                         <span class="line-clamp-2">${enderecoCompleto}</span>
                                     </div>
                                 ` : ''}
-                                
-                                <!-- Informações do centro -->
                                 <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
-                                    <span class="flex items-center gap-1">
-                                        <i class="far fa-clock text-[10px]"></i>
-                                        ${centro.horario_funcionamento || '06:00 - 22:00'}
-                                    </span>
+                                    <span class="flex items-center gap-1"><i class="far fa-clock text-[10px]"></i> ${centro.horario_funcionamento || '06:00 - 22:00'}</span>
                                     <span>•</span>
-                                    <span class="flex items-center gap-1">
-                                        <i class="fas fa-users text-[10px]"></i>
-                                        ${centro.vagas_padrao || 10}
-                                    </span>
+                                    <span class="flex items-center gap-1"><i class="fas fa-users text-[10px]"></i> ${centro.vagas_padrao || 10}</span>
                                 </div>
-                                
-                                <!-- Botões de ação -->
                                 <div class="flex gap-2">
-                                    <button onclick="window.abrirAgendamento('${centro.id}', '${centro.nome}')" 
+                                    <button data-acao="agendar" data-centro-id="${centro.id}" data-centro-nome="${centro.nome}" 
                                             class="flex-1 bg-[#F4742B] text-white text-sm font-medium py-2 rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center justify-center gap-2">
-                                        <i class="fas fa-calendar-plus text-xs"></i>
-                                        Agendar
+                                        <i class="fas fa-calendar-plus text-xs"></i> Agendar
                                     </button>
                                     ${enderecoCompleto ? `
-                                        <button onclick="window.abrirMapa('${enderecoCompleto.replace(/'/g, "\\'")}')" 
-                                                class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition active:scale-[0.98] flex items-center justify-center" 
-                                                title="Abrir no mapa">
+                                        <button onclick="window.abrirMapa('${enderecoCompleto.replace(/'/g, "\\'")}')" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition active:scale-[0.98] flex items-center justify-center" title="Abrir no mapa">
                                             <i class="fas fa-map-pin text-sm"></i>
                                         </button>
                                     ` : ''}
@@ -252,21 +216,15 @@ export async function loadDashboardContent() {
                             </div>
                         </div>
                     `;
-                }).join('') || `
-                    <div class="col-span-full text-center text-gray-400 py-8">
-                        <i class="fas fa-building text-3xl block mb-2 text-gray-300"></i>
-                        <p class="text-sm">Nenhum centro disponível no momento</p>
-                    </div>
-                `}
+                }).join('') || `<div class="col-span-full text-center text-gray-400 py-8"><i class="fas fa-building text-3xl block mb-2 text-gray-300"></i><p class="text-sm">Nenhum centro disponível no momento</p></div>`}
             </div>
         </div>
         
-        <!-- Meus Agendamentos - Apple Style -->
+        <!-- Meus Agendamentos -->
         <div>
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-base font-semibold text-[#4B4B4D] flex items-center gap-2">
-                    <i class="fas fa-clock text-[#F4742B]"></i>
-                    Meus Agendamentos
+                    <i class="fas fa-clock text-[#F4742B]"></i> Meus Agendamentos
                 </h3>
                 <div class="flex items-center gap-2 text-xs text-gray-400">
                     <span>${totalFuturos} futuros</span>
@@ -274,37 +232,19 @@ export async function loadDashboardContent() {
                     <span>${totalPassados} concluídos</span>
                 </div>
             </div>
-            
             <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 ${agendamentos?.length === 0 ? `
                     <div class="flex flex-col items-center justify-center py-12 px-4">
-                        <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                            <i class="fas fa-calendar-plus text-2xl text-gray-300"></i>
-                        </div>
+                        <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3"><i class="fas fa-calendar-plus text-2xl text-gray-300"></i></div>
                         <p class="text-gray-500 text-sm font-medium">Nenhum agendamento</p>
                         <p class="text-gray-400 text-xs mt-1">Agende sua primeira aula em um dos centros acima</p>
                     </div>
                 ` : `
-                    <!-- Tabs -->
                     <div class="flex border-b border-gray-100 bg-gray-50/50 px-2">
-                        <button onclick="window.filtrarAgendamentos('todos')" 
-                                class="px-3 py-2 text-xs font-medium text-[#F4742B] border-b-2 border-[#F4742B] transition" 
-                                id="tabTodos">
-                            Todos (${total})
-                        </button>
-                        <button onclick="window.filtrarAgendamentos('futuros')" 
-                                class="px-3 py-2 text-xs font-medium text-gray-400 hover:text-gray-600 transition border-b-2 border-transparent" 
-                                id="tabFuturos">
-                            Futuros (${totalFuturos})
-                        </button>
-                        <button onclick="window.filtrarAgendamentos('passados')" 
-                                class="px-3 py-2 text-xs font-medium text-gray-400 hover:text-gray-600 transition border-b-2 border-transparent" 
-                                id="tabPassados">
-                            Concluídos (${totalPassados})
-                        </button>
+                        <button onclick="window.filtrarAgendamentos('todos')" class="px-3 py-2 text-xs font-medium text-[#F4742B] border-b-2 border-[#F4742B] transition" id="tabTodos">Todos (${total})</button>
+                        <button onclick="window.filtrarAgendamentos('futuros')" class="px-3 py-2 text-xs font-medium text-gray-400 hover:text-gray-600 transition border-b-2 border-transparent" id="tabFuturos">Futuros (${totalFuturos})</button>
+                        <button onclick="window.filtrarAgendamentos('passados')" class="px-3 py-2 text-xs font-medium text-gray-400 hover:text-gray-600 transition border-b-2 border-transparent" id="tabPassados">Concluídos (${totalPassados})</button>
                     </div>
-                    
-                    <!-- Lista -->
                     <div id="listaAgendamentos" class="divide-y divide-gray-100">
                         ${agendamentos.map(ag => {
                             const centroNome = ag.horarios?.centros?.nome || 'Centro não identificado';
@@ -314,49 +254,23 @@ export async function loadDashboardContent() {
                             const horaFim = ag.horarios?.hora_fim?.substring(0,5) || '--';
                             const futuro = new Date(ag.data_agendamento + 'T00:00:00') >= hoje;
                             const hojeAgendamento = isHoje(ag.data_agendamento);
-                            
                             let statusLabel = futuro ? (hojeAgendamento ? '🔥 Hoje' : '📅 Futuro') : '✅ Concluído';
                             let statusColor = futuro ? (hojeAgendamento ? 'bg-[#FEF3E8] text-[#F4742B]' : 'bg-green-50 text-green-700') : 'bg-gray-100 text-gray-500';
-                            
                             return `
                                 <div class="py-3 px-4 hover:bg-gray-50/50 transition agendamento-item" data-status="${futuro ? 'futuros' : 'passados'}">
                                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center gap-2 flex-wrap">
                                                 <p class="font-medium text-gray-800 text-sm truncate">${centroNome}</p>
-                                                <span class="text-[10px] px-2 py-0.5 rounded-full ${statusColor}">
-                                                    ${statusLabel}
-                                                </span>
+                                                <span class="text-[10px] px-2 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
                                             </div>
                                             <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-400 mt-0.5">
-                                                <span class="flex items-center gap-1">
-                                                    <i class="far fa-calendar text-[10px]"></i>
-                                                    ${dataFormatada}
-                                                </span>
-                                                <span class="flex items-center gap-1">
-                                                    <i class="far fa-clock text-[10px]"></i>
-                                                    ${horaInicio} - ${horaFim}
-                                                </span>
-                                                ${centroBairro ? `
-                                                    <span class="flex items-center gap-1">
-                                                        <i class="fas fa-map-pin text-[10px]"></i>
-                                                        ${centroBairro}
-                                                    </span>
-                                                ` : ''}
+                                                <span class="flex items-center gap-1"><i class="far fa-calendar text-[10px]"></i> ${dataFormatada}</span>
+                                                <span class="flex items-center gap-1"><i class="far fa-clock text-[10px]"></i> ${horaInicio} - ${horaFim}</span>
+                                                ${centroBairro ? `<span class="flex items-center gap-1"><i class="fas fa-map-pin text-[10px]"></i> ${centroBairro}</span>` : ''}
                                             </div>
                                         </div>
-                                        ${futuro ? `
-                                            <button onclick="window.cancelarAgendamento('${ag.id}')" 
-                                                    class="text-xs px-3 py-1 border border-red-300 text-red-400 hover:text-red-600 hover:border-red-500 rounded-lg hover:bg-red-50 transition flex-shrink-0">
-                                                <i class="fas fa-times text-[10px] mr-1"></i>
-                                                Cancelar
-                                            </button>
-                                        ` : `
-                                            <span class="text-xs px-3 py-1 bg-gray-100 text-gray-400 rounded-lg flex-shrink-0">
-                                                <i class="fas fa-check text-[10px] mr-1"></i>
-                                                Concluído
-                                            </span>
-                                        `}
+                                        ${futuro ? `<button onclick="window.cancelarAgendamento('${ag.id}')" class="text-xs px-3 py-1 border border-red-300 text-red-400 hover:text-red-600 hover:border-red-500 rounded-lg hover:bg-red-50 transition flex-shrink-0"><i class="fas fa-times text-[10px] mr-1"></i> Cancelar</button>` : `<span class="text-xs px-3 py-1 bg-gray-100 text-gray-400 rounded-lg flex-shrink-0"><i class="fas fa-check text-[10px] mr-1"></i> Concluído</span>`}
                                     </div>
                                 </div>
                             `;
@@ -369,21 +283,87 @@ export async function loadDashboardContent() {
 }
 
 // ============================================
-// FUNÇÃO GLOBAL: Abrir Mapa
+// 🔥🔥🔥 FUNÇÕES GLOBAIS (DEFINIDAS FORA DO LOAD) 🔥🔥🔥
 // ============================================
+
 window.abrirMapa = function(endereco) {
     if (!endereco || endereco === '') {
         alert('Endereço não disponível para este centro.');
         return;
     }
-    
     const enderecoCodificado = encodeURIComponent(endereco);
     const url = `https://www.google.com/maps/search/?api=1&query=${enderecoCodificado}`;
     window.open(url, '_blank');
 };
 
+window.abrirAgendamento = async function(centroId, centroNome) {
+    try {
+        const { supabase, getCurrentUser } = await import('../config/supabase.js');
+        const user = await getCurrentUser();
+        if (!user) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        const { renderizarFormularioConsentimento } = await import('./consentimento.js');
+        const { renderCalendar } = await import('./calendar.js');
+
+        // 🔥 VERIFICAÇÃO CORRETA: Conta quantas vezes o usuário preencheu o formulário
+        const { count, error: errCount } = await supabase
+            .from('formulario_consentimento')
+            .select('*', { count: 'exact', head: true })
+            .eq('usuario_id', user.id);
+
+        if (errCount) {
+            console.error('❌ Erro ao contar formulários:', errCount);
+            window.agendamentoAposFormulario = { centroId, centroNome };
+            renderizarFormularioConsentimento();
+            return;
+        }
+
+        // Se o count for 0, o usuário NUNCA preencheu. Abre o formulário!
+        if (count === 0) {
+            console.log('📋 Usuário NUNCA preencheu o formulário. Abrindo...');
+            window.agendamentoAposFormulario = { centroId, centroNome };
+            renderizarFormularioConsentimento();
+        } else {
+            console.log('✅ Usuário JÁ preencheu o formulário. Abrindo calendário...');
+            window.agendamentoAposFormulario = { centroId, centroNome };
+            renderCalendar(centroId, centroNome);
+        }
+
+    } catch (error) {
+        console.error('❌ Erro crítico ao abrir agendamento:', error);
+        alert('Erro ao tentar abrir agendamento. Verifique o console.');
+    }
+};
+
+// 🔥🔥🔥 EVENT DELEGATION: GARANTE QUE OS BOTÕES FUNCIONEM MESMO COM O ROUTER (NÃO DEPENDE DO ONCLICK)
+document.addEventListener('click', async function(e) {
+    const btn = e.target.closest('button[data-acao="agendar"]');
+    
+    if (btn) {
+        e.preventDefault();
+        e.stopPropagation(); // 🔥 IMPEDE QUE O CALENDÁRIO ABRA
+        const centroId = btn.dataset.centroId;
+        const centroNome = btn.dataset.centroNome;
+        
+        console.log('🖱️ Clique detectado via Event Delegation!');
+        
+        // Chama a função que abre o formulário
+        if (typeof window.abrirAgendamento === 'function') {
+            await window.abrirAgendamento(centroId, centroNome);
+        } else {
+            console.error('❌ Função não encontrada!');
+        }
+    }
+});
+
+// 🔥 LOG PARA CONFIRMAR QUE A FUNÇÃO FOI REGISTRADA NO CONSOLE
+console.log('✅ Função window.abrirAgendamento registrada:', typeof window.abrirAgendamento);
+
 // ============================================
-// FUNÇÃO: Filtrar Agendamentos (GLOBAL)
+// FUNÇÕES DE FILTRO E CANCELAMENTO
 // ============================================
 window.filtrarAgendamentos = function(filtro) {
     document.querySelectorAll('#tabTodos, #tabFuturos, #tabPassados').forEach(tab => {
@@ -393,12 +373,7 @@ window.filtrarAgendamentos = function(filtro) {
         }
     });
     
-    const tabMap = {
-        'todos': 'tabTodos',
-        'futuros': 'tabFuturos',
-        'passados': 'tabPassados'
-    };
-    
+    const tabMap = { 'todos': 'tabTodos', 'futuros': 'tabFuturos', 'passados': 'tabPassados' };
     const tabAtiva = document.getElementById(tabMap[filtro]);
     if (tabAtiva) {
         tabAtiva.classList.remove('text-gray-400', 'border-transparent');
@@ -414,9 +389,6 @@ window.filtrarAgendamentos = function(filtro) {
     });
 };
 
-// ============================================
-// FUNÇÃO: Cancelar Agendamento (GLOBAL)
-// ============================================
 window.cancelarAgendamento = async function(agendamentoId) {
     if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
     
@@ -437,10 +409,7 @@ window.cancelarAgendamento = async function(agendamentoId) {
                 </div>
                 <h3 class="text-lg font-semibold text-[#4B4B4D]">Agendamento Cancelado!</h3>
                 <p class="text-sm text-gray-500 mt-1">Seu agendamento foi cancelado com sucesso.</p>
-                <button onclick="this.closest('.fixed').remove(); window.location.reload();" 
-                        class="mt-4 px-6 py-2 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition">
-                    OK
-                </button>
+                <button onclick="this.closest('.fixed').remove(); window.location.reload();" class="mt-4 px-6 py-2 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition">OK</button>
             </div>
         `;
         document.body.appendChild(modal);
@@ -456,4 +425,5 @@ window.cancelarAgendamento = async function(agendamentoId) {
         console.error('Erro ao cancelar:', error);
         alert('❌ Erro ao cancelar agendamento. Tente novamente.');
     }
+    console.log('✅ Função window.abrirAgendamento registrada:', typeof window.abrirAgendamento);
 };

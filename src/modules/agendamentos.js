@@ -164,7 +164,7 @@ window.aplicarFiltros = async function() {
             .from('agendamentos')
             .select(`
                 *,
-                usuarios (id, nome, telefone, email),
+                usuarios (id, nome, telefone, email, usa_plataforma, nome_plataforma),
                 horarios (
                     *,
                     centros (*)
@@ -257,23 +257,48 @@ window.aplicarFiltros = async function() {
                 const horaInicio = ag.horarios?.hora_inicio?.substring(0,5) || '--';
                 const horaFim = ag.horarios?.hora_fim?.substring(0,5) || '--';
                 
+                // 🔥 DADOS DA PLATAFORMA
+                const temPlataforma = ag.usuarios?.usa_plataforma === true;
+                const nomePlataforma = ag.usuarios?.nome_plataforma || '';
+                
                 html += `
                     <div class="bg-gray-50/80 rounded-xl p-3 hover:bg-gray-100 transition border border-gray-100/50">
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex-1 min-w-0">
-                                <p class="font-medium text-gray-800 text-sm truncate">
-                                    ${ag.usuarios?.nome || 'Usuário não identificado'}
-                                </p>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <p class="font-medium text-gray-800 text-sm truncate">
+                                        ${ag.usuarios?.nome || 'Usuário não identificado'}
+                                    </p>
+                                    
+                                    <!-- 🔥 BADGE DA PLATAFORMA PASS -->
+                                    ${temPlataforma ? `
+                                        <span class="inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#FEF3E8] text-[#F4742B] border border-[#FED7AA]" title="Utiliza plataforma ${nomePlataforma}">
+                                            <i class="fas fa-id-card text-[8px]"></i>
+                                            ${nomePlataforma}
+                                        </span>
+                                    ` : `
+                                        <span class="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400" title="Não utiliza plataforma">
+                                            <i class="fas fa-user text-[8px]"></i>
+                                            Sem Pass
+                                        </span>
+                                    `}
+                                </div>
+                                
                                 <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
                                     <span class="flex items-center gap-1">
                                         <i class="far fa-clock text-[10px]"></i>
                                         ${horaInicio} - ${horaFim}
                                     </span>
+                                    
+                                    <!-- 🔥 LINK PARA WHATSAPP -->
                                     ${ag.usuarios?.telefone ? `
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-phone text-[10px]"></i>
+                                        <a href="https://wa.me/55${ag.usuarios.telefone.replace(/\D/g, '')}?text=Olá ${encodeURIComponent(ag.usuarios.nome || 'Aluno')}!%20Sou%20da%20WODBOOK." 
+                                           target="_blank"
+                                           class="flex items-center gap-1 text-green-600 hover:text-green-700 hover:bg-green-50 px-1.5 py-0.5 rounded-lg transition"
+                                           title="Chamar no WhatsApp">
+                                            <i class="fab fa-whatsapp text-[10px]"></i>
                                             ${ag.usuarios.telefone}
-                                        </span>
+                                        </a>
                                     ` : ''}
                                 </div>
                             </div>
@@ -497,7 +522,7 @@ window.exportarPDF = async function() {
             .from('agendamentos')
             .select(`
                 *,
-                usuarios (id, nome, telefone, email),
+                usuarios (id, nome, telefone, email, usa_plataforma, nome_plataforma),
                 horarios (
                     *,
                     centros (*)
