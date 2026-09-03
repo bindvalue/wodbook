@@ -182,17 +182,12 @@
         const pageTitle = document.getElementById('pageTitle');
         const pageSubtitle = document.getElementById('pageSubtitle');
         const sidebarContainer = document.getElementById('sidebarContainer');
-        
-        console.log('🚀 Iniciando aplicação...');
-        console.log('📦 pageContent:', !!pageContent);
-        console.log('📦 sidebarContainer:', !!sidebarContainer);
-        
+       
         // ============================================
         // RENDERIZAR MENU
         // ============================================
         if (sidebarContainer) {
             sidebarContainer.innerHTML = renderMenu('dashboard');
-            console.log('✅ Menu renderizado');
         } else {
             console.error('❌ sidebarContainer não encontrado!');
         }
@@ -203,7 +198,7 @@
         // ============================================
         // INICIALIZAR ROTEADOR
         // ============================================
-        console.log('🔄 Inicializando router...');
+        
         initRouter({ pageContent, pageTitle, pageSubtitle });
         
         // ============================================
@@ -211,14 +206,12 @@
         // ============================================
         function initNavigation() {
             const items = document.querySelectorAll('.nav-item[data-page]');
-            console.log('📋 Itens do menu com data-page:', items.length);
-            
+                        
             items.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const page = this.dataset.page;
-                    console.log('🔄 Navegando para:', page);
-                    
+                                        
                     if (page) {
                         document.querySelectorAll('.nav-item').forEach(el => {
                             el.classList.remove('active');
@@ -275,30 +268,24 @@
         // ============================================
         async function init() {
             try {
-                console.log('🔄 Inicializando...');
-                
+                                
                 const user = await getCurrentUser();
                 if (!user) {
                     window.location.href = '/login.html';
                     return;
                 }
-                
-                console.log('✅ Usuário autenticado:', user.email);
-                
+                                               
                 await updateUserData();
-                console.log('👤 Role do usuário:', localStorage.getItem('userRole'));
-                
+                                
                 setupLogout();
                 await updateUserAvatar();
                 initNavigation();
                 initNotificacoes(); 
                 initFooter();
                 setupConfiguracoesEvents();
-                
-                console.log('📄 Carregando dashboard...');
+                               
                 loadPage('dashboard');
-                
-                console.log('✅ SPA iniciado com sucesso!');
+                               
             } catch (error) {
                 console.error('❌ Erro na inicialização:', error);
             }

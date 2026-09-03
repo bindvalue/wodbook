@@ -144,8 +144,7 @@ async function buscarNotificacoes(limit = 10) {
             };
         }) || [];
         
-        console.log(`📢 ${notificacoesCache.length} notificações encontradas (${isAdmin ? 'Admin' : 'Usuário'})`);
-        
+                
         return notificacoesCache;
     } catch (error) {
         console.error('Erro ao buscar notificações:', error);

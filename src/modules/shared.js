@@ -87,7 +87,6 @@ export async function updateUserData() {
         if (data) {
             localStorage.setItem('userRole', data.role || 'user');
             localStorage.setItem('userName', data.nome || 'Usuário');
-            console.log('✅ Dados do usuário salvos:', { role: data.role, nome: data.nome });
         }
         
         return data;
@@ -109,21 +108,18 @@ export function getUserRole() {
 // FUNÇÃO: Logout (COM ANIMAÇÃO DE REDIRECIONAMENTO)
 // ============================================
 export function setupLogout() {
-    console.log('🔧 Configurando logout...');
-    
+        
     const checkButton = setInterval(() => {
         const btnLogout = document.getElementById('btnLogout');
         if (btnLogout) {
             clearInterval(checkButton);
-            console.log('✅ Botão logout encontrado!');
-            
+                        
             const newBtn = btnLogout.cloneNode(true);
             btnLogout.parentNode.replaceChild(newBtn, btnLogout);
             
             newBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('🔄 Clique no logout detectado!');
-                
+                                
                 confirmModal({
                     title: 'Sair do Sistema',
                     message: 'Tem certeza que deseja sair?',
@@ -132,10 +128,9 @@ export function setupLogout() {
                     confirmColor: '#EF4444',
                     onConfirm: async () => {
                         try {
-                            console.log('🔄 Realizando logout...');
+                           
                             await supabase.auth.signOut();
-                            console.log('✅ Logout realizado!');
-                            
+                                                        
                             // Limpar localStorage
                             localStorage.removeItem('userRole');
                             localStorage.removeItem('userName');
@@ -163,7 +158,7 @@ export function setupLogout() {
                         }
                     },
                     onCancel: () => {
-                        console.log('❌ Logout cancelado pelo usuário');
+                        
                         window.closeModal();
                     }
                 });

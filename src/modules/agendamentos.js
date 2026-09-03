@@ -680,7 +680,7 @@ function carregarScript(src) {
         script.src = src;
         script.async = false;
         script.onload = () => {
-            console.log(`✅ Script carregado: ${src}`);
+        
             resolve();
         };
         script.onerror = () => {

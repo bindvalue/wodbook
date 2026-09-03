@@ -534,8 +534,7 @@ async function carregarHorarios() {
 // FUNÇÃO: Selecionar Data (GLOBAL)
 // ============================================
 window.selecionarData = function(dataStr) {
-    console.log('📅 Data selecionada:', dataStr);
-    
+       
     if (estado.dataSelecionada === dataStr) {
         estado.dataSelecionada = null;
         estado.horarioSelecionado = null;
@@ -598,12 +597,9 @@ window.mudarMes = function(delta) {
 // FUNÇÃO: Selecionar Horário (GLOBAL - CORRIGIDA)
 // ============================================
 window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
-    console.log('🕐 Clique no horário:', horarioId);
-    console.log('📌 Estado atual:', estado.horarioSelecionado);
-    
+       
     // Se clicou no mesmo horário, desmarcar
     if (estado.horarioSelecionado && estado.horarioSelecionado.id === horarioId) {
-        console.log('🔄 Desmarcando horário');
         estado.horarioSelecionado = null;
         estado.agendamentoPendente = null;
         
@@ -619,7 +615,6 @@ window.selecionarHorario = function(horarioId, horaInicio, horaFim) {
     }
     
     // Selecionar novo horário
-    console.log('✅ Selecionando horário:', horarioId);
     estado.horarioSelecionado = { id: horarioId, inicio: horaInicio, fim: horaFim };
     
     estado.agendamentoPendente = {
@@ -652,8 +647,6 @@ function atualizarCoresDosBotoes() {
     const botoes = document.querySelectorAll('#horariosList button[data-horario-id]');
     const horarioSelecionadoId = estado.horarioSelecionado?.id;
     
-    console.log('🎨 Atualizando cores. Selecionado ID:', horarioSelecionadoId);
-    console.log('📊 Total de botões:', botoes.length);
     
     botoes.forEach(btn => {
         const id = btn.dataset.horarioId;
@@ -661,8 +654,6 @@ function atualizarCoresDosBotoes() {
         const isDisabled = btn.disabled;
         
         if (isSelected) {
-            console.log('🟧 Aplicando estilo LARANJA para:', id);
-            
             // 🔥 FORÇAR O ESTILO DIRETAMENTE NO ELEMENTO
             btn.style.setProperty('background', '#F4742B', 'important');
             btn.style.setProperty('background-color', '#F4742B', 'important');
@@ -676,8 +667,7 @@ function atualizarCoresDosBotoes() {
             });
             
         } else if (!isDisabled) {
-            console.log('⬜ Resetando estilo para:', id);
-            
+                        
             // Resetar para o padrão
             btn.style.setProperty('background', '#FFFFFF', 'important');
             btn.style.setProperty('background-color', '#FFFFFF', 'important');
@@ -721,9 +711,6 @@ window.fecharModalTelefone = function() {
 // FUNÇÃO: Confirmar Agendamento (GLOBAL - CORRIGIDA PARA NÃO CHAMAR FORMULÁRIO)
 // ============================================
 window.confirmarAgendamento = async function() {
-    console.log('🔍 Confirmar agendamento chamado!');
-    console.log('📅 Data selecionada:', estado.dataSelecionada);
-    console.log('🕐 Horário selecionado:', estado.horarioSelecionado);
     
     if (!estado.dataSelecionada || !estado.horarioSelecionado) {
         alert('Selecione uma data e horário');
@@ -754,8 +741,7 @@ window.confirmarAgendamento = async function() {
 // FUNÇÃO: Processar Agendamento
 // ============================================
 async function processarAgendamento(userId, btn, mensagem) {
-    console.log('🔄 Processando agendamento...');
-    
+       
     const pendente = estado.agendamentoPendente;
     const horarioId = pendente?.horarioId || estado.horarioSelecionado?.id;
     const dataAgendamento = pendente?.dataAgendamento || estado.dataSelecionada;
@@ -808,8 +794,6 @@ async function processarAgendamento(userId, btn, mensagem) {
                 
                 if (updateError) throw updateError;
                 
-                // Não precisamos atualizar vagas, pois o registro já existia
-                console.log('✅ Agendamento reativado com sucesso!');
                 estado.agendamentoPendente = null;
                 
                 mensagem.className = 'mt-2 p-2 rounded-lg text-xs sm:text-sm';
@@ -861,9 +845,7 @@ async function processarAgendamento(userId, btn, mensagem) {
             .from('horarios')
             .update({ vagas: horario.vagas - 1 })
             .eq('id', horarioId);
-        
-        console.log('✅ Agendamento confirmado!');
-        
+                        
         estado.agendamentoPendente = null;
         
         mensagem.className = 'mt-2 p-2 rounded-lg text-xs sm:text-sm';
@@ -959,11 +941,9 @@ window.limparFiltroAula = function() {
 // FUNÇÃO: Processar Agendamento Pendente (Exportada)
 // ============================================
 export async function processarAgendamentoPendente() {
-    console.log('🔄 Processando agendamento pendente...');
-    console.log('📦 Dados pendentes:', estado.agendamentoPendente);
-    
+        
     if (!estado.agendamentoPendente) {
-        console.log('ℹ️ Nenhum agendamento pendente encontrado.');
+        
         return;
     }
     
@@ -972,7 +952,7 @@ export async function processarAgendamentoPendente() {
     const mensagem = document.getElementById('mensagemAgendamento');
     
     if (!modalAtivo) {
-        console.log('ℹ️ Modal do calendário não está aberto.');
+       
         return;
     }
     

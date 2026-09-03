@@ -312,8 +312,7 @@ export async function updateUserMenu(user) {
         localStorage.setItem('userRole', role);
         localStorage.setItem('userName', nome);
         
-        console.log('✅ Menu atualizado com:', { nome, role });
-    } catch (error) {
+       } catch (error) {
         console.error('❌ Erro ao atualizar menu:', error);
     }
 }

@@ -323,11 +323,9 @@ window.abrirAgendamento = async function(centroId, centroNome) {
 
         // Se o count for 0, o usuário NUNCA preencheu. Abre o formulário!
         if (count === 0) {
-            console.log('📋 Usuário NUNCA preencheu o formulário. Abrindo...');
             window.agendamentoAposFormulario = { centroId, centroNome };
             renderizarFormularioConsentimento();
         } else {
-            console.log('✅ Usuário JÁ preencheu o formulário. Abrindo calendário...');
             window.agendamentoAposFormulario = { centroId, centroNome };
             renderCalendar(centroId, centroNome);
         }
@@ -347,9 +345,7 @@ document.addEventListener('click', async function(e) {
         e.stopPropagation(); // 🔥 IMPEDE QUE O CALENDÁRIO ABRA
         const centroId = btn.dataset.centroId;
         const centroNome = btn.dataset.centroNome;
-        
-        console.log('🖱️ Clique detectado via Event Delegation!');
-        
+                        
         // Chama a função que abre o formulário
         if (typeof window.abrirAgendamento === 'function') {
             await window.abrirAgendamento(centroId, centroNome);
@@ -358,9 +354,6 @@ document.addEventListener('click', async function(e) {
         }
     }
 });
-
-// 🔥 LOG PARA CONFIRMAR QUE A FUNÇÃO FOI REGISTRADA NO CONSOLE
-console.log('✅ Função window.abrirAgendamento registrada:', typeof window.abrirAgendamento);
 
 // ============================================
 // FUNÇÕES DE FILTRO E CANCELAMENTO
@@ -425,5 +418,5 @@ window.cancelarAgendamento = async function(agendamentoId) {
         console.error('Erro ao cancelar:', error);
         alert('❌ Erro ao cancelar agendamento. Tente novamente.');
     }
-    console.log('✅ Função window.abrirAgendamento registrada:', typeof window.abrirAgendamento);
+    
 };

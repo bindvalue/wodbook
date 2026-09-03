@@ -18,19 +18,13 @@ let navItems = [];
 // INICIALIZAR ROTEADOR
 // ============================================
 export function initRouter(elements) {
-    console.log('🔄 Inicializando router com elementos:', !!elements);
-    
+       
     pageContent = elements.pageContent;
     pageTitle = elements.pageTitle;
     pageSubtitle = elements.pageSubtitle;
     
-    console.log('📦 pageContent após atribuição:', !!pageContent);
-    console.log('📦 pageTitle após atribuição:', !!pageTitle);
-    console.log('📦 pageSubtitle após atribuição:', !!pageSubtitle);
-    
     navItems = document.querySelectorAll('.nav-item');
-    console.log('📋 Itens do menu encontrados:', navItems.length);
-    
+        
     // Configurar eventos
     setupCentrosEvents();
     setupHorariosEvents();
@@ -42,16 +36,14 @@ export function initRouter(elements) {
     import('./dashboard.js').then(module => {
         // A função já se auto-registra no window quando o módulo é carregado
         // Este import serve apenas para "forçar" a execução do arquivo na inicialização
-        console.log('📦 Módulo dashboard carregado para expor funções globais.');
-    }).catch(err => console.error('❌ Erro ao carregar dashboard no router:', err));
+       }).catch(err => console.error('❌ Erro ao carregar dashboard no router:', err));
 }
 
 // ============================================
 // FUNÇÃO: Carregar Página (SPA)
 // ============================================
 export async function loadPage(page, params = null) {
-    console.log('🔄 Carregando página:', page);
-    
+        
     // Atualizar menu
     if (navItems && navItems.length > 0) {
         navItems.forEach(item => {
@@ -148,8 +140,7 @@ export async function loadPage(page, params = null) {
             pageContent.classList.remove('fade-in');
             void pageContent.offsetWidth;
             pageContent.classList.add('fade-in');
-            console.log('✅ Conteúdo carregado:', page);
-            
+                        
             // Aplicar filtros automáticos
             if (page === 'agendamentos' && typeof window.aplicarFiltros === 'function') {
                 setTimeout(() => window.aplicarFiltros(), 300);

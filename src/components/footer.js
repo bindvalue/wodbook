@@ -40,7 +40,7 @@ export function initFooter() {
     const footerContainer = document.getElementById('footerContainer');
     if (footerContainer) {
         footerContainer.innerHTML = renderFooter();
-        console.log('✅ Rodapé renderizado');
+        
     } else {
         console.warn('⚠️ footerContainer não encontrado');
     }
