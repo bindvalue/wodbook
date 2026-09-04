@@ -259,8 +259,45 @@
         // ============================================
         // FUNÇÕES GLOBAIS
         // ============================================
-        window.abrirAgendamento = function(centroId, centroNome) {
-            renderCalendar(centroId, centroNome);
+        window.abrirAgendamento = async function(centroId, centroNome) {
+            try {
+                const user = await getCurrentUser();
+                if (!user) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                // 🔥 VERIFICAÇÃO: Conta quantas vezes o usuário preencheu o formulário
+                const { count, error } = await supabase
+                    .from('formulario_consentimento')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('usuario_id', user.id);
+
+                if (error) {
+                    console.error('❌ Erro ao verificar formulário:', error);
+                    // Se der erro, assume que NÃO preencheu (abre o formulário)
+                    const { renderizarFormularioConsentimento } = await import('./src/components/consentimento.js');
+                    window.agendamentoAposFormulario = { centroId, centroNome };
+                    renderizarFormularioConsentimento();
+                    return;
+                }
+
+                // Se count === 0, o usuário NUNCA preencheu. Abre o formulário!
+                if (count === 0) {
+                    console.log('📋 Usuário NUNCA preencheu o formulário. Abrindo...');
+                    const { renderizarFormularioConsentimento } = await import('./src/components/consentimento.js');
+                    window.agendamentoAposFormulario = { centroId, centroNome };
+                    renderizarFormularioConsentimento();
+                } else {
+                    console.log('✅ Usuário JÁ preencheu o formulário. Abrindo calendário...');
+                    window.agendamentoAposFormulario = { centroId, centroNome };
+                    renderCalendar(centroId, centroNome);
+                }
+
+            } catch (error) {
+                console.error('❌ Erro crítico ao abrir agendamento:', error);
+                alert('Erro ao tentar abrir agendamento. Verifique o console.');
+            }
         };
         
         // ============================================

@@ -1,6 +1,6 @@
 // ============================================
 // ARQUIVO: modules/alunos.js
-// GERENCICIAMENTO DE ALUNOS (ADMIN)
+// GERENCIAMENTO DE ALUNOS (ADMIN)
 // ============================================
 
 import { supabase, getCurrentUser } from '../config/supabase.js';
@@ -12,6 +12,12 @@ import { loadPage } from './router.js';
 // ============================================
 let _formularioData = null;
 let _alunoData = null;
+
+// ============================================
+// VARIÁVEIS DE PAGINAÇÃO
+// ============================================
+let paginaAtualAlunos = 1;
+const ALUNOS_POR_PAGINA = 20;
 
 // ============================================
 // FUNÇÃO: Verificar se é Admin
@@ -66,9 +72,6 @@ async function buscarFormularioAluno(alunoId) {
     }
 }
 
-// ============================================
-// FUNÇÃO: Visualizar Formulário do Aluno (Modal)
-// ============================================
 // ============================================
 // FUNÇÃO: Visualizar Formulário do Aluno (Modal)
 // ============================================
@@ -166,7 +169,6 @@ window.visualizarFormularioAluno = async function(alunoId) {
                 
                 <!-- BODY - Scrollável -->
                 <div id="formularioPrintContent" style="flex: 1; overflow-y: auto; padding: 0 28px 20px 28px; scroll-behavior: smooth;">
-                    <!-- Scrollbar personalizada -->
                     <style>
                         #formularioPrintContent::-webkit-scrollbar {
                             width: 4px;
@@ -316,9 +318,6 @@ window.visualizarFormularioAluno = async function(alunoId) {
 // ============================================
 // FUNÇÃO: Imprimir Formulário do Aluno
 // ============================================
-// ============================================
-// FUNÇÃO: Imprimir Formulário do Aluno
-// ============================================
 window.imprimirFormularioAluno = function() {
     try {
         const formulario = _formularioData;
@@ -410,7 +409,6 @@ window.imprimirFormularioAluno = function() {
                     .status-rejeitado { background: #FEE2E2; color: #991B1B; }
                     .status-pendente { background: #FEF3C7; color: #92400E; }
                     
-                    /* 🔥 NOVO - Layout compacto em linha */
                     .info-row {
                         display: flex;
                         flex-wrap: wrap;
@@ -436,7 +434,6 @@ window.imprimirFormularioAluno = function() {
                         flex: 1;
                     }
                     
-                    /* Grid compacto para respostas */
                     .answer-grid {
                         display: grid;
                         grid-template-columns: 1fr 1fr;
@@ -509,13 +506,11 @@ window.imprimirFormularioAluno = function() {
             </head>
             <body>
                 <div class="print-container">
-                    <!-- Header -->
                     <div class="header">
                         <h1>📋 Questionário de Prontidão</h1>
                         <p>WODBOOK - Avaliação de Saúde para Prática de Atividades Físicas</p>
                     </div>
                     
-                    <!-- Status -->
                     <div class="section">
                         <div class="section-title">Status da Avaliação</div>
                         <div class="status-row">
@@ -528,7 +523,6 @@ window.imprimirFormularioAluno = function() {
                         </div>
                     </div>
                     
-                    <!-- Dados Pessoais - Layout compacto em linha -->
                     <div class="section">
                         <div class="section-title">📋 Dados Pessoais</div>
                         <div class="info-row">
@@ -547,7 +541,6 @@ window.imprimirFormularioAluno = function() {
                         </div>
                     </div>
                     
-                    <!-- Respostas - Grid 2 colunas -->
                     <div class="section">
                         <div class="section-title">📋 Respostas do Questionário</div>
                         <div class="answer-grid">
@@ -572,7 +565,6 @@ window.imprimirFormularioAluno = function() {
                         </div>
                     </div>
                     
-                    <!-- Termo -->
                     <div class="section">
                         <div class="section-title">📋 Termo de Responsabilidade</div>
                         <div class="termo-status ${formulario.termo_aceito ? 'termo-aceito' : 'termo-nao-aceito'}">
@@ -581,7 +573,6 @@ window.imprimirFormularioAluno = function() {
                         </div>
                     </div>
                     
-                    <!-- WhatsApp -->
                     ${formulario.telefone ? `
                         <div class="whatsapp-link">
                             <i class="fab fa-whatsapp" style="color: #16A34A;"></i>
@@ -826,10 +817,6 @@ export async function loadAlunosContent() {
                             class="h-10 px-4 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition active:scale-[0.98] flex items-center justify-center gap-2">
                         <i class="fas fa-file-pdf text-xs"></i>
                     </button>
-                    <button onclick="window.exportarFormulariosCSV()" 
-                            class="h-10 px-4 bg-green-500 text-white text-sm font-medium rounded-xl hover:bg-green-600 transition active:scale-[0.98] flex items-center justify-center gap-2">
-                        <i class="fas fa-file-csv text-xs"></i>
-                    </button>
                 </div>
             </div>
         </div>
@@ -843,18 +830,36 @@ export async function loadAlunosContent() {
                 </div>
             </div>
         </div>
+        
+        <!-- Controles de Paginação -->
+        <div id="paginacaoContainer" class="hidden mt-4 flex items-center justify-center gap-2">
+            <button onclick="window.mudarPaginaAlunos('prev')" 
+                    class="px-4 py-2 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center gap-1">
+                <i class="fas fa-chevron-left text-xs"></i> Anterior
+            </button>
+            <span id="paginaInfo" class="text-sm text-gray-500 font-medium px-4">Página 1 de 1</span>
+            <button onclick="window.mudarPaginaAlunos('next')" 
+                    class="px-4 py-2 bg-[#F4742B] text-white text-sm font-medium rounded-xl hover:bg-[#E0601A] transition active:scale-[0.98] flex items-center gap-1">
+                Próximo <i class="fas fa-chevron-right text-xs"></i>
+            </button>
+        </div>
     `;
 }
 
 // ============================================
-// FUNÇÃO: Aplicar Filtros e Carregar Alunos
+// FUNÇÃO: Aplicar Filtros e Carregar Alunos (COM PAGINAÇÃO)
 // ============================================
-window.aplicarFiltrosAlunos = async function() {
+window.aplicarFiltrosAlunos = async function(pagina = 1) {
     const container = document.getElementById('alunosList');
+    const paginacaoContainer = document.getElementById('paginacaoContainer');
+    const paginaInfo = document.getElementById('paginaInfo');
+    
     const busca = document.getElementById('buscarAluno')?.value?.toLowerCase() || '';
     const status = document.getElementById('filtroStatusAluno')?.value || '';
     const authType = document.getElementById('filtroAuth')?.value || '';
     const filtroFormulario = document.getElementById('filtroFormulario')?.value || '';
+    
+    paginaAtualAlunos = pagina;
     
     container.innerHTML = `
         <div class="flex items-center justify-center py-16">
@@ -866,62 +871,18 @@ window.aplicarFiltrosAlunos = async function() {
     `;
     
     try {
+        // 🔥 1. CONSULTA PRINCIPAL COM PAGINAÇÃO DIRETA NO SUPABASE (20 em 20)
         let query = supabase
             .from('usuarios')
-            .select('*')
-            .order('nome', { ascending: true });
+            .select('*', { count: 'exact' })
+            .order('nome', { ascending: true })
+            .range((pagina - 1) * ALUNOS_POR_PAGINA, (pagina * ALUNOS_POR_PAGINA) - 1);
         
-        const { data: usuarios, error } = await query;
+        const { data: usuarios, count: totalRegistros, error } = await query;
         if (error) throw error;
         
-        // Buscar contagem de agendamentos por usuário
-        const { data: agendamentos, error: agendamentosError } = await supabase
-            .from('agendamentos')
-            .select('usuario_id, status');
-        
-        if (agendamentosError) {
-            console.warn('⚠️ Erro ao buscar agendamentos:', agendamentosError);
-        }
-        
-        // Contar agendamentos por usuário
-        const contagemAgendamentos = {};
-        agendamentos?.forEach(ag => {
-            if (!contagemAgendamentos[ag.usuario_id]) {
-                contagemAgendamentos[ag.usuario_id] = 0;
-            }
-            contagemAgendamentos[ag.usuario_id]++;
-        });
-        
-        // Buscar formulários de consentimento
-        const { data: formularios, error: formulariosError } = await supabase
-            .from('formulario_consentimento')
-            .select('usuario_id, status, created_at');
-        
-        if (formulariosError) {
-            console.warn('⚠️ Erro ao buscar formulários:', formulariosError);
-        }
-        
-        // Mapear formulários por usuário (pegar o mais recente)
-        const formulariosMap = {};
-        formularios?.forEach(f => {
-            if (!formulariosMap[f.usuario_id] || f.created_at > formulariosMap[f.usuario_id].created_at) {
-                formulariosMap[f.usuario_id] = f;
-            }
-        });
-        
-        const usuariosComDados = usuarios?.map(u => ({
-            ...u,
-            authProvider: u.email?.includes('@gmail.com') ? 'google' : 'email',
-            totalAgendamentos: contagemAgendamentos[u.id] || 0,
-            temAgendamentos: (contagemAgendamentos[u.id] || 0) > 0,
-            formulario: formulariosMap[u.id] || null,
-            temFormulario: !!formulariosMap[u.id],
-            formularioStatus: formulariosMap[u.id]?.status || 'nao_preenchido',
-            usaPlataforma: u.usa_plataforma === true,
-            nomePlataforma: u.nome_plataforma || ''
-        })) || [];
-        
-        let filtered = usuariosComDados;
+        // 🔥 2. APLICAR FILTROS NO FRONT (apenas nos 20 registros retornados)
+        let filtered = usuarios || [];
         
         if (busca) {
             filtered = filtered.filter(u => 
@@ -947,171 +908,93 @@ window.aplicarFiltrosAlunos = async function() {
             filtered = filtered.filter(u => u.formularioStatus === filtroFormulario);
         }
         
-        const totalAlunos = usuarios?.length || 0;
-        const totalGoogle = usuariosComDados.filter(u => u.authProvider === 'google').length;
-        const ativos = usuariosComDados.filter(u => u.ativo !== false).length;
-        const totalAgendamentos = agendamentos?.length || 0;
+        // 🔥 3. CALCULAR TOTAL DE PÁGINAS E ATUALIZAR CONTROLES
+        const totalPaginas = Math.ceil(totalRegistros / ALUNOS_POR_PAGINA) || 1;
         
-        document.getElementById('totalAlunos').textContent = totalAlunos;
-        document.getElementById('totalGoogleAuth').textContent = totalGoogle;
-        document.getElementById('alunosAtivos').textContent = ativos;
-        document.getElementById('totalAgendamentos').textContent = totalAgendamentos;
-        
-        if (filtered.length === 0) {
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-16 px-4">
-                    <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                        <i class="fas fa-user-plus text-3xl text-gray-300"></i>
-                    </div>
-                    <p class="text-lg font-medium text-gray-600">Nenhum aluno encontrado</p>
-                    <p class="text-sm text-gray-400 mt-1">Os alunos aparecerão aqui quando se cadastrarem</p>
-                </div>
-            `;
-            return;
+        if (paginacaoContainer) {
+            paginacaoContainer.classList.remove('hidden');
+            paginaInfo.textContent = `Página ${pagina} de ${totalPaginas}`;
+            
+            const btnPrev = paginacaoContainer.querySelector('button:first-child');
+            const btnNext = paginacaoContainer.querySelector('button:last-child');
+            
+            if (btnPrev) btnPrev.disabled = pagina <= 1;
+            if (btnNext) btnNext.disabled = pagina >= totalPaginas;
         }
         
-        let html = `
-            <div class="px-4 py-3 bg-gray-50/80 border-b border-gray-100 flex justify-between items-center">
-                <div>
-                    <span class="font-semibold text-[#4B4B4D]">${filtered.length}</span>
-                    <span class="text-gray-500 text-sm"> alunos</span>
-                    <span class="text-gray-400 text-sm ml-2">| ${totalAgendamentos} agendamentos</span>
-                </div>
-                <span class="text-xs text-gray-400">${filtered.length} resultados</span>
-            </div>
-            <div class="divide-y divide-gray-100">
-        `;
+        // 🔥 4. INICIALIZAR A VARIÁVEL GLOBAL PARA EVITAR REFERENCEERROR
+        let usuariosComDados = [];
         
-        filtered.forEach(aluno => {
-            const initial = aluno.nome?.charAt(0).toUpperCase() || '?';
-            const authIcon = aluno.authProvider === 'google' 
-                ? '<i class="fab fa-google text-blue-500 text-xs"></i>' 
-                : '<i class="fas fa-envelope text-gray-400 text-xs"></i>';
+        // 🔥 5. BUSCAR DADOS RELACIONADOS (APENAS PARA OS 20 REGISTROS DA PÁGINA)
+        const idsUsuarios = filtered.map(u => u.id);
+        
+        if (idsUsuarios.length > 0) {
+            const [agendamentosResult, formulariosResult] = await Promise.all([
+                supabase
+                    .from('agendamentos')
+                    .select('usuario_id, status')
+                    .in('usuario_id', idsUsuarios),
+                supabase
+                    .from('formulario_consentimento')
+                    .select('usuario_id, status, created_at')
+                    .in('usuario_id', idsUsuarios)
+            ]);
             
-            const isActive = aluno.ativo !== false;
-            const temAgendamentos = aluno.totalAgendamentos > 0;
-            const temFormulario = aluno.temFormulario;
+            const agendamentos = agendamentosResult.data || [];
+            const formularios = formulariosResult.data || [];
             
-            // Status do formulário
-            let formularioStatus = 'Não preenchido';
-            let formularioColor = 'bg-gray-100 text-gray-500';
-            
-            if (temFormulario) {
-                if (aluno.formulario.status === 'aprovado') {
-                    formularioStatus = '✅ Aprovado';
-                    formularioColor = 'bg-green-50 text-green-600';
-                } else if (aluno.formulario.status === 'rejeitado') {
-                    formularioStatus = '⚠️ Rejeitado';
-                    formularioColor = 'bg-red-50 text-red-600';
-                } else {
-                    formularioStatus = '⏳ Pendente';
-                    formularioColor = 'bg-yellow-50 text-yellow-600';
+            // Contar agendamentos por usuário
+            const contagemAgendamentos = {};
+            agendamentos.forEach(ag => {
+                if (!contagemAgendamentos[ag.usuario_id]) {
+                    contagemAgendamentos[ag.usuario_id] = 0;
                 }
-            }
+                contagemAgendamentos[ag.usuario_id]++;
+            });
             
-            html += `
-                <div class="px-4 py-4 hover:bg-gray-50/50 transition duration-150">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <!-- Avatar e Nome -->
-                        <div class="flex items-center gap-3 flex-1 min-w-0">
-                            <div class="relative flex-shrink-0">
-                                <div class="w-12 h-12 rounded-full bg-[#FEF3E8] flex items-center justify-center text-[#F4742B] font-semibold text-lg">
-                                    ${initial}
-                                </div>
-                                <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-400'} border-2 border-white"></div>
-                            </div>
-                                <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <p class="font-semibold text-gray-800 truncate">${aluno.nome || 'Sem nome'}</p>
-                                    <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
-                                        ${isActive ? 'Ativo' : 'Inativo'}
-                                    </span>
-                                    
-                                    <!-- 🔥 NOVO: Badge da Plataforma Pass -->
-                                    ${aluno.usaPlataforma ? `
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FEF3E8] text-[#F4742B] border border-[#FED7AA]" title="Utiliza plataforma ${aluno.nomePlataforma || 'Pass'}">
-                                            <i class="fas fa-id-card text-[9px]"></i>
-                                            ${aluno.nomePlataforma || 'Pass'}
-                                        </span>
-                                    ` : `
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400" title="Não utiliza plataforma Pass">
-                                            <i class="fas fa-user text-[9px]"></i>
-                                            Sem Pass
-                                        </span>
-                                    `}
-                                    
-                                    ${temAgendamentos ? `
-                                        <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">
-                                            ${aluno.totalAgendamentos} agendamentos
-                                        </span>
-                                    ` : ''}
-                                    <span class="text-xs px-2 py-0.5 rounded-full ${formularioColor}">
-                                        ${formularioStatus}
-                                    </span>
-                                </div>
-                                <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 mt-0.5">
-                                    <span class="flex items-center gap-1">
-                                        <i class="fas fa-envelope text-[10px]"></i>
-                                        ${aluno.email || 'N/E'}
-                                    </span>
-                                    ${aluno.telefone ? `
-                                        <span class="flex items-center gap-1">
-                                            <i class="fas fa-phone text-[10px]"></i>
-                                            ${aluno.telefone}
-                                        </span>
-                                    ` : ''}
-                                    <span class="flex items-center gap-1">
-                                        ${authIcon}
-                                        ${aluno.authProvider === 'google' ? 'Google' : 'Email'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Ações -->
-                        <div class="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
-                            ${temAgendamentos ? `
-                                <button onclick="window.verAgendamentosAluno('${aluno.id}')" 
-                                        class="px-3 py-1.5 text-xs bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition flex items-center gap-1">
-                                    <i class="fas fa-calendar-check"></i>
-                                    Ver agendamentos
-                                </button>
-                            ` : `
-                                <span class="px-3 py-1.5 text-xs bg-gray-50 text-gray-400 rounded-lg cursor-not-allowed flex items-center gap-1">
-                                    <i class="fas fa-calendar-check"></i>
-                                    Sem agendamentos
-                                </span>
-                            `}
-                            
-                            <!-- 🔥 BOTÃO VISUALIZAR FORMULÁRIO -->
-                            <button onclick="window.abrirFormularioAluno('${aluno.id}')" 
-                                    class="px-3 py-1.5 text-xs ${temFormulario ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' : 'bg-gray-50 text-gray-400'} rounded-lg transition flex items-center gap-1">
-                                <i class="fas ${temFormulario ? 'fa-file-signature' : 'fa-file'}"></i>
-                                ${temFormulario ? 'Ver formulário' : 'Sem formulário'}
-                            </button>
-                            
-                            ${aluno.telefone ? `
-                                <button onclick="window.abrirWhatsAppAluno('${aluno.telefone}', '${aluno.nome || 'Aluno'}')" 
-                                        class="p-1.5 text-green-500 hover:bg-green-50 rounded-lg transition">
-                                    <i class="fab fa-whatsapp text-sm"></i>
-                                </button>
-                            ` : `
-                                <span class="p-1.5 text-gray-300 cursor-not-allowed">
-                                    <i class="fab fa-whatsapp text-sm"></i>
-                                </span>
-                            `}
-                            <button onclick="window.toggleStatusAluno('${aluno.id}', ${isActive})" 
-                                    class="p-1.5 ${isActive ? 'text-red-400 hover:text-red-600 hover:bg-red-50' : 'text-green-400 hover:text-green-600 hover:bg-green-50'} rounded-lg transition">
-                                <i class="fas ${isActive ? 'fa-pause' : 'fa-play'} text-sm"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
+            // Mapear formulários por usuário (pegar o mais recente)
+            const formulariosMap = {};
+            formularios.forEach(f => {
+                if (!formulariosMap[f.usuario_id] || f.created_at > formulariosMap[f.usuario_id].created_at) {
+                    formulariosMap[f.usuario_id] = f;
+                }
+            });
+            
+            // 🔥 ATUALIZAR O MAPEAMENTO DOS DADOS
+            usuariosComDados = filtered.map(u => ({
+                ...u,
+                authProvider: u.email?.includes('@gmail.com') ? 'google' : 'email',
+                totalAgendamentos: contagemAgendamentos[u.id] || 0,
+                temAgendamentos: (contagemAgendamentos[u.id] || 0) > 0,
+                formulario: formulariosMap[u.id] || null,
+                temFormulario: !!formulariosMap[u.id],
+                formularioStatus: formulariosMap[u.id]?.status || 'nao_preenchido',
+                usaPlataforma: u.usa_plataforma === true,
+                nomePlataforma: u.nome_plataforma || ''
+            }));
+        }
         
-        html += `</div>`;
-        container.innerHTML = html;
+        // 🔥 6. RENDERIZAR COM DADOS COMPLETOS
+        await renderizarListaAlunos(usuariosComDados, totalRegistros, filtered.length);
+        
+        // 🔥 7. ATUALIZAR ESTATÍSTICAS (buscar totais globais separadamente)
+        const { count: totalAlunosGlobal } = await supabase
+            .from('usuarios')
+            .select('*', { count: 'exact', head: true });
+        
+        const { count: totalGoogleGlobal } = await supabase
+            .from('usuarios')
+            .select('*', { count: 'exact', head: true })
+            .ilike('email', '%@gmail.com');
+        
+        const { count: agendamentosGlobal } = await supabase
+            .from('agendamentos')
+            .select('*', { count: 'exact', head: true });
+        
+        document.getElementById('totalAlunos').textContent = totalAlunosGlobal || 0;
+        document.getElementById('totalGoogleAuth').textContent = totalGoogleGlobal || 0;
+        document.getElementById('alunosAtivos').textContent = usuariosComDados.filter(u => u.ativo !== false).length;
+        document.getElementById('totalAgendamentos').textContent = agendamentosGlobal || 0;
         
     } catch (error) {
         console.error('Erro ao carregar alunos:', error);
@@ -1122,12 +1005,194 @@ window.aplicarFiltrosAlunos = async function() {
                 </div>
                 <p class="text-lg font-medium text-gray-600">Erro ao carregar</p>
                 <p class="text-sm text-gray-400 mt-1">Tente novamente mais tarde</p>
-                <button onclick="window.aplicarFiltrosAlunos()" 
+                <button onclick="window.aplicarFiltrosAlunos(1)" 
                         class="mt-4 px-6 py-2 bg-[#F4742B] text-white text-sm rounded-xl hover:bg-[#E0601A] transition">
                     Tentar novamente
                 </button>
             </div>
         `;
+    }
+};
+
+// ============================================
+// 🔥 FUNÇÃO AUXILIAR: Renderizar Lista de Alunos (com dados completos)
+// ============================================
+async function renderizarListaAlunos(usuariosComDados, totalRegistros, totalNaPagina) {
+    const container = document.getElementById('alunosList');
+    
+    if (usuariosComDados.length === 0) {
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-16 px-4">
+                <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                    <i class="fas fa-user-plus text-3xl text-gray-300"></i>
+                </div>
+                <p class="text-lg font-medium text-gray-600">Nenhum aluno encontrado</p>
+                <p class="text-sm text-gray-400 mt-1">Os alunos aparecerão aqui quando se cadastrarem</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="px-4 py-3 bg-gray-50/80 border-b border-gray-100 flex justify-between items-center">
+            <div>
+                <span class="font-semibold text-[#4B4B4D]">${totalNaPagina}</span>
+                <span class="text-gray-500 text-sm"> alunos nesta página</span>
+                <span class="text-gray-400 text-sm ml-2">| Total: ${totalRegistros}</span>
+            </div>
+            <span class="text-xs text-gray-400">${totalNaPagina} resultados</span>
+        </div>
+        <div class="divide-y divide-gray-100">
+    `;
+    
+    usuariosComDados.forEach(aluno => {
+        const initial = aluno.nome?.charAt(0).toUpperCase() || '?';
+        const authIcon = aluno.authProvider === 'google' 
+            ? '<i class="fab fa-google text-blue-500 text-xs"></i>' 
+            : '<i class="fas fa-envelope text-gray-400 text-xs"></i>';
+        
+        const isActive = aluno.ativo !== false;
+        const temAgendamentos = aluno.totalAgendamentos > 0;
+        const temFormulario = aluno.temFormulario;
+        
+        // Status do formulário
+        let formularioStatus = 'Não preenchido';
+        let formularioColor = 'bg-gray-100 text-gray-500';
+        
+        if (temFormulario) {
+            if (aluno.formulario.status === 'aprovado') {
+                formularioStatus = '✅ Aprovado';
+                formularioColor = 'bg-green-50 text-green-600';
+            } else if (aluno.formulario.status === 'rejeitado') {
+                formularioStatus = '⚠️ Rejeitado';
+                formularioColor = 'bg-red-50 text-red-600';
+            } else {
+                formularioStatus = '⏳ Pendente';
+                formularioColor = 'bg-yellow-50 text-yellow-600';
+            }
+        }
+        
+        html += `
+            <div class="px-4 py-4 hover:bg-gray-50/50 transition duration-150">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <!-- Avatar e Nome -->
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <div class="relative flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-[#FEF3E8] flex items-center justify-center text-[#F4742B] font-semibold text-lg">
+                                ${initial}
+                            </div>
+                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-400'} border-2 border-white"></div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <p class="font-semibold text-gray-800 truncate">${aluno.nome || 'Sem nome'}</p>
+                                <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                                    ${isActive ? 'Ativo' : 'Inativo'}
+                                </span>
+                                
+                                <!-- 🔥 BADGE DA PLATAFORMA PASS -->
+                                ${aluno.usaPlataforma ? `
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FEF3E8] text-[#F4742B] border border-[#FED7AA]" title="Utiliza plataforma ${aluno.nomePlataforma || 'Pass'}">
+                                        <i class="fas fa-id-card text-[9px]"></i>
+                                        ${aluno.nomePlataforma || 'Pass'}
+                                    </span>
+                                ` : `
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-400" title="Não utiliza plataforma Pass">
+                                        <i class="fas fa-user text-[9px]"></i>
+                                        Sem Pass
+                                    </span>
+                                `}
+                                
+                                ${temAgendamentos ? `
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">
+                                        ${aluno.totalAgendamentos} agendamentos
+                                    </span>
+                                ` : ''}
+                                <span class="text-xs px-2 py-0.5 rounded-full ${formularioColor}">
+                                    ${formularioStatus}
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 mt-0.5">
+                                <span class="flex items-center gap-1">
+                                    <i class="fas fa-envelope text-[10px]"></i>
+                                    ${aluno.email || 'N/E'}
+                                </span>
+                                ${aluno.telefone ? `
+                                    <span class="flex items-center gap-1">
+                                        <i class="fas fa-phone text-[10px]"></i>
+                                        ${aluno.telefone}
+                                    </span>
+                                ` : ''}
+                                <span class="flex items-center gap-1">
+                                    ${authIcon}
+                                    ${aluno.authProvider === 'google' ? 'Google' : 'Email'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ações -->
+                    <div class="flex items-center gap-1.5 flex-shrink-0 flex-wrap">
+                        ${temAgendamentos ? `
+                            <button onclick="window.verAgendamentosAluno('${aluno.id}')" 
+                                    class="px-3 py-1.5 text-xs bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition flex items-center gap-1">
+                                <i class="fas fa-calendar-check"></i>
+                                Ver agendamentos
+                            </button>
+                        ` : `
+                            <span class="px-3 py-1.5 text-xs bg-gray-50 text-gray-400 rounded-lg cursor-not-allowed flex items-center gap-1">
+                                <i class="fas fa-calendar-check"></i>
+                                Sem agendamentos
+                            </span>
+                        `}
+                        
+                        <!-- 🔥 BOTÃO VISUALIZAR FORMULÁRIO -->
+                        <button onclick="window.abrirFormularioAluno('${aluno.id}')" 
+                                class="px-3 py-1.5 text-xs ${temFormulario ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' : 'bg-gray-50 text-gray-400'} rounded-lg transition flex items-center gap-1">
+                            <i class="fas ${temFormulario ? 'fa-file-signature' : 'fa-file'}"></i>
+                            ${temFormulario ? 'Ver formulário' : 'Sem formulário'}
+                        </button>
+                        
+                        ${aluno.telefone ? `
+                            <button onclick="window.abrirWhatsAppAluno('${aluno.telefone}', '${aluno.nome || 'Aluno'}')" 
+                                    class="p-1.5 text-green-500 hover:bg-green-50 rounded-lg transition">
+                                <i class="fab fa-whatsapp text-sm"></i>
+                            </button>
+                        ` : `
+                            <span class="p-1.5 text-gray-300 cursor-not-allowed">
+                                <i class="fab fa-whatsapp text-sm"></i>
+                            </span>
+                        `}
+                        <button onclick="window.toggleStatusAluno('${aluno.id}', ${isActive})" 
+                                class="p-1.5 ${isActive ? 'text-red-400 hover:text-red-600 hover:bg-red-50' : 'text-green-400 hover:text-green-600 hover:bg-green-50'} rounded-lg transition">
+                            <i class="fas ${isActive ? 'fa-pause' : 'fa-play'} text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+// ============================================
+// 🔥 FUNÇÃO: Mudar Página de Alunos
+// ============================================
+window.mudarPaginaAlunos = function(direcao) {
+    const paginaInfo = document.getElementById('paginaInfo');
+    if (!paginaInfo) return;
+    
+    const paginas = parseInt(paginaInfo.textContent.match(/Página (\d+) de/)[1]);
+    const totalPaginas = parseInt(paginaInfo.textContent.match(/de (\d+)/)[1]);
+    
+    if (direcao === 'prev' && paginaAtualAlunos > 1) {
+        paginaAtualAlunos--;
+        window.aplicarFiltrosAlunos(paginaAtualAlunos);
+    } else if (direcao === 'next' && paginaAtualAlunos < totalPaginas) {
+        paginaAtualAlunos++;
+        window.aplicarFiltrosAlunos(paginaAtualAlunos);
     }
 };
 

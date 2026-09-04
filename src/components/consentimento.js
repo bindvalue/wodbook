@@ -51,7 +51,7 @@ window.togglePlataformaInput = function(valor) {
 };
 
 /**
- * Renderiza o modal do formulário de consentimento
+ * Renderiza o modal do formulário de consentimento (LAYOUT OTIMIZADO)
  */
 export function renderizarFormularioConsentimento() {
     // Verificar se já existe um modal
@@ -66,83 +66,102 @@ export function renderizarFormularioConsentimento() {
     overlay.style.display = 'flex';
     overlay.style.alignItems = 'center';
     overlay.style.justifyContent = 'center';
-    overlay.style.padding = '20px';
+    overlay.style.padding = '16px';
     overlay.style.zIndex = '10001';
     
+    // 🔥 LAYOUT OTIMIZADO: Cabeçalho compacto, campos menores e mais alinhados
     overlay.innerHTML = `
-        <div class="modal-content" style="max-width: 600px; width: 100%; max-height: 90vh; overflow: hidden; position: relative; background: white; border-radius: 24px; padding: 32px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
-            <button onclick="window.fecharModalConsentimento()" 
-                    style="position: sticky; top: 0; float: right; background: none; border: none; font-size: 24px; color: #9CA3AF; cursor: pointer; padding: 8px; z-index: 10; align-self: flex-end;">
-                <i class="fas fa-times"></i>
-            </button>
+        <div class="modal-content" style="max-width: 640px; width: 100%; max-height: 90vh; overflow: hidden; position: relative; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); display: flex; flex-direction: column;">
             
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-[#FEF3E8] rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fas fa-file-signature text-[#F4742B] text-2xl"></i>
+            <!-- 🔥 HEADER COMPACTO E FIXO -->
+            <div style="flex-shrink: 0; padding: 16px 20px; border-bottom: 1px solid #F3F4F6; display: flex; align-items: center; justify-content: space-between; background: white; border-radius: 20px 20px 0 0;">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-[#FEF3E8] flex items-center justify-center">
+                        <i class="fas fa-file-signature text-[#F4742B] text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-bold text-[#4B4B4D]">Questionário de Prontidão</h2>
+                        <p class="text-[10px] text-gray-400">Preencha para liberar seus agendamentos</p>
+                    </div>
                 </div>
-                <h2 class="text-2xl font-bold text-[#4B4B4D]">Questionário de Prontidão</h2>
-                <p class="text-sm text-gray-500 mt-1">Para sua segurança, preencha o formulário abaixo</p>
+                <button onclick="window.fecharModalConsentimento()" 
+                        class="w-8 h-8 rounded-full hover:bg-gray-100 transition flex items-center justify-center">
+                    <i class="fas fa-times text-gray-400"></i>
+                </button>
             </div>
             
-            <form id="formConsentimento" class="space-y-4" style="overflow-y: auto; overflow-x: hidden; flex: 1; padding-right: 4px;">
+            <!-- 🔥 BODY COM SCROLL -->
+            <form id="formConsentimento" class="space-y-3" style="overflow-y: auto; overflow-x: hidden; flex: 1; padding: 20px; scrollbar-width: thin;">
                 <input type="hidden" id="formUsuarioId">
                 
-                <!-- Termo de Responsabilidade -->
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <h3 class="text-sm font-semibold text-[#4B4B4D] mb-2">📋 Termo de Responsabilidade</h3>
-                    <div class="text-sm text-gray-700 leading-relaxed max-h-48 overflow-y-auto p-3 bg-white rounded-lg border border-gray-200" style="scrollbar-width: thin;">
-                        <p>Declaro, para todos os fins de direito, que estou em plenas condições de saúde para a prática de atividades físicas, assumindo total responsabilidade por minha participação. Reconheço que é de minha exclusiva responsabilidade buscar avaliação e acompanhamento médico prévio e regular, bem como informar imediatamente à empresa sobre qualquer alteração em meu estado de saúde ou desconforto que possa surgir durante a prática das atividades. Por meio deste, isento a empresa de toda e qualquer responsabilidade por eventuais problemas de saúde, lesões ou agravos decorrentes da minha participação nas atividades físicas.</p>
+                <!-- 🔥 TERMO DE RESPONSABILIDADE (MAIS COMPACTO) -->
+                <div class="bg-[#FEF3E8] rounded-xl p-4 border-2 border-[#FED7AA] relative">
+                    <!-- Ícone de atenção no topo -->
+                    <div class="absolute -top-3 left-4 bg-[#F4742B] text-white text-[9px] font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                        <i class="fas fa-exclamation-triangle text-[8px]"></i>
+                        Leia com atenção
                     </div>
-                    <div class="flex items-center gap-2 mt-2">
+                    
+                    <h3 class="text-sm font-bold text-[#9A3412] flex items-center gap-2 mb-2 mt-1">
+                        <i class="fas fa-shield-alt"></i>
+                        Termo de Responsabilidade
+                    </h3>
+                    
+                    <!-- 🔥 TEXTO SEM SCROLL INTERNO - TOTALMENTE LEGÍVEL -->
+                    <div class="text-[12px] leading-relaxed text-[#4B4B4D] bg-white rounded-lg p-3 border border-[#FED7AA]">
+                        <p>
+                            Declaro, para todos os fins de direito, que estou em plenas condições de saúde para a prática de atividades físicas, assumindo total responsabilidade por minha participação. Reconheço que é de minha exclusiva responsabilidade buscar avaliação e acompanhamento médico prévio e regular, bem como informar imediatamente à empresa sobre qualquer alteração em meu estado de saúde ou desconforto que possa surgir durante a prática das atividades. Por meio deste, isento a empresa de toda e qualquer responsabilidade por eventuais problemas de saúde, lesões ou agravos decorrentes da minha participação nas atividades físicas.
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 mt-3">
                         <input type="checkbox" id="termoAceito" class="w-4 h-4 text-[#F4742B] focus:ring-[#F4742B] border-gray-300 rounded">
-                        <label for="termoAceito" class="text-xs font-medium text-gray-700">Li e aceito o Termo de Responsabilidade *</label>
+                        <label for="termoAceito" class="text-[11px] font-semibold text-[#9A3412]">Li e aceito o Termo de Responsabilidade *</label>
                     </div>
                 </div>
                 
-                <!-- Dados Pessoais -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Nome Completo *</label>
+                <!-- 🔥 DADOS PESSOAIS (GRID 3 COLUNAS) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] font-medium text-gray-600 mb-1">Nome Completo *</label>
                         <input type="text" id="formNome" 
-                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white"
-                               placeholder="Seu nome completo" required>
+                               class="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white"
+                               placeholder="Seu nome" required>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Idade *</label>
+                        <label class="block text-[10px] font-medium text-gray-600 mb-1">Idade *</label>
                         <input type="number" id="formIdade" 
-                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white"
-                               placeholder="Sua idade" min="10" max="120" required>
+                               class="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white"
+                               placeholder="Idade" min="10" max="120" required>
                     </div>
                 </div>
                 
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Telefone de Contato *</label>
+                    <label class="block text-[10px] font-medium text-gray-600 mb-1">Telefone de Contato *</label>
                     <input type="tel" id="formTelefone" 
-                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white"
+                           class="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white"
                            placeholder="(XX) XXXXX-XXXX" maxlength="15" required>
-                    <p class="text-[10px] text-gray-400 mt-1">Exemplo: (11) 99999-9999</p>
+                    <p class="text-[9px] text-gray-400 mt-0.5">Exemplo: (11) 99999-9999</p>
                 </div>
                 
-                <!-- ========================================== -->
-                <!-- 🔥 NOVO: Pergunta sobre Plataforma Pass -->
-                <!-- ========================================== -->
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <label class="block text-xs font-medium text-gray-600 mb-2">Você utiliza alguma plataforma de acesso (Gympass, TotalPass, etc.)? *</label>
-                    <div class="flex gap-4">
-                        <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-gray-200 flex-1 hover:border-[#F4742B] transition">
-                            <input type="radio" name="usa_plataforma" value="sim" class="w-4 h-4 text-[#F4742B] focus:ring-[#F4742B]" onchange="togglePlataformaInput(this.value)">
-                            <span class="text-sm text-gray-700">Sim, utilizo</span>
+                <!-- 🔥 PLATAFORMA PASS (COMPACTO) -->
+                <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                    <label class="block text-[10px] font-medium text-gray-600 mb-2">Você utiliza alguma plataforma de acesso (Gympass, TotalPass, etc.)? *</label>
+                    <div class="flex gap-2">
+                        <label class="flex-1 flex items-center gap-1.5 cursor-pointer bg-white p-2 rounded-lg border border-gray-200 hover:border-[#F4742B] transition">
+                            <input type="radio" name="usa_plataforma" value="sim" class="w-3.5 h-3.5 text-[#F4742B] focus:ring-[#F4742B]" onchange="togglePlataformaInput(this.value)">
+                            <span class="text-[11px] text-gray-700">Sim, utilizo</span>
                         </label>
-                        <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-gray-200 flex-1 hover:border-[#F4742B] transition">
-                            <input type="radio" name="usa_plataforma" value="nao" class="w-4 h-4 text-[#F4742B] focus:ring-[#F4742B]" onchange="togglePlataformaInput(this.value)" checked>
-                            <span class="text-sm text-gray-700">Não utilizo</span>
+                        <label class="flex-1 flex items-center gap-1.5 cursor-pointer bg-white p-2 rounded-lg border border-gray-200 hover:border-[#F4742B] transition">
+                            <input type="radio" name="usa_plataforma" value="nao" class="w-3.5 h-3.5 text-[#F4742B] focus:ring-[#F4742B]" onchange="togglePlataformaInput(this.value)" checked>
+                            <span class="text-[11px] text-gray-700">Não utilizo</span>
                         </label>
                     </div>
                     
                     <!-- Input que aparece se o aluno usar plataforma -->
-                    <div id="containerPlataforma" style="display: none; margin-top: 12px;">
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Qual plataforma você utiliza? *</label>
-                        <select id="formPlataforma" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
+                    <div id="containerPlataforma" style="display: none; margin-top: 8px;">
+                        <label class="block text-[10px] font-medium text-gray-600 mb-1">Qual plataforma você utiliza? *</label>
+                        <select id="formPlataforma" class="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F4742B] focus:border-transparent outline-none transition bg-gray-50 hover:bg-white focus:bg-white">
                             <option value="">Selecione a plataforma</option>
                             <option value="Gympass">Gympass</option>
                             <option value="TotalPass">TotalPass</option>
@@ -152,12 +171,11 @@ export function renderizarFormularioConsentimento() {
                         </select>
                     </div>
                 </div>
-                <!-- ========================================== -->
                 
-                <!-- Perguntas -->
+                <!-- 🔥 PERGUNTAS (GRID 1 COLUNA MAIS LIMPO) -->
                 <div class="space-y-2">
-                    <h3 class="text-sm font-semibold text-[#4B4B4D] flex items-center gap-2">
-                        <i class="fas fa-question-circle text-[#F4742B]"></i>
+                    <h3 class="text-xs font-semibold text-[#4B4B4D] flex items-center gap-1">
+                        <i class="fas fa-question-circle text-[#F4742B] text-[10px]"></i>
                         Questionário de Saúde
                     </h3>
                     
@@ -170,34 +188,38 @@ export function renderizarFormularioConsentimento() {
                         { id: 'medicamento_pressao', label: 'Seu médico já recomendou o uso de medicamentos para controle da sua pressão arterial ou condição cardiovascular?' },
                         { id: 'outra_razao_impeditiva', label: 'Você tem conhecimento de alguma outra razão física que o impeça de participar de atividades físicas?' }
                     ].map((pergunta, index) => `
-                        <div class="bg-gray-50/80 rounded-xl p-3 border border-gray-100">
-                            <div class="flex items-start gap-2">
-                                <span class="text-xs font-medium text-[#F4742B] mt-0.5">${index + 1}.</span>
-                                <span class="text-xs text-gray-700 flex-1">${pergunta.label}</span>
+                        <div class="bg-gray-50/70 rounded-lg p-2.5 border border-gray-100">
+                            <div class="flex items-start gap-1.5">
+                                <span class="text-[10px] font-medium text-[#F4742B] mt-0.5">${index + 1}.</span>
+                                <span class="text-[11px] text-gray-700 flex-1">${pergunta.label}</span>
                             </div>
-                            <div class="flex gap-4 mt-1.5 ml-5">
-                                <label class="flex items-center gap-1.5 cursor-pointer">
-                                    <input type="radio" name="pergunta_${pergunta.id}" value="true" class="w-3.5 h-3.5 text-red-500 focus:ring-red-500">
-                                    <span class="text-xs text-gray-600">SIM</span>
+                            <div class="flex gap-4 mt-1 ml-4">
+                                <label class="flex items-center gap-1 cursor-pointer">
+                                    <input type="radio" name="pergunta_${pergunta.id}" value="true" class="w-3 h-3 text-red-500 focus:ring-red-500">
+                                    <span class="text-[10px] text-gray-600">SIM</span>
                                 </label>
-                                <label class="flex items-center gap-1.5 cursor-pointer">
-                                    <input type="radio" name="pergunta_${pergunta.id}" value="false" checked class="w-3.5 h-3.5 text-green-500 focus:ring-green-500">
-                                    <span class="text-xs text-gray-600">NÃO</span>
+                                <label class="flex items-center gap-1 cursor-pointer">
+                                    <input type="radio" name="pergunta_${pergunta.id}" value="false" checked class="w-3 h-3 text-green-500 focus:ring-green-500">
+                                    <span class="text-[10px] text-gray-600">NÃO</span>
                                 </label>
                             </div>
                         </div>
                     `).join('')}
                 </div>
                 
-                <!-- Botões -->
-                <div class="flex gap-3 pt-2" style="flex-shrink: 0; border-top: 1px solid #F3F4F6;">
+                <!-- 🔥 BOTÕES (FIXOS NA PARTE INFERIOR) -->
+                <div class="flex flex-col-reverse sm:flex-row gap-3 pt-4 pb-2" style="flex-shrink: 0; border-top: 1px solid #F3F4F6;">
+                    <!-- Botão Cancelar (Secundário - Discreto) -->
                     <button type="button" onclick="window.fecharModalConsentimento()"
-                            class="flex-1 px-4 py-2 border-2 border-gray-200 rounded-xl font-semibold hover:bg-gray-50 transition">
+                            class="w-full sm:flex-1 h-12 px-4 rounded-2xl text-sm font-semibold text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 transition active:scale-[0.98]">
                         Cancelar
                     </button>
+                    
+                    <!-- Botão Enviar (Principal - Cor de Destaque) -->
                     <button type="submit"
-                            class="flex-1 px-4 py-2 bg-[#F4742B] text-white rounded-xl font-semibold hover:bg-[#E0601A] transition hover:shadow-lg flex items-center justify-center gap-2">
-                        <i class="fas fa-check"></i> Enviar Formulário
+                            class="w-full sm:flex-1 h-12 px-4 rounded-2xl text-sm font-bold text-white bg-[#F4742B] hover:bg-[#E0601A] transition shadow-md hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2">
+                        <i class="fas fa-check text-xs"></i>
+                        Enviar Formulário
                     </button>
                 </div>
             </form>
